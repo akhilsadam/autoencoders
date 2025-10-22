@@ -18,4 +18,5 @@ def create_trainer(cfg: DictConfig, logger: Optional[pl.loggers.Logger] = None, 
     if callbacks is not None:
         trainer_kw["callbacks"] = list(callbacks)
 
+    print('Trainer config:', trainer_kw)
     return pl.Trainer(**trainer_kw)
