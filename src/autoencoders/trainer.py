@@ -19,5 +19,5 @@ def create_trainer(cfg: DictConfig, logger: Optional[pl.loggers.Logger] = None, 
         trainer_kw["callbacks"] = list(callbacks)
 
     trainer_kw["max_epochs"] = -1 # disable
-    print('Trainer config:', trainer_kw)
+    # print('Trainer config:', trainer_kw)
     return pl.Trainer(**trainer_kw)
