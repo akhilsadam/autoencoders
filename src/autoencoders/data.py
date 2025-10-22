@@ -3,14 +3,15 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from .datamodules import DATASET_REGISTRY, DataLoaderPair, list_datasets
 
 
 def _to_plain_dict(cfg: DictConfig | Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(cfg, DictConfig):
-        return DictConfig.to_container(cfg, resolve=True)  # type: ignore[return-value]
+        # Use OmegaConf.to_container for compatibility across versions
+        return OmegaConf.to_container(cfg, resolve=True)  # type: ignore[return-value]
     return dict(cfg)
 
 
