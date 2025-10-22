@@ -7,35 +7,21 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = [
-    "gitpython",
-    "logging",
-    "pyyaml>=6.0.1",
-    "torch>=2.5.0",
-    "lightning",
-    "torchvision>=0.18.0",
-    "wandb>=0.17.0",
-    "numpy",
-    "pykeops",
-    "einops",
-    "matplotlib",
-    "ffmpeg-python",
-    "jpcm>=0.1.27",
-    "pytest>=8.2.0",
-    "huggingface_hub>=0.24.0",
-    "Pillow>=10.2.0",
-    "omegaconf>=2.4.0",
-    "hydra-core>=1.4.0",
-]
+dynamic = ["dependencies"]
 
-[options.packages.find]
-where = "src"
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [build-system]
 requires = [
-    "uv>=0.7.20",
-    "setuptools",
+    "setuptools>=69",
+    "wheel",
+    "uv",
 ]
+build-backend = "setuptools.build_meta"
 
 [tool.hatch.metadata] 
 allow-direct-references = true
@@ -47,3 +33,6 @@ addopts = [
     "--capture=no",
     '-vvv'
     ]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["src/install/requirements.txt"] }
