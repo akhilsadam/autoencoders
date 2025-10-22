@@ -22,11 +22,13 @@ wandb:
   tags: ${run.tags}
 
 trainer:
-  max_epochs: 5
+  max_epochs: -1
+  max_steps: 4000
   accelerator: auto
   devices: auto
   log_every_n_steps: 10
   precision: 32
+  progress_bar_refresh_rate: 10
 
 hydra:
   run:

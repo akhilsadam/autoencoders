@@ -14,6 +14,7 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from torchvision.utils import save_image
+import wandb
 
 from . import get_default_config, get_model
 from .data import build_dataloaders
@@ -21,6 +22,7 @@ os.environ.setdefault("WANDB_MODE", "online")
 
 from .trainer import create_trainer
 
+torch.set_float32_matmul_precision('high')
 
 def _prepare_model(cfg: DictConfig) -> pl.LightningModule:
     default_cfg = get_default_config(cfg.model.name)
@@ -70,6 +72,30 @@ def _save_reconstructions(model: pl.LightningModule, dataloader: torch.utils.dat
             break
 
 
+def _log_wandb_artifacts(logger: WandbLogger, dirs: Dict[str, str]) -> None:
+    """Upload checkpoints and reconstruction images to Weights & Biases as artifacts."""
+    run = logger.experiment  # wandb.sdk.wandb_run.Run
+    try:
+        base_name = getattr(run, "name", None) or getattr(run, "id", "run")
+
+        # Log checkpoints as a model artifact
+        ckpt_dir = dirs.get("checkpoints", "")
+        if ckpt_dir and os.path.isdir(ckpt_dir) and any(os.scandir(ckpt_dir)):
+            model_art = wandb.Artifact(name=f"{base_name}-checkpoints", type="model")
+            model_art.add_dir(ckpt_dir)
+            run.log_artifact(model_art, aliases=["latest"])  # add alias for convenience
+
+        # Log reconstructions as an evaluation artifact
+        rec_dir = dirs.get("reconstructions", "")
+        if rec_dir and os.path.isdir(rec_dir) and any(os.scandir(rec_dir)):
+            eval_art = wandb.Artifact(name=f"{base_name}-reconstructions", type="evaluation")
+            eval_art.add_dir(rec_dir)
+            run.log_artifact(eval_art)
+    except Exception as e:
+        # Do not fail training if artifact upload encounters a transient error
+        print(f"Warning: failed to log artifacts to W&B: {e}")
+
+
 @hydra.main(version_base="1.3", config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     pl.seed_everything(cfg.seed)
@@ -97,6 +123,8 @@ def main(cfg: DictConfig) -> None:
     trainer.save_checkpoint(os.path.join(dirs["checkpoints"], "last.ckpt"))
 
     _save_reconstructions(model, val_loader, dirs["reconstructions"])
+    _log_wandb_artifacts(logger, dirs)
+
 
 
 if __name__ == "__main__":
