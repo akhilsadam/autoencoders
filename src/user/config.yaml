@@ -1,0 +1,30 @@
+# User-specific settings for deployment and data paths.
+ssh:
+  user: a1744874
+  host: orcd-login001.mit.edu
+  port: 22
+  identity_file: ~/.ssh/id_engaging
+
+repo:
+  url: git@github.com:akhilsadam/autoencoders.git
+  deploy_branch: deploy
+
+paths:
+  remote_workdir: /scratch/${ssh.user}/autoencoders
+  remote_output_dir: /scratch/${ssh.user}/autoencoders/runs
+  remote_data_dir: /scratch/${ssh.user}/autoencoders/data
+  local_sync_dir: runs
+  local_data_dir: data
+
+train:
+  entrypoint: python3 -m src.autoencoders.train
+  overrides: "trainer.max_epochs=5 wandb.mode=online"
+
+slurm:
+  partition: mit-normal-gpu
+  account: research
+  qos: normal
+  gres: gpu:1
+  time: 00:10:00
+  job_name: ae-train
+  additional_flags: []
