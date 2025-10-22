@@ -6,7 +6,6 @@ from typing import Any, Dict
 from omegaconf import DictConfig
 
 from .datamodules import DATASET_REGISTRY, DataLoaderPair, list_datasets
-from .utils.paths import resolve_path
 
 
 def _to_plain_dict(cfg: DictConfig | Dict[str, Any]) -> Dict[str, Any]:
