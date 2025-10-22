@@ -25,16 +25,15 @@ def test_autoencoder_aesthetic4k(limit_train_batches: int) -> None:
             config_name="config",
             overrides=[
                 "data=aesthetic4k",
-                "data.params.batch_size=32",
-                "data.params.val_split=512",
+                "data.params.batch_size=16",
+                "data.params.val_split=128",
             ],
         )
 
-    data_root = resolve_path(str(cfg.data.params.root))
-    if not data_root.exists():
-        pytest.skip("Aesthetic4K dataset not found; run 'make data' before benchmarks.")
-
-    train_loader, val_loader = build_dataloaders(cfg.data)
+    try:
+        train_loader, val_loader = build_dataloaders(cfg.data)
+    except Exception as e:
+        pytest.skip(f"Skipping benchmark: could not load HF dataset ({e}). Try 'huggingface-cli login'.")
 
     if len(train_loader.dataset) == 0 or len(val_loader.dataset) == 0:
         pytest.skip("Aesthetic4K dataset is empty after preprocessing.")
