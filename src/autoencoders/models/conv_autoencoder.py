@@ -17,10 +17,10 @@ class Config:
 
 class ConvAutoEncoder(pl.LightningModule):
     """Tiny convolutional autoencoder for 28x28 grayscale images."""
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, config: Config) -> None:
         super().__init__()
-        self.config = Config(**kwargs)
-        self.save_hyperparameters(self.config)
+        self.config = config
+        self.save_hyperparameters(asdict(self.config))
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=2, padding=1),
