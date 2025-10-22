@@ -6,6 +6,8 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict
 
+
+from git import Repo
 import hydra
 import pytorch_lightning as pl
 import torch
@@ -37,6 +39,13 @@ def _create_logger(cfg: DictConfig) -> WandbLogger:
     kwargs = {k: v for k, v in wandb_cfg.items() if v not in (None, "")}
     logger = WandbLogger(**kwargs, log_model=False)
     logger.experiment.config.update(OmegaConf.to_container(cfg, resolve=True, enum_to_str=True))
+    
+    repo = Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    dirty = repo.is_dirty()
+    logger.experiment.config["git_sha"] = sha
+    logger.experiment.config["git_dirty"] = dirty
+    print(f"Git SHA: {sha}, Dirty: {dirty}")
     return logger
 
 

@@ -10,9 +10,9 @@ repo:
   deploy_branch: deploy
 
 paths:
-  remote_workdir: /home/${ssh.user}/orcd/scratch/autoencoders
-  remote_output_dir: /home/${ssh.user}/orcd/scratch/autoencoders/runs
-  remote_data_dir: /home/${ssh.user}/orcd/scratch/autoencoders/data
+  remote_workdir: /home/${ssh.user}/orcd/pool/autoencoders
+  remote_output_dir: /home/${ssh.user}/orcd/pool/autoencoders/runs
+  remote_data_dir: /home/${ssh.user}/orcd/pool/autoencoders/data
   local_sync_dir: runs
   local_data_dir: data
 
