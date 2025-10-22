@@ -50,7 +50,7 @@ def _create_logger(cfg: DictConfig) -> WandbLogger:
 
 
 def _artifact_dirs(cfg: DictConfig) -> Dict[str, Path]:
-    artifacts_root = resolve_path(cfg.paths.artifacts_root)
+    artifacts_root = cfg.paths.artifacts_root
     checkpoints = artifacts_root / "checkpoints"
     reconstructions = artifacts_root / "reconstructions"
     for path in (artifacts_root, checkpoints, reconstructions):

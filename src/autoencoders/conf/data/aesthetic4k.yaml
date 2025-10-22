@@ -1,7 +1,7 @@
 name: aesthetic4k
 params:
   batch_size: 32
-  num_workers: 8
+  num_workers: 2
   val_split: 512
   image_size: 256
   normalize: true
