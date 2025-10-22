@@ -19,8 +19,9 @@ class ConvAutoEncoder(pl.LightningModule):
     """Tiny convolutional autoencoder for 28x28 grayscale images."""
     def __init__(self, config: Config) -> None:
         super().__init__()
-        self.save_hyperparameters(self.config)
         
+        self.save_hyperparameters(config)
+    
         latent_dim = config['latent_dim']
         self.learning_rate = config['learning_rate']
 
