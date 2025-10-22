@@ -22,7 +22,6 @@ wandb:
   tags: ${run.tags}
 
 trainer:
-  max_epochs: 500 # somehow -1 doesn't work
   max_steps: 4000
   accelerator: auto
   devices: auto
