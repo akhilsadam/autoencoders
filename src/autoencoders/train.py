@@ -38,6 +38,12 @@ def _prepare_model(cfg: DictConfig) -> pl.LightningModule:
 def _create_logger(cfg: DictConfig) -> WandbLogger:
     wandb_cfg = OmegaConf.to_container(cfg.wandb, resolve=True)
     kwargs = {k: v for k, v in wandb_cfg.items() if v not in (None, "")}
+    
+    # add data and model name to run_name and tags
+    cfg.run.name = f"{cfg.data.name}-{cfg.model.name}-{cfg.run.get('name','')}"
+    if "tags" in cfg.run and isinstance(cfg.run.tags, list):
+        cfg.run.tags = cfg.run.tags + [cfg.data.name, cfg.model.name]
+    
     logger = WandbLogger(**kwargs, log_model=False)
     logger.experiment.config.update(OmegaConf.to_container(cfg, resolve=True, enum_to_str=True))
     
@@ -72,7 +78,7 @@ def _save_reconstructions(model: pl.LightningModule, dataloader: torch.utils.dat
             break
 
 
-def _log_wandb_artifacts(logger: WandbLogger, dirs: Dict[str, str]) -> None:
+def _log_wandb_artifacts(cfg: DictConfig, logger: WandbLogger, dirs: Dict[str, str]) -> None:
     """Upload checkpoints and reconstruction images to Weights & Biases as artifacts."""
     run = logger.experiment  # wandb.sdk.wandb_run.Run
     try:
@@ -125,7 +131,7 @@ def main(cfg: DictConfig) -> None:
     trainer.save_checkpoint(os.path.join(dirs["checkpoints"], "last.ckpt"))
 
     _save_reconstructions(model, val_loader, dirs["reconstructions"])
-    _log_wandb_artifacts(logger, dirs)
+    _log_wandb_artifacts(cfg, logger, dirs)
 
 
 

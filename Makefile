@@ -20,7 +20,7 @@ slurm:
 slurm_install: slurm install
 
 train: install
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train trainer.max_epochs=1 run.name=local-debug run.tags=[local,debug] wandb.mode=online
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train run.name=local-debug run.tags=[local,debug]
 
 slurm_train:slurm_install train
 
