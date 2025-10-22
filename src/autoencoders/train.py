@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import os
 from dataclasses import asdict
-from pathlib import Path
 from typing import Any, Dict
 
 
@@ -49,24 +48,25 @@ def _create_logger(cfg: DictConfig) -> WandbLogger:
     return logger
 
 
-def _artifact_dirs(cfg: DictConfig) -> Dict[str, Path]:
-    artifacts_root = cfg.paths.artifacts_root
-    checkpoints = artifacts_root / "checkpoints"
-    reconstructions = artifacts_root / "reconstructions"
+def _artifact_dirs(cfg: DictConfig) -> Dict[str, str]:
+    # Build directories using os.path.join for portability across platforms
+    artifacts_root = str(cfg.paths.artifacts_root)
+    checkpoints = os.path.join(artifacts_root, "checkpoints")
+    reconstructions = os.path.join(artifacts_root, "reconstructions")
     for path in (artifacts_root, checkpoints, reconstructions):
-        path.mkdir(parents=True, exist_ok=True)
+        os.makedirs(path, exist_ok=True)
     return {"root": artifacts_root, "checkpoints": checkpoints, "reconstructions": reconstructions}
 
 
-def _save_reconstructions(model: pl.LightningModule, dataloader: torch.utils.data.DataLoader, output_dir: Path) -> None:
+def _save_reconstructions(model: pl.LightningModule, dataloader: torch.utils.data.DataLoader, output_dir: str) -> None:
     model.eval()
     device = next(model.parameters()).device
     with torch.no_grad():
         for batch in dataloader:
             inputs = batch[0].to(device)
             recon = model(inputs).cpu()
-            save_image(inputs[:8], output_dir / "inputs.png", nrow=4)
-            save_image(recon[:8], output_dir / "reconstructions.png", nrow=4)
+            save_image(inputs[:8], os.path.join(output_dir, "inputs.png"), nrow=4)
+            save_image(recon[:8], os.path.join(output_dir, "reconstructions.png"), nrow=4)
             break
 
 
@@ -94,7 +94,7 @@ def main(cfg: DictConfig) -> None:
     trainer = create_trainer(cfg.trainer, logger=logger, callbacks=[checkpoint_cb, lr_cb])
 
     trainer.fit(model, train_loader, val_loader)
-    trainer.save_checkpoint(str(dirs["checkpoints"] / "last.ckpt"))
+    trainer.save_checkpoint(os.path.join(dirs["checkpoints"], "last.ckpt"))
 
     _save_reconstructions(model, val_loader, dirs["reconstructions"])
 
