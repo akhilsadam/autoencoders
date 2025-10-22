@@ -23,7 +23,7 @@ class FashionMNISTConfig:
 
 def build_dataloaders(cfg: FashionMNISTConfig) -> Tuple[DataLoader, DataLoader]:
     transform = transforms.Compose([transforms.ToTensor()])
-    dataset = datasets.FashionMNIST(root=str(root), download=cfg.download, transform=transform)
+    dataset = datasets.FashionMNIST(root=cfg.root, download=cfg.download, transform=transform)
 
     val_split = cfg.val_split
     if val_split >= len(dataset):
