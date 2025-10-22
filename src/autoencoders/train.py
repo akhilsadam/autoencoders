@@ -119,9 +119,7 @@ def main(cfg: DictConfig) -> None:
 
     trainer = create_trainer(cfg.trainer, logger=logger, callbacks=[checkpoint_cb, lr_cb])
 
-    print(cfg.trainer)
-    print(cfg)
-    print(trainer)
+    print('CONFIG:', cfg)
 
     trainer.fit(model, train_loader, val_loader)
     trainer.save_checkpoint(os.path.join(dirs["checkpoints"], "last.ckpt"))
