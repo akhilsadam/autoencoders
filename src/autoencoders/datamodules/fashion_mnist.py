@@ -9,8 +9,6 @@ import torch
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 
-from ..utils.paths import resolve_path
-
 
 @dataclass
 class FashionMNISTConfig:
@@ -24,9 +22,6 @@ class FashionMNISTConfig:
 
 
 def build_dataloaders(cfg: FashionMNISTConfig) -> Tuple[DataLoader, DataLoader]:
-    root = resolve_path(cfg.root)
-    root.mkdir(parents=True, exist_ok=True)
-
     transform = transforms.Compose([transforms.ToTensor()])
     dataset = datasets.FashionMNIST(root=str(root), download=cfg.download, transform=transform)
 
