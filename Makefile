@@ -13,6 +13,13 @@ install:
 	$(UV) pip install -r src/install/requirements.txt --python $(PYTHON)
 	$(MAKE) data
 
+slurm: 
+	- module load gcc
+	- module load miniforge
+	- module load cuda/13.0.1
+
+slurm_install: slurm install
+
 data:
 	@if [ -d data/aesthetic4k ]; then \
 		echo "Aesthetic4K dataset already present at data/aesthetic4k"; \

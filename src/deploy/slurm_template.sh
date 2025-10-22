@@ -11,7 +11,6 @@
 
 module load gcc
 module load miniforge
-module load ffmpeg
 module load cuda/13.0.1
 
 # Stop on first failure and fail pipelines when any step fails.
