@@ -7,9 +7,9 @@ PYTHON ?= $(VENV)/bin/python
 .PHONY: install data train benchmark
 
 install:
-	@# Ensure uv is available, then create a dedicated venv and install deps into it
-	- $(SYS_PYTHON) -m pip install --user uv
-	$(UV) venv $(VENV)
+	@# Ensure uv is available, then create venv (if missing) and install deps
+	@command -v $(UV) >/dev/null 2>&1 || $(SYS_PYTHON) -m pip install --user uv
+	@[ -d "$(VENV)" ] || $(UV) venv $(VENV)
 	$(UV) pip install -r src/install/requirements.txt --python $(PYTHON)
 
 slurm: 
@@ -19,7 +19,7 @@ slurm:
 
 slurm_install: slurm install
 
-train: 
+train: install
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train trainer.max_epochs=1 run.name=local-debug run.tags=[local,debug] wandb.mode=online
 
 slurm_train:slurm_install train
