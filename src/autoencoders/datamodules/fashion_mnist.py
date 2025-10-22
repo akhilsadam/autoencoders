@@ -15,7 +15,6 @@ from ..utils.paths import resolve_path
 @dataclass
 class FashionMNISTConfig:
     """Configuration for the FashionMNIST dataloaders."""
-
     root: str
     batch_size: int
     num_workers: int = 4

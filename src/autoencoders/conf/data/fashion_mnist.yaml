@@ -1,8 +1,0 @@
-name: fashion_mnist
-params:
-  root: ${paths.data_root}/fashion_mnist
-  batch_size: 64
-  num_workers: 4
-  val_split: 5000
-  download: true
-  seed: ${seed}

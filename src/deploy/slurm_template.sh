@@ -1,11 +1,18 @@
 #!/bin/bash
 #SBATCH --job-name=ae-train
 #SBATCH --partition=PARTITION_NAME
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH --mem=10GB
 #SBATCH --output=%x-%j.out
 #SBATCH --error=%x-%j.err
+
+### salloc -t 00:20:00 -p mit_normal_gpu --gres=gpu:l40s:1
+
+module load gcc
+module load miniforge
+module load ffmpeg
+module load cuda/13.0.1
 
 # Stop on first failure and fail pipelines when any step fails.
 set -euo pipefail

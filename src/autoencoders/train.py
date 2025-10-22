@@ -16,7 +16,6 @@ from torchvision.utils import save_image
 
 from . import get_default_config, get_model
 from .data import build_dataloaders
-from .utils.paths import resolve_path
 os.environ.setdefault("WANDB_MODE", "online")
 
 from .trainer import create_trainer

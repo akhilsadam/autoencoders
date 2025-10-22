@@ -1,4 +1,0 @@
-name: conv_autoencoder
-params:
-  latent_dim: 32
-  learning_rate: 1e-3

@@ -1,10 +1,16 @@
 SHELL := /bin/bash
-PYTHON ?= python
+VENV ?= .venv
+SYS_PYTHON ?= python3
+UV ?= uv
+PYTHON ?= $(VENV)/bin/python
 
-.PHONY: install data train benchmark deploy push-deploy lint format clean
+.PHONY: install data train benchmark
 
 install:
-	$(PYTHON) -m pip install -r src/install/requirements.txt
+	@# Ensure uv is available, then create a dedicated venv and install deps into it
+	@if ! command -v $(UV) >/dev/null 2>&1; then $(SYS_PYTHON) -m pip install --user uv; fi
+	$(UV) venv $(VENV)
+	$(UV) pip install -r src/install/requirements.txt --python $(PYTHON)
 	$(MAKE) data
 
 data:
@@ -25,23 +31,8 @@ data:
 		fi; \
 	fi
 
-train:
+train: install
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train trainer.max_epochs=1 run.name=local-debug run.tags=[local,debug] wandb.mode=online
 
-benchmark: data
-	pytest -m benchmark -s
-
-push-deploy:
-	$(PYTHON) -m src.deploy.push_to_deploy
-
-deploy:
-	$(PYTHON) -m src.deploy.hpc_deploy
-
-lint:
-	@echo "No lint tooling configured. Install ruff or similar to enable this target."
-
-format:
-	@echo "No formatter configured. Install ruff or similar to enable this target."
-
-clean:
-	rm -rf runs/.hydra runs/multirun
+benchmark: install data
+	$(VENV)/bin/pytest -m benchmark -s

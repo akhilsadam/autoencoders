@@ -1,0 +1,49 @@
+[project]
+name = "autoencoders"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Akhil Sadam", email = "sadam.akhil@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "gitpython",
+    "logging",
+    "pyyaml>=6.0.1",
+    "torch>=2.5.0",
+    "lightning",
+    "torchvision>=0.18.0",
+    "wandb>=0.17.0",
+    "numpy",
+    "pykeops",
+    "einops",
+    "matplotlib",
+    "ffmpeg-python",
+    "jpcm>=0.1.27",
+    "pytest>=8.2.0",
+    "huggingface_hub>=0.24.0",
+    "Pillow>=10.2.0",
+    "omegaconf>=2.4.0",
+    "hydra-core>=1.4.0",
+]
+
+[options.packages.find]
+where = "src"
+
+[build-system]
+requires = [
+    "uv>=0.7.20",
+    "setuptools",
+]
+
+[tool.hatch.metadata] 
+allow-direct-references = true
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+addopts = [
+    "--import-mode=importlib",
+    "--capture=no",
+    '-vvv'
+    ]

@@ -9,20 +9,18 @@ import torch
 from torch import nn
 
 
-@dataclass(frozen=True)
-class AutoEncoderConfig:
-    """Default hyperparameters for the convolutional autoencoder."""
-
+@dataclass
+class Config:
+    """Default hyperparameters for autoencoder."""
     latent_dim: int = 32
     learning_rate: float = 1e-3
 
-
-class LitAutoEncoder(pl.LightningModule):
+class ConvAutoEncoder(pl.LightningModule):
     """Tiny convolutional autoencoder for 28x28 grayscale images."""
-
-    def __init__(self, latent_dim: int = 32, lr: float = 1e-3) -> None:
+    def __init__(self, **kwargs) -> None:
         super().__init__()
-        self.save_hyperparameters()
+        self.config = Config(**kwargs)
+        self.save_hyperparameters(self.config)
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=2, padding=1),
@@ -30,10 +28,10 @@ class LitAutoEncoder(pl.LightningModule):
             nn.Conv2d(16, 32, 3, stride=2, padding=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(32 * 7 * 7, latent_dim),
+            nn.Linear(32 * 7 * 7, self.config.latent_dim),
         )
         self.decoder = nn.Sequential(
-            nn.Linear(latent_dim, 32 * 7 * 7),
+            nn.Linear(self.config.latent_dim, 32 * 7 * 7),
             nn.ReLU(),
             nn.Unflatten(1, (32, 7, 7)),
             nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, output_padding=1),
@@ -61,21 +59,4 @@ class LitAutoEncoder(pl.LightningModule):
         self.log("val_loss", val_loss, prog_bar=True)
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
-        return torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
-
-
-DEFAULT_MODEL_CONFIG = AutoEncoderConfig()
-
-
-def build_model(config: AutoEncoderConfig | Dict[str, Any] | None = None) -> LitAutoEncoder:
-    """Construct the autoencoder using the provided configuration."""
-
-    if config is None:
-        config = DEFAULT_MODEL_CONFIG
-    if isinstance(config, dict):
-        config = AutoEncoderConfig(**config)
-    if not isinstance(config, AutoEncoderConfig):
-        raise TypeError("config must be AutoEncoderConfig, dict, or None")
-
-    params = asdict(config)
-    return LitAutoEncoder(latent_dim=params["latent_dim"], lr=params["learning_rate"])
+        return torch.optim.Adam(self.parameters(), lr=self.config.learning_rate)
