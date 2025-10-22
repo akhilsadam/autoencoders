@@ -20,7 +20,8 @@ class ConvAutoEncoder(pl.LightningModule):
     def __init__(self, config: Config) -> None:
         super().__init__()
         self.config = config
-        self.save_hyperparameters(asdict(self.config))
+        print(config)
+        self.save_hyperparameters(self.config)
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=2, padding=1),
