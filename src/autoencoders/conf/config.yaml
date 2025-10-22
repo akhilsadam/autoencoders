@@ -1,6 +1,4 @@
 defaults:
-  - hydra/job_logging: default
-  - hydra/hydra_logging: default
   - model: conv_autoencoder
   - data: fashion_mnist
   - _self_
