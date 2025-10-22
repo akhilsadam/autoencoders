@@ -8,7 +8,7 @@ PYTHON ?= $(VENV)/bin/python
 
 install:
 	@# Ensure uv is available, then create a dedicated venv and install deps into it
-	@if ! command -v $(UV) >/dev/null 2>&1; then $(SYS_PYTHON) -m pip install --user uv; fi
+	- $(SYS_PYTHON) -m pip install --user uv
 	$(UV) venv $(VENV)
 	$(UV) pip install -r src/install/requirements.txt --python $(PYTHON)
 	$(MAKE) data
