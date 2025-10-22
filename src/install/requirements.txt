@@ -14,5 +14,5 @@ jpcm>=0.1.27
 pytest>=8.2.0
 huggingface_hub>=0.24.0
 Pillow>=10.2.0
-omegaconf>=2.4.0
+omegaconf
 hydra-core>=1.4.0
