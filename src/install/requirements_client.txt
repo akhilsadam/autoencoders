@@ -1,0 +1,5 @@
+gitpython
+logging
+pyyaml>=6.0.1
+omegaconf
+hydra-core

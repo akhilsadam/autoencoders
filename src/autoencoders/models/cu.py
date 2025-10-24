@@ -8,6 +8,7 @@ import pytorch_lightning as pl
 import torch
 from torch import nn
 
+# Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
 @dataclass
 class Config:
@@ -15,7 +16,7 @@ class Config:
     latent_dim: int = 32
     learning_rate: float = 1e-3
 
-class ConvAutoEncoder(pl.LightningModule):
+class CUAutoencoder(pl.LightningModule):
     """Tiny convolutional autoencoder for 28x28 grayscale images."""
     def __init__(self, config: Config) -> None:
         super().__init__()
