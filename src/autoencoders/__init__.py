@@ -9,7 +9,7 @@ import importlib
 import pkgutil
 
 # Dynamically discover all model classes and configs in models submodule
-import models
+from . import models
 
 AUTOENCODER_REGISTRY: Dict[str, Dict[str, Any]] = {}
 for loader, module_name, is_pkg in pkgutil.iter_modules(models.__path__):
