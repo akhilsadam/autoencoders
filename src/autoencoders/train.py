@@ -44,7 +44,7 @@ def _create_logger(cfg: DictConfig) -> WandbLogger:
     if "tags" in cfg.run and isinstance(cfg.run.tags, list):
         cfg.run.tags = cfg.run.tags + [cfg.data.name, cfg.model.name]
     
-    logger = WandbLogger(**kwargs, log_model=False)
+    logger = WandbLogger(name = cfg.run.name, **kwargs, log_model=False)
     logger.experiment.config.update(OmegaConf.to_container(cfg, resolve=True, enum_to_str=True))
     
     repo = Repo(search_parent_directories=True)
