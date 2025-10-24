@@ -13,7 +13,7 @@ from . import models
 
 AUTOENCODER_REGISTRY: Dict[str, Dict[str, Any]] = {}
 for loader, module_name, is_pkg in pkgutil.iter_modules(models.__path__):
-    mod = importlib.import_module(f"models.{module_name}")
+    mod = importlib.import_module(f".models.{module_name}", package=__name__)
     # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
     model_cls = None
     config_cls = None
