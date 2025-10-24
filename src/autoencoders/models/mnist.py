@@ -64,9 +64,3 @@ class MNISTAutoencoder(pl.LightningModule):
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
-    
-    
-    "mnist": {
-        "model_class": CvAutoencoder,
-        "default_config": CVAE_Config(),
-    }
