@@ -26,7 +26,8 @@ slurm:
 slurm_install: slurm install
 
 train: install
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train run.name=local-debug run.tags=[local,debug]
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train
+# 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train run.name=local-debug run.tags=[local,debug]
 
 slurm_train:slurm_install train
 

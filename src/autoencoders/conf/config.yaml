@@ -1,5 +1,5 @@
 defaults:
-  - model: conv_autoencoder
+  - model: cu
   - data: fashion_mnist
   - _self_
 
