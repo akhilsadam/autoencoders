@@ -31,7 +31,8 @@ trainer:
 
 hydra:
   run:
-    dir: runs/${data.name}/${model.name}/${now:%Y%m%d}/${now:%H%M%S}
+    dir: runs/${data.name}/${model.name}/${hydra.job.num}
+    # ${now:%Y%m%d}/${now:%H%M%S}
   sweep:
     dir: runs/multirun/${now:%Y%m%d}
     subdir: ${hydra.job.num}
