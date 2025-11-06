@@ -22,7 +22,7 @@ NVCCFLAGS := -DNDEBUG -lineinfo
 NVCCFLAGS += --expt-extended-lambda --expt-relaxed-constexpr 
 NVCCFLAGS += -Xcompiler=-Wno-psabi -Xcompiler=-fno-strict-aliasing 
 NVCCFLAGS += -forward-unknown-to-host-compiler -ftemplate-backtrace-limit=0
-NVCCFLAGS += -std=c++20 -lrt -lpthread -ldl -lcuda -lcudadevrt -lcudart_static -lcublas
+NVCCFLAGS += -std=c++20 -x cu -lrt -lpthread -ldl -lcuda -lcudadevrt -lcudart_static -lcublas
 NVCCFLAGS += -O3 --use_fast_math # VERY important to include this flag
 NVCCFLAGS += -Xnvlink=--verbose -Xptxas=--verbose -Xptxas=--warn-on-spills 
 NVCCFLAGS += -I${THUNDERKITTENS_ROOT}/include -I${THUNDERKITTENS_ROOT}/prototype
@@ -31,11 +31,11 @@ NVCCFLAGS += -lpython3
 
 NVCCFLAGS += -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__
 NVCCFLAGS += -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__
-NVCCFLAGS += -DTORCH_API_INCLUDE_EXTENSION_H -DPy_LIMITED_API=0x03120000
-NVCCFLAGS += -DTORCH_EXTENSION_NAME=_C -D_GLIBCXX_USE_CXX11_ABI=1
+# NVCCFLAGS += -DTORCH_API_INCLUDE_EXTENSION_H -DPy_LIMITED_API=0x03120000
+# NVCCFLAGS += -DTORCH_EXTENSION_NAME=_C -D_GLIBCXX_USE_CXX11_ABI=1
 # NVCCFLAGS += $(PYTHON_INCLUDES) $(PYTORCH_INCLUDES)
 # NVCCFLAGS += ${PYTHON_LIBDIR} ${PYTORCH_LIBDIR} -lpython${PYTHON_VERSION}
-NVCCFLAGS += -ltorch_python -ltorch_cuda -ltorch_cpu -ltorch -lc10_cuda -lc10
+# NVCCFLAGS += -ltorch_python -ltorch_cuda -ltorch_cpu -ltorch -lc10_cuda -lc10
 
 NVCCFLAGS += -diag-suppress 3189
 
