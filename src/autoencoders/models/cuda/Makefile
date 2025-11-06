@@ -8,25 +8,37 @@ PYCONFIG=python3-config
 TARGET=example_bind
 SRC=example_bind.cu
 
-NVCCFLAGS=-DNDEBUG \
--Xcompiler=-fPIE \
---expt-extended-lambda \
---expt-relaxed-constexpr \
--Xcompiler=-Wno-psabi \
--Xcompiler=-fno-strict-aliasing \
---use_fast_math \
--forward-unknown-to-host-compiler \
--O3 \
--Xnvlink=--verbose \
--Xptxas=--verbose \
--Xptxas=--warn-on-spills \
--std=c++20 -x cu -lrt -lpthread -ldl \
--lcuda -lcudadevrt -lcudart_static -lcublas
+PYTHON_VERSION ?= $(shell ${PYTHON} -c "import sysconfig; print(sysconfig.get_config_var('LDVERSION'))")
+PYTHON_INCLUDES ?= $(shell ${PYTHON} -c "import sysconfig; print('-I', sysconfig.get_path('include'), sep='')")
+PYTORCH_INCLUDES ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import include_paths; print(' '.join(['-I' + p for p in include_paths()]))")
+PYTHON_LIBDIR ?= $(shell ${PYTHON} -c "import sysconfig; print('-L', sysconfig.get_config_var('LIBDIR'), sep='')")
+PYTORCH_LIBDIR ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import library_paths; print(' '.join(['-L' + p for p in library_paths()]))")
+PYTORCH_INCLUDES ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import include_paths; print(' '.join(['-I' + p for p in include_paths()]))")
+PYTORCH_LIBDIR ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import library_paths; print(' '.join(['-L' + p for p in library_paths()]))")
 
-NVCCFLAGS+= \
--I${THUNDERKITTENS_ROOT}/include \
--I${THUNDERKITTENS_ROOT}/prototype $(shell ${PYTHON} -m pybind11 --includes) $(shell ${PYCONFIG} --ldflags) -shared -fPIC \
--lpython3 \
+NVCCFLAGS := -DNDEBUG -lineinfo
+NVCCFLAGS += --expt-extended-lambda --expt-relaxed-constexpr 
+NVCCFLAGS += -Xcompiler=-Wno-psabi -Xcompiler=-fno-strict-aliasing 
+NVCCFLAGS += -forward-unknown-to-host-compiler -ftemplate-backtrace-limit=0
+NVCCFLAGS += -std=c++20 -lrt -lpthread -ldl -lcuda -lcudadevrt -lcudart_static -lcublas
+NVCCFLAGS += -O3 --use_fast_math # VERY important to include this flag
+NVCCFLAGS += -Xnvlink=--verbose -Xptxas=--verbose -Xptxas=--warn-on-spills 
+NVCCFLAGS += -I${THUNDERKITTENS_ROOT}/include -I${THUNDERKITTENS_ROOT}/prototype
+NVCCFLAGS += -shared -fPIC # make shared object
+
+NVCCFLAGS += -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__
+NVCCFLAGS += -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__
+NVCCFLAGS += -DTORCH_API_INCLUDE_EXTENSION_H -DPy_LIMITED_API=0x03120000
+NVCCFLAGS += -DTORCH_EXTENSION_NAME=_C -D_GLIBCXX_USE_CXX11_ABI=1
+NVCCFLAGS += $(PYTHON_INCLUDES) $(PYTORCH_INCLUDES)
+NVCCFLAGS += ${PYTHON_LIBDIR} ${PYTORCH_LIBDIR} -lpython${PYTHON_VERSION}
+NVCCFLAGS += -ltorch_python -ltorch_cuda -ltorch_cpu -ltorch -lc10_cuda -lc10
+
+NVCCFLAGS += $(PYTHON_INCLUDES) $(PYTORCH_INCLUDES)
+NVCCFLAGS += ${PYTHON_LIBDIR} ${PYTORCH_LIBDIR} -lpython${PYTHON_VERSION}
+
+NVCCFLAGS += -ltorch_python -ltorch_cuda -ltorch_cpu -ltorch -lc10_cuda -lc10
+NVCCFLAGS += -diag-suppress 3189
 
 # Conditional setup based on the target GPU
 ifeq ($(GPU),4090)
