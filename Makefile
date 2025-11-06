@@ -3,7 +3,7 @@ VENV ?= .venv
 SYS_PYTHON ?= python3.10
 UV ?= uv
 PYTHON ?= $(VENV)/bin/python
-BASE_PYDIR ?= `(grep "home =" $(VENV)/pyvenv.cfg | cut -d' ' -f3-)`
+BASE_PYDIR ?= $(shell grep "home =" $(VENV)/pyvenv.cfg | cut -d' ' -f3-)
 
 .PHONY: install data train benchmark
 
