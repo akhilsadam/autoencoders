@@ -3,6 +3,7 @@ VENV ?= .venv
 SYS_PYTHON ?= python3.10
 UV ?= uv
 PYTHON ?= $(VENV)/bin/python
+BASE_PYDIR ?= $(grep "home =" $(VENV)/pyvenv.cfg | cut -d' ' -f3-)
 
 .PHONY: install data train benchmark
 
@@ -24,8 +25,7 @@ install-local:
 
 py3-conf:
 	@# find system python3-config by looking in pyenv
-	bindir=$$(grep "home =" $(VENV)/pyvenv.cfg | cut -d' ' -f3-);
-	ln -s $(bindir)/python3-config $(VENV)/bin/python3-config;
+	ln -s $(BASE_PYDIR)/python3-config $(VENV)/bin/python3-config;
 
 compile:
 	$(PYTHON) -m src.autoencoders.models.cuda.compile
