@@ -18,7 +18,7 @@ PYTORCH_LIBDIR ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import li
 PYTORCH_INCLUDES ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import include_paths; print(' '.join(['-I' + p for p in include_paths()]))")
 PYTORCH_LIBDIR ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import library_paths; print(' '.join(['-L' + p for p in library_paths()]))")
 
-NVCCFLAGS := -DNDEBUG -lineinfo -DPYTHON -DPYTHON3
+NVCCFLAGS := -DNDEBUG -lineinfo 
 NVCCFLAGS += --expt-extended-lambda --expt-relaxed-constexpr 
 NVCCFLAGS += -Xcompiler=-Wno-psabi -Xcompiler=-fno-strict-aliasing 
 NVCCFLAGS += -forward-unknown-to-host-compiler -ftemplate-backtrace-limit=0
@@ -27,7 +27,7 @@ NVCCFLAGS += -O3 --use_fast_math # VERY important to include this flag
 NVCCFLAGS += -Xnvlink=--verbose -Xptxas=--verbose -Xptxas=--warn-on-spills 
 NVCCFLAGS += -I${THUNDERKITTENS_ROOT}/include -I${THUNDERKITTENS_ROOT}/prototype
 NVCCFLAGS += $(PYBIND_INCLUDES) ${PYCONFIG_LDFLAGS} -shared -fPIC 
-NVCCFLAGS += -lpython${PYTHON_VERSION}
+NVCCFLAGS += -lpython3
 
 NVCCFLAGS += -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__
 NVCCFLAGS += -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__
