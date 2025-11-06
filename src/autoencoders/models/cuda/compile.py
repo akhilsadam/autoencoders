@@ -5,8 +5,9 @@ import os
 TK_DIR = 'lib/ext/tk'
 BIND_DIR = 'kernels/example_bind'
 Makefile_path = os.path.join(TK_DIR, BIND_DIR)
-
 cu_folder = os.path.dirname(__file__)
+
+os.system(f'export THUNDERKITTENS_ROOT={TK_DIR}')
 
 def build():
     print(f"Compiling CUDA kernels...{os.getcwd()}")

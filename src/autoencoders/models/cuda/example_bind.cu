@@ -1,5 +1,5 @@
-#include "lib/ext/tk/include/kittens.cuh"
-#include "lib/ext/tk/include/pyutils/pyutils.cuh"
+#include "kittens.cuh"
+#include "pyutils/pyutils.cuh"
 using namespace kittens;
 
 using my_layout = gl<float, -1, -1, -1, 64, st_fl<64,64>>; // An example layout that also instantiates a TMA descriptor on Hopper.
