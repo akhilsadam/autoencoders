@@ -21,8 +21,7 @@ NVCCFLAGS=-DNDEBUG \
 -Xptxas=--verbose \
 -Xptxas=--warn-on-spills \
 -std=c++20 -x cu -lrt -lpthread -ldl \
--lcuda -lcudadevrt -lcudart_static -lcublas \
--ccbin g++-12
+-lcuda -lcudadevrt -lcudart_static -lcublas
 
 NVCCFLAGS+= \
 -I${THUNDERKITTENS_ROOT}/include \
