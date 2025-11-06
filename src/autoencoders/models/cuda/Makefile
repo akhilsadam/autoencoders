@@ -22,7 +22,7 @@ NVCCFLAGS=-DNDEBUG \
 -Xptxas=--warn-on-spills \
 -std=c++20 -x cu -lrt -lpthread -ldl \
 -lcuda -lcudadevrt -lcudart_static -lcublas \
--DKITTENS_FP8
+-ccbin g++-12
 
 NVCCFLAGS+= \
 -I${THUNDERKITTENS_ROOT}/include \
