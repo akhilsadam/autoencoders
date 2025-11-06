@@ -31,13 +31,16 @@ py3-conf:
 	alias python3-config='$(VENV)/bin/python3-config';
 
 
-compile:
+compile: install
 	source "$(VENV)/bin/activate" && \
 	$(PYTHON) -m src.autoencoders.models.cuda.compile ${VENV}
 
-train: install compile
+train: compile
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train
 # 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train run.name=local-debug run.tags=[local,debug]
+
+slurm_compile: 
+	source ${INSTALL}/module.sh && $(MAKE) compile
 
 slurm_install: 
 	source ${INSTALL}/module.sh && $(MAKE) install

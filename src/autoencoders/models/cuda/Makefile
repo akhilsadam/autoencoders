@@ -10,6 +10,8 @@ SRC=example_bind.cu
 
 PYTHON_VERSION ?= $(shell ${PYTHON} -c "import sysconfig; print(sysconfig.get_config_var('LDVERSION'))")
 PYTHON_INCLUDES ?= $(shell ${PYTHON} -c "import sysconfig; print('-I', sysconfig.get_path('include'), sep='')")
+PYBIND_INCLUDES ?= $(shell ${PYTHON} -m pybind11 --includes)
+PYCONFIG_LDFLAGS ?= $(shell ${PYCONFIG} --ldflags)
 PYTORCH_INCLUDES ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import include_paths; print(' '.join(['-I' + p for p in include_paths()]))")
 PYTHON_LIBDIR ?= $(shell ${PYTHON} -c "import sysconfig; print('-L', sysconfig.get_config_var('LIBDIR'), sep='')")
 PYTORCH_LIBDIR ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import library_paths; print(' '.join(['-L' + p for p in library_paths()]))")
@@ -34,7 +36,7 @@ NVCCFLAGS += $(PYTHON_INCLUDES) $(PYTORCH_INCLUDES)
 NVCCFLAGS += ${PYTHON_LIBDIR} ${PYTORCH_LIBDIR} -lpython${PYTHON_VERSION}
 NVCCFLAGS += -ltorch_python -ltorch_cuda -ltorch_cpu -ltorch -lc10_cuda -lc10
 
-NVCCFLAGS += $(PYTHON_INCLUDES) $(PYTORCH_INCLUDES)
+NVCCFLAGS += $(PYTHON_INCLUDES) $(PYTORCH_INCLUDES) $(PYBIND_INCLUDES) ${PYCONFIG_LDFLAGS}
 NVCCFLAGS += ${PYTHON_LIBDIR} ${PYTORCH_LIBDIR} -lpython${PYTHON_VERSION}
 
 NVCCFLAGS += -ltorch_python -ltorch_cuda -ltorch_cpu -ltorch -lc10_cuda -lc10
