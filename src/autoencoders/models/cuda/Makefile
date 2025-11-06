@@ -24,7 +24,7 @@ endif
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	echo "Compiling ThunderKittens CUDA extension for GPU: $(GPU)"
+	echo "Compiling ThunderKittens CUDA extension for $(TARGET)"
 	echo "Using Python interpreter: $(PYTHON)"
 	echo "Using Python config tool: $(PYCONFIG)"
 	$(NVCC) $(SRC) $(NVCCFLAGS) -o $(TARGET)$(shell $(PYCONFIG) --extension-suffix)

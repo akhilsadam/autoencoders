@@ -1,6 +1,7 @@
 # compile all kernels in cuda directory 
 # following the TK example with TK library
 import os
+import sys
 
 TK_DIR = 'lib/ext/tk'
 # BIND_DIR = 'kernels/example_bind'
@@ -13,7 +14,8 @@ TK_root = os.path.join(root_dir,  TK_DIR)
 
 flags = f'THUNDERKITTENS_ROOT={TK_root} ' 
 
-if venv:=os.environ.get('VENV', False):
+if len(sys.argv) > 1:
+    venv = sys.argv[1]
     flags += f"""
 PYTHON={venv}/bin/python3
 PYCONFIG={venv}/bin/python3-config """
