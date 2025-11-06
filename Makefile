@@ -26,6 +26,8 @@ install-local:
 py3-conf:
 	@# find system python3-config by looking in pyenv
 	-ln -s $(BASE_PYDIR)/python3-config $(VENV)/bin/python3-config;
+	alias python3-config='$(VENV)/bin/python3-config';
+
 
 compile:
 	$(PYTHON) -m src.autoencoders.models.cuda.compile
