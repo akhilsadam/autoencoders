@@ -61,3 +61,6 @@ add-tk:
 
 update-tk:
 	git subtree pull --prefix=lib/ext/tk/ git@github.com:HazyResearch/ThunderKittens.git main --squash
+
+select-tk:
+	git subtree  pull --prefix=lib/ext/tk/ git@github.com:HazyResearch/ThunderKittens.git b59cee6a3a46ddb046df76d28c18522fd5ce90eb
