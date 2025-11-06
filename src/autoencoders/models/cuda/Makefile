@@ -5,10 +5,6 @@ GPU=4090
 PYTHON?=python3
 PYCONFIG?=python3-config
 
-echo "Compiling ThunderKittens CUDA extension for GPU: $(GPU)"
-echo "Using Python interpreter: $(PYTHON)"
-echo "Using Python config tool: $(PYCONFIG)"
-
 TARGET=example_bind
 SRC=example_bind.cu
 
@@ -28,6 +24,9 @@ endif
 all: $(TARGET)
 
 $(TARGET): $(SRC)
+	echo "Compiling ThunderKittens CUDA extension for GPU: $(GPU)"
+	echo "Using Python interpreter: $(PYTHON)"
+	echo "Using Python config tool: $(PYCONFIG)"
 	$(NVCC) $(SRC) $(NVCCFLAGS) -o $(TARGET)$(shell $(PYCONFIG) --extension-suffix)
 
 # Clean target
