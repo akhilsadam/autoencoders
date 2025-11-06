@@ -10,7 +10,6 @@ root_dir = os.getcwd()
 TK_root = os.path.join(root_dir,  TK_DIR)
 
 def build():
-    # if python3-config doesn't exist, copy it from this file?    
     print("Compiling CUDA kernels...")
     for file in os.listdir(cu_folder):
         if file.endswith('.cu'):
