@@ -9,7 +9,7 @@ TARGET=example_bind
 SRC=example_bind.cu
 
 NVCCFLAGS=-DNDEBUG -Xcompiler=-fPIE --expt-extended-lambda --expt-relaxed-constexpr -Xcompiler=-Wno-psabi -Xcompiler=-fno-strict-aliasing --use_fast_math -forward-unknown-to-host-compiler -O3 -Xnvlink=--verbose -Xptxas=--verbose -Xptxas=--warn-on-spills -std=c++20 -x cu -lrt -lpthread -ldl -lcuda -lcudadevrt -lcudart_static -lcublas
-NVCCFLAGS+= -I${THUNDERKITTENS_ROOT}/include -I${THUNDERKITTENS_ROOT}/prototype $(shell ${PYTHON} -m pybind11 --includes) $(shell ${PYCONFIG} --ldflags) -shared -fPIC -l${PYTHON}
+NVCCFLAGS+= -I${THUNDERKITTENS_ROOT}/include -I${THUNDERKITTENS_ROOT}/prototype $(shell ${PYTHON} -m pybind11 --includes) $(shell ${PYCONFIG} --ldflags) -shared -fPIC -lpython3
 
 # Conditional setup based on the target GPU
 ifeq ($(GPU),4090)
