@@ -36,3 +36,11 @@ push-train: install-local
 
 benchmark: install data
 	$(VENV)/bin/pytest -m benchmark -s
+
+#### Install specific ####
+# ONLY first time
+add-tk:
+	git subtree add --prefix=lib/ext/ git@github.com:HazyResearch/ThunderKittens.git main --squash
+
+update-tk:
+	git subtree pull --prefix=lib/ext/ git@github.com:HazyResearch/ThunderKittens.git main --squash
