@@ -36,7 +36,7 @@ NVCCFLAGS += -DTORCH_EXTENSION_NAME=_C -D_GLIBCXX_USE_CXX11_ABI=1
 # NVCCFLAGS += ${PYTHON_LIBDIR} ${PYTORCH_LIBDIR} -lpython${PYTHON_VERSION}
 NVCCFLAGS += -ltorch_python -ltorch_cuda -ltorch_cpu -ltorch -lc10_cuda -lc10
 
-NVCCFLAGS += $(PYBIND_INCLUDES) ${PYCONFIG_LDFLAGS}
+NVCCFLAGS += ${PYCONFIG_LDFLAGS}
 NVCCFLAGS += -lpython${PYTHON_VERSION}
 
 NVCCFLAGS += -ltorch_python -ltorch_cuda -ltorch_cpu -ltorch -lc10_cuda -lc10
