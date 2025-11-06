@@ -24,8 +24,8 @@ endif
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	$(NVCC) $(SRC) $(NVCCFLAGS) -o $(TARGET)$(shell python3-config --extension-suffix)
+	$(NVCC) $(SRC) $(NVCCFLAGS) -o $(TARGET)$(shell $(PYCONFIG) --extension-suffix)
 
 # Clean target
 clean:
-	rm -f $(TARGET)$(shell python3-config --extension-suffix)
+	rm -f $(TARGET)$(shell $(PYCONFIG) --extension-suffix)
