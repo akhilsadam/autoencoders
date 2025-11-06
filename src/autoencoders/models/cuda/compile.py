@@ -9,6 +9,7 @@ Makefile_path = os.path.join(TK_DIR, BIND_DIR, 'Makefile')
 cu_folder = os.path.dirname(__file__)
 
 def build():
+    print(f"Compiling CUDA kernels...{os.getcwd()}")
     for file in os.listdir(cu_folder):
         if file.endswith('.cu'):
             module_name = file[:-3]
