@@ -15,7 +15,7 @@ TK_root = os.path.join(root_dir,  TK_DIR)
 flags = f'THUNDERKITTENS_ROOT={TK_root} ' 
 
 if len(sys.argv) > 1:
-    venv = sys.argv[1]
+    venv = os.path.abspath(sys.argv[1])
     flags += f"""
 PYTHON={venv}/bin/python3
 PYCONFIG={venv}/bin/python3-config """
