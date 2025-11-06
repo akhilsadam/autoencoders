@@ -16,7 +16,7 @@ flags = f'THUNDERKITTENS_ROOT={TK_root} '
 if venv:=os.environ.get('VENV', False):
     flags += f"""
 PYTHON={venv}/bin/python3
-PYTHON_CONFIG={venv}/bin/python3-config """
+PYCONFIG={venv}/bin/python3-config """
 
 flags = flags.replace('\n', ' ')
 
