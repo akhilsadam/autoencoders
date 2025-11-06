@@ -30,6 +30,7 @@ py3-conf:
 
 
 compile:
+	export VENV="$(VENV)";
 	$(PYTHON) -m src.autoencoders.models.cuda.compile
 
 slurm: 
