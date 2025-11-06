@@ -13,9 +13,7 @@ install:
 	@[ -d "$(VENV)" ] || $(UV) venv $(VENV)
 	$(UV) pip install -r src/install/requirements.txt --python $(PYTHON)
 # if python3-config is missing, find and link it
-	@if [ ! -f "$(VENV)/bin/python3-config" ]; then \
-		$(MAKE) py3-conf; \
-	fi
+	$(MAKE) py3-conf;
 
 install-local:
 	@# Ensure uv is available, then create venv (if missing) and install deps
@@ -25,7 +23,7 @@ install-local:
 
 py3-conf:
 	@# find system python3-config by looking in pyenv
-	ln -s $(BASE_PYDIR)/python3-config $(VENV)/bin/python3-config;
+	-ln -s $(BASE_PYDIR)/python3-config $(VENV)/bin/python3-config;
 
 compile:
 	$(PYTHON) -m src.autoencoders.models.cuda.compile
