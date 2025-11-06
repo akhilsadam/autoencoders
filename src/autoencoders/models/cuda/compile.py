@@ -2,7 +2,7 @@
 # following the TK example with TK library
 import os
 
-TK_DIR = 'lib/ext/TK'
+TK_DIR = 'lib/ext/tk'
 BIND_DIR = 'kernels/example_bind'
 Makefile_path = os.path.join(TK_DIR, BIND_DIR)
 
