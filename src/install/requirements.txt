@@ -18,3 +18,4 @@ datasets>=2.19.0
 omegaconf
 hydra-core
 datasets
+pybind11
