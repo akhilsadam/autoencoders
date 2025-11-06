@@ -3,9 +3,10 @@
 import os
 
 TK_DIR = 'lib/ext/tk'
+
 # BIND_DIR = 'kernels/example_bind'
 # makefile_path = os.path.join(TK_DIR, BIND_DIR)
-makefile_path = '.'
+
 cu_folder = os.path.dirname(__file__)
 root_dir = os.getcwd()
 TK_root = os.path.join(root_dir,  TK_DIR)
@@ -27,14 +28,14 @@ def build():
             module_name = file[:-3]
             module_path = os.path.join(cu_folder, file)
             
-            TK_compile_command = f'make -C {makefile_path} all TARGET={module_name} SRC={module_path} '
+            TK_compile_command = f'make all TARGET={module_name} SRC={module_path} '
             os.system(TK_compile_command)
             
 def clean():
     for file in os.listdir(cu_folder):
         if file.endswith('.cu'):
             module_name = file[:-3]
-            TK_clean_command = f'make -C {makefile_path} clean TARGET={module_name} SRC={module_path} '
+            TK_clean_command = f'make clean TARGET={module_name} SRC={module_path} '
             os.system(TK_clean_command)
             
 if __name__ == "__main__":
