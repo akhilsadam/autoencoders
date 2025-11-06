@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 VENV ?= .venv
-SYS_PYTHON ?= python3
+SYS_PYTHON ?= python3.10
 UV ?= uv
 PYTHON ?= $(VENV)/bin/python
 
@@ -25,14 +25,8 @@ install-local:
 py3-conf:
 	@# find system python3-config by looking in pyenv
 	bindir=$$(grep "home =" $(VENV)/pyvenv.cfg | cut -d' ' -f3-);
-	sys_py3_config=$$(find $$bindir -name python3-config | head -n 1);
-	if [ -z "$$sys_py3_config" ]; then \
-		echo "Could not find system python3-config"; \
-		exit 1; \
-	else \
-		ln -s $$sys_py3_config $(VENV)/bin/python3-config;
-	fi
-	
+	ln -s $(bindir)/python3-config $(VENV)/bin/python3-config;
+
 compile:
 	$(PYTHON) -m src.autoencoders.models.cuda.compile
 
