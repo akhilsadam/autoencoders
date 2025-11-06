@@ -18,6 +18,9 @@ install-local:
 	@[ -d "$(VENV)" ] || $(UV) venv $(VENV)
 	$(UV) pip install -r src/install/requirements_client.txt --python $(PYTHON)
 
+compile:
+	$(PYTHON) -m src.autoencoders.cuda.compile
+
 slurm: 
 	- module load gcc
 	- module load miniforge
@@ -25,7 +28,7 @@ slurm:
 
 slurm_install: slurm install
 
-train: install
+train: install compile
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train
 # 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train run.name=local-debug run.tags=[local,debug]
 
