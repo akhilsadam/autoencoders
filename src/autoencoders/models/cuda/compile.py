@@ -11,15 +11,12 @@ root_dir = os.getcwd()
 TK_root = os.path.join(root_dir,  TK_DIR)
 
 
-flags = f"""TARGET={module_name} 
-SRC={module_path}
-THUNDERKITTENS_ROOT={TK_root}
-"""
+flags = f'THUNDERKITTENS_ROOT={TK_root} ' 
 
 if venv:=os.environ.get('VENV', False):
     flags += f"""
 PYTHON={venv}/bin/python3
-PYTHON_CONFIG={venv}/bin/python3-config"""
+PYTHON_CONFIG={venv}/bin/python3-config """
 
 flags = flags.replace('\n', ' ')
 
@@ -30,14 +27,14 @@ def build():
             module_name = file[:-3]
             module_path = os.path.join(cu_folder, file)
             
-            TK_compile_command = f'make -C {makefile_path} all {flags}'
+            TK_compile_command = f'make -C {makefile_path} all TARGET={module_name} SRC={module_path} '
             os.system(TK_compile_command)
             
 def clean():
     for file in os.listdir(cu_folder):
         if file.endswith('.cu'):
             module_name = file[:-3]
-            TK_clean_command = f'make -C {makefile_path} clean {flags}'
+            TK_clean_command = f'make -C {makefile_path} clean TARGET={module_name} SRC={module_path} '
             os.system(TK_clean_command)
             
 if __name__ == "__main__":
