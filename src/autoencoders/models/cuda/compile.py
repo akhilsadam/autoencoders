@@ -29,14 +29,14 @@ def build():
             module_name = file[:-3]
             module_path = os.path.join(cu_folder, file)
             
-            TK_compile_command = f'make -C {cu_folder} all TARGET={module_name} SRC={module_path} '
+            TK_compile_command = f'make -C {cu_folder} all TARGET={module_name} SRC={module_path} {flags}'
             os.system(TK_compile_command)
             
 def clean():
     for file in os.listdir(cu_folder):
         if file.endswith('.cu'):
             module_name = file[:-3]
-            TK_clean_command = f'make -C {cu_folder} clean TARGET={module_name} SRC={module_path} '
+            TK_clean_command = f'make -C {cu_folder} clean TARGET={module_name} SRC={module_path} {flags}'
             os.system(TK_clean_command)
             
 if __name__ == "__main__":
