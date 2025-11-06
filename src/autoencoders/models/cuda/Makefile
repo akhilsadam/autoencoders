@@ -26,7 +26,8 @@ NVCCFLAGS += -std=c++20 -lrt -lpthread -ldl -lcuda -lcudadevrt -lcudart_static -
 NVCCFLAGS += -O3 --use_fast_math # VERY important to include this flag
 NVCCFLAGS += -Xnvlink=--verbose -Xptxas=--verbose -Xptxas=--warn-on-spills 
 NVCCFLAGS += -I${THUNDERKITTENS_ROOT}/include -I${THUNDERKITTENS_ROOT}/prototype
-NVCCFLAGS += -shared -fPIC # make shared object
+NVCCFLAGS += $(PYBIND_INCLUDES) ${PYCONFIG_LDFLAGS} -shared -fPIC 
+NVCCFLAGS += -lpython${PYTHON_VERSION}
 
 NVCCFLAGS += -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__
 NVCCFLAGS += -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__
@@ -36,10 +37,6 @@ NVCCFLAGS += -DTORCH_EXTENSION_NAME=_C -D_GLIBCXX_USE_CXX11_ABI=1
 # NVCCFLAGS += ${PYTHON_LIBDIR} ${PYTORCH_LIBDIR} -lpython${PYTHON_VERSION}
 NVCCFLAGS += -ltorch_python -ltorch_cuda -ltorch_cpu -ltorch -lc10_cuda -lc10
 
-NVCCFLAGS += ${PYCONFIG_LDFLAGS}
-NVCCFLAGS += -lpython${PYTHON_VERSION}
-
-NVCCFLAGS += -ltorch_python -ltorch_cuda -ltorch_cpu -ltorch -lc10_cuda -lc10
 NVCCFLAGS += -diag-suppress 3189
 
 # Conditional setup based on the target GPU
