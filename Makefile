@@ -19,7 +19,7 @@ install-local:
 	$(UV) pip install -r src/install/requirements_client.txt --python $(PYTHON)
 
 compile:
-	$(PYTHON) -m src.autoencoders.cuda.compile
+	$(PYTHON) -m src.autoencoders.models.cuda.compile
 
 slurm: 
 	- module load gcc
