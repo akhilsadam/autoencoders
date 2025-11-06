@@ -18,7 +18,7 @@ PYTORCH_LIBDIR ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import li
 PYTORCH_INCLUDES ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import include_paths; print(' '.join(['-I' + p for p in include_paths()]))")
 PYTORCH_LIBDIR ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import library_paths; print(' '.join(['-L' + p for p in library_paths()]))")
 
-NVCCFLAGS := -DNDEBUG -lineinfo
+NVCCFLAGS := -DNDEBUG -lineinfo -DPYTHON -DPYTHON3
 NVCCFLAGS += --expt-extended-lambda --expt-relaxed-constexpr 
 NVCCFLAGS += -Xcompiler=-Wno-psabi -Xcompiler=-fno-strict-aliasing 
 NVCCFLAGS += -forward-unknown-to-host-compiler -ftemplate-backtrace-limit=0
