@@ -11,9 +11,9 @@ install:
 	@command -v $(UV) >/dev/null 2>&1 || $(SYS_PYTHON) -m pip install --user uv
 	@[ -d "$(VENV)" ] || $(UV) venv $(VENV)
 	$(UV) pip install -r src/install/requirements.txt --python $(PYTHON)
-# if python3-config is missing, copy our own
+# if python3-config is missing, find and link it
 	@if [ ! -f "$(VENV)/bin/python3-config" ]; then \
-		cp src/install/python3-config $(VENV)/bin/python3-config; \
+		$(MAKE) py3-conf; \
 	fi
 
 install-local:
@@ -23,8 +23,16 @@ install-local:
 	$(UV) pip install -r src/install/requirements_client.txt --python $(PYTHON)
 
 py3-conf:
-	cp install/python3-config $(VENV)/bin/python3-config
-
+	@# find system python3-config by looking in pyenv
+	bindir=$$(grep "home =" $(VENV)/pyvenv.cfg | cut -d' ' -f3-);
+	sys_py3_config=$$(find $$bindir -name python3-config | head -n 1);
+	if [ -z "$$sys_py3_config" ]; then \
+		echo "Could not find system python3-config"; \
+		exit 1; \
+	else \
+		ln -s $$sys_py3_config $(VENV)/bin/python3-config;
+	fi
+	
 compile:
 	$(PYTHON) -m src.autoencoders.models.cuda.compile
 
