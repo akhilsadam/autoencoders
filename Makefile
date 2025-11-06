@@ -1,3 +1,5 @@
+.ONESHELL:
+
 SHELL := /bin/bash
 VENV ?= .venv
 SYS_PYTHON ?= python3.10
