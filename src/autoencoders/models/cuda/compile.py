@@ -22,7 +22,7 @@ def clean():
     for file in os.listdir(cu_folder):
         if file.endswith('.cu'):
             module_name = file[:-3]
-            TK_clean_command = f'make -f {Makefile_path} clean TARGET={module_name}'
+            TK_clean_command = f'make -C {Makefile_path} clean TARGET={module_name}'
             os.system(TK_clean_command)
             
 if __name__ == "__main__":
