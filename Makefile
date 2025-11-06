@@ -7,13 +7,15 @@ UV ?= uv
 PYTHON ?= $(VENV)/bin/python
 BASE_PYDIR ?= $(shell grep "home =" $(VENV)/pyvenv.cfg | cut -d' ' -f3-)
 
+INSTALL = src/install
+
 .PHONY: install data train benchmark
 
 install:
 	@# Ensure uv is available, then create venv (if missing) and install deps
 	@command -v $(UV) >/dev/null 2>&1 || $(SYS_PYTHON) -m pip install --user uv
 	@[ -d "$(VENV)" ] || $(UV) venv $(VENV)
-	$(UV) pip install -r src/install/requirements.txt --python $(PYTHON)
+	$(UV) pip install -r $(INSTALL)/requirements.txt --python $(PYTHON)
 # if python3-config is missing, find and link it
 	$(MAKE) py3-conf;
 
@@ -21,7 +23,7 @@ install-local:
 	@# Ensure uv is available, then create venv (if missing) and install deps
 	@command -v $(UV) >/dev/null 2>&1 || $(SYS_PYTHON) -m pip install --user uv
 	@[ -d "$(VENV)" ] || $(UV) venv $(VENV)
-	$(UV) pip install -r src/install/requirements_client.txt --python $(PYTHON)
+	$(UV) pip install -r $(INSTALL)/requirements_client.txt --python $(PYTHON)
 
 py3-conf:
 	@# find system python3-config by looking in pyenv
@@ -33,19 +35,15 @@ compile:
 	source "$(VENV)/bin/activate" && \
 	$(PYTHON) -m src.autoencoders.models.cuda.compile ${VENV}
 
-slurm: 
-	- module load gcc
-	- module load miniforge
-	- module load cuda/13.0.1
-	- module load nvhpc/24.5
-
-slurm_install: slurm install
-
 train: install compile
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train
 # 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train run.name=local-debug run.tags=[local,debug]
 
-slurm_train:slurm_install train
+slurm_install: 
+	source ${INSTALL}/module.sh && $(MAKE) install
+
+slurm_train:
+	source ${INSTALL}/module.sh && $(MAKE) train
 
 push-train: install-local
 	$(PYTHON) -m src.deploy.hpc_deploy --dry-run
