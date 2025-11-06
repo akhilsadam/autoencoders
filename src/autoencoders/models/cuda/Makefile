@@ -2,8 +2,8 @@
 NVCC?=nvcc
 GPU=4090
 
-PYTHON?=python3
-PYCONFIG?=python3-config
+PYTHON=python3
+PYCONFIG=python3-config
 
 TARGET=example_bind
 SRC=example_bind.cu
