@@ -40,7 +40,7 @@ benchmark: install data
 #### Install specific ####
 # ONLY first time
 add-tk:
-	git subtree add --prefix=lib/ext/ git@github.com:HazyResearch/ThunderKittens.git main --squash
+	git subtree add --prefix=lib/ext/tk/ git@github.com:HazyResearch/ThunderKittens.git main --squash
 
 update-tk:
-	git subtree pull --prefix=lib/ext/ git@github.com:HazyResearch/ThunderKittens.git main --squash
+	git subtree pull --prefix=lib/ext/tk/ git@github.com:HazyResearch/ThunderKittens.git main --squash
