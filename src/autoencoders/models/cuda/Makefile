@@ -8,6 +8,8 @@ PYCONFIG=python3-config
 TARGET=example_bind
 SRC=example_bind.cu
 
+NVCCFLAGS ?= -DNDEBUG 
+
 PYTHON_VERSION ?= $(shell ${PYTHON} -c "import sysconfig; print(sysconfig.get_config_var('LDVERSION'))")
 PYTHON_INCLUDES ?= $(shell ${PYTHON} -c "import sysconfig; print('-I', sysconfig.get_path('include'), sep='')")
 PYBIND_INCLUDES ?= $(shell ${PYTHON} -m pybind11 --includes)
@@ -18,7 +20,7 @@ PYTORCH_LIBDIR ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import li
 PYTORCH_INCLUDES ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import include_paths; print(' '.join(['-I' + p for p in include_paths()]))")
 PYTORCH_LIBDIR ?= $(shell ${PYTHON} -c "from torch.utils.cpp_extension import library_paths; print(' '.join(['-L' + p for p in library_paths()]))")
 
-NVCCFLAGS := -DNDEBUG -lineinfo 
+NVCCFLAGS += -DNDEBUG -lineinfo 
 NVCCFLAGS += --expt-extended-lambda --expt-relaxed-constexpr 
 NVCCFLAGS += -Xcompiler=-Wno-psabi -Xcompiler=-fno-strict-aliasing 
 NVCCFLAGS += -forward-unknown-to-host-compiler -ftemplate-backtrace-limit=0

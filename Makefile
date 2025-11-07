@@ -30,12 +30,12 @@ py3-conf:
 	-ln -s $(BASE_PYDIR)/python3-config $(VENV)/bin/python3-config;
 	alias python3-config='$(VENV)/bin/python3-config';
 
+# Need template parameters...
+# compile: install
+# 	source "$(VENV)/bin/activate" && \
+# 	$(PYTHON) -m src.autoencoders.models.cuda.compile ${VENV}
 
-compile: install
-	source "$(VENV)/bin/activate" && \
-	$(PYTHON) -m src.autoencoders.models.cuda.compile ${VENV}
-
-train: compile
+train: install
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train
 # 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train run.name=local-debug run.tags=[local,debug]
 
