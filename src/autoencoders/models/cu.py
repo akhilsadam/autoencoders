@@ -13,6 +13,8 @@ from torch import nn
 import helion
 from helion._testing import run_example
 import helion.language as hl
+import os
+os.environ['']
 
 @dataclass
 class Config:
@@ -20,7 +22,7 @@ class Config:
     latent_dim: int = 32
     learning_rate: float = 1e-3
 
-@helion.kernel#(autotune_effort="quick")
+@helion.kernel(autotune_effort="none")
 def h_plus(x: torch.Tensor) -> torch.Tensor:
     _b, _w = x.size()
     out = torch.empty_like(x)
@@ -28,7 +30,7 @@ def h_plus(x: torch.Tensor) -> torch.Tensor:
         out[tile_b, :] = (x[tile_b, :]) + 5
     return out
 
-@helion.kernel#(autotune_effort="quick")
+@helion.kernel(autotune_effort="none")
 def h_plus_grad(x: torch.Tensor) -> torch.Tensor:
     _b, _w = x.size()
     out = torch.empty_like(x)
