@@ -10,11 +10,44 @@ from torch import nn
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
+import helion
+from helion._testing import run_example
+import helion.language as hl
+
 @dataclass
 class Config:
     """Default hyperparameters for autoencoder."""
     latent_dim: int = 32
     learning_rate: float = 1e-3
+
+@helion.kernel(autotune_effort="quick")
+def h_plus(x: torch.Tensor) -> torch.Tensor:
+    _b, _c, h, _w = x.size()
+    out = torch.empty_like(x)
+    for tile_h in hl.tile(h):
+        out[:, :, tile_h, :] = (x[:, :, tile_h, :]) + 5
+    return out
+
+@helion.kernel(autotune_effort="quick")
+def h_plus_grad(x: torch.Tensor) -> torch.Tensor:
+    _b, _c, h, _w = x.size()
+    out = torch.empty_like(x)
+    for tile_h in hl.tile(h):
+        out[:, :, tile_h, :] = x[:, :, tile_h, :]
+    return out
+
+
+class h_function(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input):
+        # ctx.save_for_backward(input)
+        return h_plus(input)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        # input, = ctx.saved_tensors
+        grad_input = h_plus_grad(grad_output)
+        return grad_input
 
 class CUAutoencoder(pl.LightningModule):
     """Tiny convolutional autoencoder for 28x28 grayscale images."""
@@ -47,6 +80,7 @@ class CUAutoencoder(pl.LightningModule):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         z = self.encoder(x)
+        z = h_function.apply(z)
         return self.decoder(z)
 
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], _: int) -> torch.Tensor:
