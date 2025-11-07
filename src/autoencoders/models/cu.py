@@ -22,18 +22,18 @@ class Config:
 
 @helion.kernel(autotune_effort="quick")
 def h_plus(x: torch.Tensor) -> torch.Tensor:
-    _b, _c, h, _w = x.size()
+    _b, _w = x.size()
     out = torch.empty_like(x)
-    for tile_h in hl.tile(h):
-        out[:, :, tile_h, :] = (x[:, :, tile_h, :]) + 5
+    for tile_b in hl.tile(_b):
+        out[tile_b, :] = (x[tile_b, :]) + 5
     return out
 
 @helion.kernel(autotune_effort="quick")
 def h_plus_grad(x: torch.Tensor) -> torch.Tensor:
-    _b, _c, h, _w = x.size()
+    _b, _w = x.size()
     out = torch.empty_like(x)
-    for tile_h in hl.tile(h):
-        out[:, :, tile_h, :] = x[:, :, tile_h, :]
+    for tile_b in hl.tile(_b):
+        out[tile_b, :] = x[tile_b, :]
     return out
 
 
