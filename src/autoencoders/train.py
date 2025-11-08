@@ -133,6 +133,8 @@ def main(cfg: DictConfig) -> None:
     trainer.fit(model, train_loader, val_loader)
     trainer.save_checkpoint(os.path.join(dirs["checkpoints"], "last.ckpt"))
 
+    device = trainer.strategy.root_device
+    model.to(device)
     _save_reconstructions(model, val_loader, dirs["reconstructions"])
     _log_wandb_artifacts(cfg, logger, dirs)
 
