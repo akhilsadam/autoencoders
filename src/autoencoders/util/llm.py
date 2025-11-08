@@ -108,7 +108,8 @@ def summarize_diff(diff_text: str, quality=1) -> str:
         
         short_prompt = (
         "Summarize the following code change summary in 3-4 words, focusing only on functional changes. "
-        "Use an ultra short, concise label:\n\n" + long_summary
+        "Use an ultra short, concise label:\n\n" + long_summary + "\n\n"
+        "Make sure to only output the label without any additional text or explanation."
         )
         short_out = generator(short_prompt, max_new_tokens=20, do_sample=False)
         short_summary = short_out[0]["generated_text"].strip().replace(short_prompt, "").strip()
