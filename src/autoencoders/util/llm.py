@@ -60,7 +60,7 @@ def _fallback_summarizer(diff_text: str, max_chars: int = 4000) -> str:
     return " ".join(summaries)
 
 
-def summarize_diff(diff_text: str, quality=1) -> str:
+def summarize_diff(diff_text: str, quality=0) -> str:
     """Summarize a git diff using Falcon-7B-Instruct or fallback to CPU summarizer."""
     if not diff_text.strip():
         return "No code changes detected."
@@ -107,10 +107,10 @@ def summarize_diff(diff_text: str, quality=1) -> str:
         long_summary =  " ".join(summaries)
         
         short_prompt = (
-        "Summarize the following summary in 3-4 words, focusing only on functional changes. "
-        "In particular, generate an ultra short, concise label. The label should immediately convey the essence of the changes."
-        "\n\n" + long_summary + "\n\n"
-        "Make sure to only output the label without any additional text or explanation."
+            "Generate a 3-4 word label summarizing the following code changes.\n"
+            "Focus only on functional changes. Ignore formatting or whitespace.\n\n"
+            f"{long_summary}\n\n"
+            "Output only the label:"
         )
         short_out = generator(short_prompt, max_new_tokens=20, do_sample=False)
         short_summary = short_out[0]["generated_text"].strip().replace(short_prompt, "").strip()
