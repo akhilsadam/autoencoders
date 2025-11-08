@@ -1,5 +1,6 @@
 # llm.py
 import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def _fallback_summarizer(diff_text: str, max_chars: int = 4000) -> str:
     """Summarize diff using a small CPU-only Transformers model."""

@@ -56,7 +56,9 @@ def _create_logger(cfg: DictConfig) -> WandbLogger:
     logger.experiment.config["git_sha"] = sha
     logger.experiment.config["git_dirty"] = dirty
     print(f"Git SHA: {sha}, Dirty: {dirty}")
-    cfg.git = {"sha": sha, "dirty": dirty}
+    cfg.git.sha = sha
+    cfg.git.dirty = dirty
+    
     return logger
 
 
@@ -102,7 +104,7 @@ def _save_diff(cfg: DictConfig, output_dir: str) -> None:
     try:
         from .util import llm
         summary = llm.summarize_diff(diff)
-        cfg.git['changelog'] = summary
+        cfg.git.changelog = summary
     except Exception as e:
         print(f"Warning: failed to summarize diff: {e}")
 
@@ -140,8 +142,14 @@ def main(cfg: DictConfig) -> None:
     logger = _create_logger(cfg)
     dirs = _artifact_dirs(cfg)
     
-    _save_info_files(cfg, dirs["root"])
-    _save_diff(cfg, dirs["root"])
+    # Determine rank for distributed setups
+    rank = 0
+    if torch.distributed.is_initialized():
+        rank = torch.distributed.get_rank()
+    
+    if rank == 0:
+        _save_info_files(cfg, dirs["root"])
+        _save_diff(cfg, dirs["root"])
     
     checkpoint_cb = ModelCheckpoint(
         dirpath=str(dirs["checkpoints"]),
@@ -156,15 +164,14 @@ def main(cfg: DictConfig) -> None:
 
     trainer = create_trainer(cfg.trainer, logger=logger, callbacks=[checkpoint_cb, lr_cb])
 
-    # print('CONFIG:', cfg)
-
     trainer.fit(model, train_loader, val_loader)
     trainer.save_checkpoint(os.path.join(dirs["checkpoints"], "last.ckpt"))
 
     device = trainer.strategy.root_device
-    model.to(device)
-    _save_reconstructions(model, val_loader, dirs["reconstructions"])
-    _log_wandb_artifacts(cfg, logger, dirs)
+    if rank == 0:
+        model.to(device)
+        _save_reconstructions(model, val_loader, dirs["reconstructions"])
+        _log_wandb_artifacts(cfg, logger, dirs)
 
 
 
