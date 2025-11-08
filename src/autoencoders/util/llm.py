@@ -68,7 +68,7 @@ def summarize_diff(diff_text: str, quality=1) -> tuple[str, str]:
 
         # Step 2: Short label
         label_prompt = (
-            "Generate a 3-4 word concise label summarizing the following changelog. "
+            "Generate a 3-4 word concise label for the most important change in the following changelog. "
             "Focus on functional changes only. Make it folder-safe (no punctuation, use underscores or CamelCase):\n\n"
             f"{long_summary}\n\n"
             "Output only the label:"
@@ -81,6 +81,9 @@ def summarize_diff(diff_text: str, quality=1) -> tuple[str, str]:
             short_summary.replace(" ", "_")
             .replace("-", "_")
             .replace(".", "")
+            .replace("`", "")
+            .replace("'", "")
+            .replace('"', "")
             .upper()
         )
         if not short_summary:
