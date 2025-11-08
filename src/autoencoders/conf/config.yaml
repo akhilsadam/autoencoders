@@ -29,6 +29,10 @@ trainer:
   log_every_n_steps: 10
   precision: 32
 
+git:
+  sha: 000
+  dirty: true
+
 hydra:
   run:
     dir: runs/${data.name}/${model.name}/${now:%Y%m%d%H%M%S}
