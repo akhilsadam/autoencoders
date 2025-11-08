@@ -3,25 +3,38 @@ import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def _fallback_summarizer(diff_text: str, max_chars: int = 4000) -> str:
-    """Summarize diff using a small CPU-only Transformers model."""
     if not diff_text.strip():
         return "No code changes detected."
     try:
         from transformers import pipeline
     except ImportError:
         return "Diff detected, but transformers not installed to summarize it."
-    
+
     summarizer = pipeline(
         "summarization",
         model="sshleifer/distilbart-cnn-12-6",
         device=-1,  # CPU
     )
-    prompt = (
-        "Summarize this git diff as a short changelog entry:\n\n"
-        f"{diff_text[:max_chars]}"
-    )
-    out = summarizer(prompt, max_length=60, min_length=10, do_sample=False)
-    return out[0]["summary_text"].strip()
+
+    # Split into chunks
+    def chunk_diff(text, size=max_chars):
+        lines, chunk, chunks = text.splitlines(), [], []
+        total = 0
+        for line in lines:
+            total += len(line)
+            chunk.append(line)
+            if total >= size:
+                chunks.append("\n".join(chunk))
+                chunk = []
+                total = 0
+        if chunk:
+            chunks.append("\n".join(chunk))
+        return chunks
+
+    chunks = chunk_diff(diff_text)
+    summaries = [summarizer(c, max_length=60, min_length=10, do_sample=False)[0]["summary_text"].strip()
+                 for c in chunks]
+    return " ".join(summaries)
 
 
 def summarize_diff(diff_text: str) -> str:
