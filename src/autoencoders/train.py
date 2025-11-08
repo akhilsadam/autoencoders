@@ -56,6 +56,7 @@ def _create_logger(cfg: DictConfig) -> WandbLogger:
     logger.experiment.config["git_sha"] = sha
     logger.experiment.config["git_dirty"] = dirty
     print(f"Git SHA: {sha}, Dirty: {dirty}")
+    cfg.git = {"sha": sha, "dirty": dirty}
     return logger
 
 
@@ -80,6 +81,19 @@ def _save_reconstructions(model: pl.LightningModule, dataloader: torch.utils.dat
             save_image(recon[:8], os.path.join(output_dir, "reconstructions.png"), nrow=4)
             break
 
+def _save_info_files(cfg: DictConfig, output_dir: str) -> None:
+    """Save config and git info to output directory."""
+    cfg_path = os.path.join(output_dir, "config.yaml")
+    with open(cfg_path, "w") as f:
+        f.write(OmegaConf.to_yaml(cfg))
+        
+def _save_diff(cfg: DictConfig, output_dir: str) -> None:
+    """Calculate and save git changes to output directory."""
+    repo = Repo(search_parent_directories=True)
+    diff = repo.git.diff()
+    diff_path = os.path.join(output_dir, "git_diff.patch")
+    with open(diff_path, "w") as f:
+        f.write(diff)
 
 def _log_wandb_artifacts(cfg: DictConfig, logger: WandbLogger, dirs: Dict[str, str]) -> None:
     """Upload checkpoints and reconstruction images to Weights & Biases as artifacts."""
@@ -113,8 +127,11 @@ def main(cfg: DictConfig) -> None:
 
     model = _prepare_model(cfg)
     logger = _create_logger(cfg)
-
     dirs = _artifact_dirs(cfg)
+    
+    _save_info_files(cfg, dirs["root"])
+    _save_diff(cfg, dirs["root"])
+    
     checkpoint_cb = ModelCheckpoint(
         dirpath=str(dirs["checkpoints"]),
         filename="{epoch:02d}-{val_loss:.4f}",
