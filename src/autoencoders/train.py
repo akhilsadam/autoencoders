@@ -90,10 +90,21 @@ def _save_info_files(cfg: DictConfig, output_dir: str) -> None:
 def _save_diff(cfg: DictConfig, output_dir: str) -> None:
     """Calculate and save git changes to output directory."""
     repo = Repo(search_parent_directories=True)
-    diff = repo.git.diff()
-    diff_path = os.path.join(output_dir, "git_diff.patch")
-    with open(diff_path, "w") as f:
-        f.write(diff)
+    if repo.is_dirty():
+        diff = repo.git.diff()
+        diff_path = os.path.join(output_dir, "unstaged_diff.patch")
+        with open(diff_path, "w") as f:
+            f.write(diff)   
+    else:
+        # diff to last commit
+        diff = repo.git.diff(f"{cfg.git.sha}~1", cfg.git.sha)
+
+    try:
+        from .util import llm
+        summary = llm.summarize_diff(diff)
+        cfg.git['changelog'] = summary
+    except Exception as e:
+        print(f"Warning: failed to summarize diff: {e}")
 
 def _log_wandb_artifacts(cfg: DictConfig, logger: WandbLogger, dirs: Dict[str, str]) -> None:
     """Upload checkpoints and reconstruction images to Weights & Biases as artifacts."""

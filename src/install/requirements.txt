@@ -20,3 +20,4 @@ hydra-core
 datasets
 pybind11
 helion
+gpt4all # for change tracking
