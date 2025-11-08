@@ -8,7 +8,7 @@ def _extract_diff_content(diff_text: str) -> str:
         if line.startswith("+") and not line.startswith("+++"):
             content_lines.append(line.strip())
         elif line.startswith("-") and not line.startswith("---"):
-            content_lines.append(line.strip()")
+            content_lines.append(line.strip())
     return "\n".join(content_lines)
 
 def _chunk_text(text: str, max_chars: int = 4000) -> list[str]:
