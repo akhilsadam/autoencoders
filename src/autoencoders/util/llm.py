@@ -6,9 +6,9 @@ def _extract_diff_content(diff_text: str) -> str:
     content_lines = []
     for line in diff_text.splitlines():
         if line.startswith("+") and not line.startswith("+++"):
-            content_lines.append(line[1:].strip())
+            content_lines.append(line.strip())
         elif line.startswith("-") and not line.startswith("---"):
-            content_lines.append(f"Removed: {line[1:].strip()}")
+            content_lines.append(line.strip()")
     return "\n".join(content_lines)
 
 def _chunk_text(text: str, max_chars: int = 4000) -> list[str]:
@@ -56,6 +56,7 @@ def summarize_diff(diff_text: str, quality=0) -> tuple[str, str]:
         for c in chunks:
             prompt = (
                 "Summarize the following code changes in plain English as a concise but descriptive changelog. "
+                "+ denotes additions, - denotes deletions."
                 "Focus on functional changes, ignore whitespace/formatting changes. Do NOT repeat code or words.\n\n"
                 f"{c}"
             )
