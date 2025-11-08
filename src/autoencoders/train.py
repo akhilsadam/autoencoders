@@ -148,11 +148,12 @@ def main(cfg: DictConfig) -> None:
     if torch.distributed.is_initialized():
         rank = torch.distributed.get_rank()
     
-    if rank == 0:
-        _compute_diff(cfg)
-
     model = _prepare_model(cfg)
     logger = _create_logger(cfg)
+    
+    if rank == 0:
+        _compute_diff(cfg)
+    
     dirs = _artifact_dirs(cfg)
     
     if rank == 0:
