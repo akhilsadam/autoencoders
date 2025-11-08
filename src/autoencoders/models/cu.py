@@ -14,6 +14,10 @@ import helion
 from helion._testing import run_example
 import helion.language as hl
 import os
+os.environ['CC'] = 'gcc'
+os.environ['CXX'] = 'g++'
+os.environ['TRITON_BACKEND'] = 'cuda'
+
 
 @dataclass
 class Config:
