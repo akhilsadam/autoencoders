@@ -2,9 +2,21 @@
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+def _extract_diff_content(diff_text: str) -> str:
+    """Extract meaningful lines from a git diff for summarization."""
+    content_lines = []
+    for line in diff_text.splitlines():
+        if line.startswith("+") and not line.startswith("+++"):
+            content_lines.append(line[1:].strip())
+        elif line.startswith("-") and not line.startswith("---"):
+            content_lines.append(f"Removed: {line[1:].strip()}")
+    return "\n".join(content_lines)
+
+
 def _fallback_summarizer(diff_text: str, max_chars: int = 4000) -> str:
     if not diff_text.strip():
         return "No code changes detected."
+
     try:
         from transformers import pipeline
     except ImportError:
@@ -16,8 +28,11 @@ def _fallback_summarizer(diff_text: str, max_chars: int = 4000) -> str:
         device=-1,  # CPU
     )
 
-    # Split into chunks
-    def chunk_diff(text, size=max_chars):
+    # Extract only meaningful diff lines
+    content = _extract_diff_content(diff_text)
+
+    # Split into chunks if too large
+    def chunk_text(text, size=max_chars):
         lines, chunk, chunks = text.splitlines(), [], []
         total = 0
         for line in lines:
@@ -31,9 +46,17 @@ def _fallback_summarizer(diff_text: str, max_chars: int = 4000) -> str:
             chunks.append("\n".join(chunk))
         return chunks
 
-    chunks = chunk_diff(diff_text)
-    summaries = [summarizer(c, max_length=60, min_length=10, do_sample=False)[0]["summary_text"].strip()
-                 for c in chunks]
+    chunks = chunk_text(content)
+    summaries = []
+    for c in chunks:
+        prompt = (
+            "Summarize the following code changes in plain English as a short changelog entry. "
+            "Focus on functional changes and ignore whitespace or formatting changes:\n\n"
+            f"{c}"
+        )
+        out = summarizer(prompt, max_length=60, min_length=10, do_sample=False)
+        summaries.append(out[0]["summary_text"].strip())
+
     return " ".join(summaries)
 
 
@@ -49,13 +72,17 @@ def summarize_diff(diff_text: str) -> str:
         # Load a lightweight model (adjust path to your local model if needed)
         model_path = os.environ.get("GPT4ALL_MODEL_PATH", "ggml-model-gpt4all-j-v1.3-groovy.bin")
         llm = GPT4All(model_path)
-        prompt = f"Summarize this git diff as a short changelog:\n\n{diff_text[:4000]}"
+
+        content = _extract_diff_content(diff_text)
+        prompt = (
+            "Summarize the following code changes in plain English as a short changelog entry. "
+            "Focus on functional changes and ignore whitespace or formatting changes:\n\n"
+            f"{content[:4000]}"
+        )
         summary = llm.generate(prompt, streaming=False)
         if summary.strip():
             return summary.strip()
     except Exception as e:
-        # GPT4All failed (likely GLIBC or missing binary)
         print(f"Info: GPT4All unavailable, falling back to Transformers: {e}")
 
-    # Fallback
     return _fallback_summarizer(diff_text)

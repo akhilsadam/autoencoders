@@ -32,7 +32,7 @@ trainer:
 git:
   sha: 000
   dirty: true
-  changelog: N/A
+  changelog: NA
 
 hydra:
   run:
