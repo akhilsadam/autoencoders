@@ -1,3 +1,31 @@
+# llm.py 
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+def _extract_diff_content(diff_text: str) -> str:
+    """Extract meaningful lines from a git diff for summarization."""
+    content_lines = []
+    for line in diff_text.splitlines():
+        if line.startswith("+") and not line.startswith("+++"):
+            content_lines.append(line[1:].strip())
+        elif line.startswith("-") and not line.startswith("---"):
+            content_lines.append(f"Removed: {line[1:].strip()}")
+    return "\n".join(content_lines)
+
+def _chunk_text(text: str, max_chars: int = 4000) -> list[str]:
+    """Split text into chunks of roughly max_chars for the model."""
+    lines, chunk, chunks = text.splitlines(), [], []
+    total = 0
+    for line in lines:
+        total += len(line)
+        chunk.append(line)
+        if total >= max_chars:
+            chunks.append("\n".join(chunk))
+            chunk = []
+            total = 0
+    if chunk:
+        chunks.append("\n".join(chunk))
+    return chunks 
+
 def summarize_diff(diff_text: str, quality=0) -> tuple[str, str]:
     """Summarize a git diff into a long changelog and a short label."""
     if not diff_text.strip():
