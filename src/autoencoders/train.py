@@ -89,22 +89,27 @@ def _save_info_files(cfg: DictConfig, output_dir: str) -> None:
     with open(cfg_path, "w") as f:
         f.write(OmegaConf.to_yaml(cfg))
         
-def _save_diff(cfg: DictConfig, output_dir: str) -> None:
-    """Calculate and save git changes to output directory."""
     repo = Repo(search_parent_directories=True)
     if repo.is_dirty():
         diff = repo.git.diff()
         diff_path = os.path.join(output_dir, "unstaged_diff.patch")
         with open(diff_path, "w") as f:
             f.write(diff)   
+        
+def _compute_diff(cfg: DictConfig) -> None:
+    """Calculate and save git changes to output directory."""
+    repo = Repo(search_parent_directories=True)
+    if repo.is_dirty():
+        diff = repo.git.diff()
     else:
         # diff to last commit
         diff = repo.git.diff(f"{cfg.git.sha}~1", cfg.git.sha)
 
     try:
         from .util import llm
-        summary = llm.summarize_diff(diff)
+        summary, short_sum = llm.summarize_diff(diff)
         print(f"Changelog summary:\n{summary}")
+        print(f"Short summary:\n{short_sum}")
         cfg.git.changelog = summary
     except Exception as e:
         print(f"Warning: failed to summarize diff: {e}")
@@ -136,12 +141,7 @@ def _log_wandb_artifacts(cfg: DictConfig, logger: WandbLogger, dirs: Dict[str, s
 @hydra.main(version_base="1.3", config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     pl.seed_everything(cfg.seed)
-
     train_loader, val_loader = build_dataloaders(cfg.data)
-
-    model = _prepare_model(cfg)
-    logger = _create_logger(cfg)
-    dirs = _artifact_dirs(cfg)
     
     # Determine rank for distributed setups
     rank = 0
@@ -149,8 +149,14 @@ def main(cfg: DictConfig) -> None:
         rank = torch.distributed.get_rank()
     
     if rank == 0:
+        _compute_diff(cfg)
+
+    model = _prepare_model(cfg)
+    logger = _create_logger(cfg)
+    dirs = _artifact_dirs(cfg)
+    
+    if rank == 0:
         _save_info_files(cfg, dirs["root"])
-        _save_diff(cfg, dirs["root"])
     
     checkpoint_cb = ModelCheckpoint(
         dirpath=str(dirs["checkpoints"]),

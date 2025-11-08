@@ -60,7 +60,7 @@ def _fallback_summarizer(diff_text: str, max_chars: int = 4000) -> str:
     return " ".join(summaries)
 
 
-def summarize_diff(diff_text: str) -> str:
+def summarize_diff(diff_text: str, quality=1) -> str:
     """Summarize a git diff using Falcon-7B-Instruct or fallback to CPU summarizer."""
     if not diff_text.strip():
         return "No code changes detected."
@@ -72,7 +72,15 @@ def summarize_diff(diff_text: str) -> str:
         from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
         import torch
 
-        model_name = "tiiuae/falcon-7b-instruct"
+        model_name = "tiiuae/Falcon-H1-1.5B-Instruct"
+        match quality:
+            case 1:
+                model_name = "tiiuae/Falcon-H1-1.5B-Instruct"
+            case 0:
+                model_name = "tiiuae/falcon-7b-instruct"
+            case _:
+                pass
+            
         device = 0 if torch.cuda.is_available() else -1
 
         tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -96,9 +104,18 @@ def summarize_diff(diff_text: str) -> str:
             text = text.replace(prompt, "").strip()
             summaries.append(text)
 
-        return " ".join(summaries)
+        long_summary =  " ".join(summaries)
+        
+        short_prompt = (
+        "Summarize the following code change summary in 3-4 words, focusing only on functional changes. "
+        "Use an ultra short, concise label:\n\n" + long_summary
+        )
+        short_out = generator(short_prompt, max_new_tokens=20, do_sample=False)
+        short_summary = short_out[0]["generated_text"].strip().replace(short_prompt, "").strip()
+        
+        return long_summary, short_summary
 
     except Exception as e:
-        print(f"Info: Falcon-7B-Instruct unavailable, skipping: {e}")
+        print(f"Info: LLM unavailable, skipping: {e}")
         # return _fallback_summarizer(diff_text)
-        return ""
+        return "", ""  # skip for now
