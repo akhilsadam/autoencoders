@@ -78,8 +78,7 @@ def summarize_diff(diff_text: str) -> str:
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         model = AutoModelForCausalLM.from_pretrained(
             model_name,
-            device_map="auto" if device == 0 else None,
-            torch_dtype=torch.float16 if device == 0 else torch.float32,
+            dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
         )
 
         generator = pipeline("text-generation", model=model, tokenizer=tokenizer, device=device)
@@ -100,5 +99,6 @@ def summarize_diff(diff_text: str) -> str:
         return " ".join(summaries)
 
     except Exception as e:
-        print(f"Info: Falcon-7B-Instruct unavailable, falling back to CPU summarizer: {e}")
-        return _fallback_summarizer(diff_text)
+        print(f"Info: Falcon-7B-Instruct unavailable, skipping: {e}")
+        # return _fallback_summarizer(diff_text)
+        return ""
