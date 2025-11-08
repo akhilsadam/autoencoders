@@ -26,7 +26,7 @@ def _chunk_text(text: str, max_chars: int = 4000) -> list[str]:
         chunks.append("\n".join(chunk))
     return chunks 
 
-def summarize_diff(diff_text: str, quality=0) -> tuple[str, str]:
+def summarize_diff(diff_text: str, quality=1) -> tuple[str, str]:
     """Summarize a git diff into a long changelog and a short label."""
     if not diff_text.strip():
         return "No code changes detected.", ""
