@@ -44,8 +44,7 @@ def summarize_diff(diff_text: str, quality=0) -> tuple[str, str]:
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         model = AutoModelForCausalLM.from_pretrained(
             model_name,
-            device_map="auto" if torch.cuda.is_available() else None,
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+            dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
         )
 
         generator = pipeline("text-generation", model=model, tokenizer=tokenizer, device=device)
