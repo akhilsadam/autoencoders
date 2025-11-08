@@ -29,10 +29,15 @@ def _chunk_text(text: str, max_chars: int = 4000) -> list[str]:
 def summarize_diff(diff_text: str, quality=0) -> tuple[str, str]:
     """Summarize a git diff into a long changelog and a short label."""
     if not diff_text.strip():
-        return "No code changes detected.", "NOCHANGES"
+        return "No code changes detected.", ""
 
     content = _extract_diff_content(diff_text)
     chunks = _chunk_text(content)
+
+    print(f"Summarizing diff in {len(chunks)} chunks...")
+    print(f"Diff content preview:\n{content[:500]}...\n")
+    print(f"First chunk preview:\n{chunks[0][:500]}...\n") 
+    print(f"Last chunk preview:\n{chunks[-1][:500]}...\n")
 
     try:
         from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
@@ -42,10 +47,7 @@ def summarize_diff(diff_text: str, quality=0) -> tuple[str, str]:
         device = 0 if torch.cuda.is_available() else -1
 
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-        )
+        model = AutoModelForCausalLM.from_pretrained(model_name)
 
         generator = pipeline("text-generation", model=model, tokenizer=tokenizer, device=device)
 
@@ -54,7 +56,7 @@ def summarize_diff(diff_text: str, quality=0) -> tuple[str, str]:
         for c in chunks:
             prompt = (
                 "Summarize the following code changes in plain English as a concise but descriptive changelog. "
-                "Focus on functional changes, ignore whitespace/formatting changes:\n\n"
+                "Focus on functional changes, ignore whitespace/formatting changes. Do NOT repeat code or words.\n\n"
                 f"{c}"
             )
             out = generator(prompt, max_new_tokens=150, do_sample=False)
