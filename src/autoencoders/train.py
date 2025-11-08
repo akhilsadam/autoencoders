@@ -104,6 +104,7 @@ def _save_diff(cfg: DictConfig, output_dir: str) -> None:
     try:
         from .util import llm
         summary = llm.summarize_diff(diff)
+        print(f"Changelog summary:\n{summary}")
         cfg.git.changelog = summary
     except Exception as e:
         print(f"Warning: failed to summarize diff: {e}")
