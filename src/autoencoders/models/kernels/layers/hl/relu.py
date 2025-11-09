@@ -5,6 +5,8 @@ os.environ['TRITON_BACKEND'] = 'cuda'
 # important for helion (else finds nvc, not nvcc)
 # need it here for pytest
 
+import torch
+import torch.nn as nn
 import helion
 import helion.language as hl
 
