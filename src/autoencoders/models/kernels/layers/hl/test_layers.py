@@ -1,6 +1,7 @@
 import torch
 import helion
 import helion.language as hl
+from functools import partial
 
 def random_reduce(err):
     weights = torch.rand_like(err)
@@ -9,16 +10,16 @@ def random_reduce(err):
 
 
 # tester kernels
-def make_pointwise_kernels(_pointwise_fwd,
-                           _pointwise_bwd):
-    def _pointwise_fwd_kernel(x: torch.Tensor) -> torch.Tensor:
+def make_pointwise_kernels(_p_fwd,
+                           _p_bwd):
+    def _pointwise_fwd_kernel(x: torch.Tensor, _pointwise_fwd) -> torch.Tensor:
         _b, _w = x.size()
         out = torch.empty_like(x)
         for tile_b in hl.tile(_b):
             out[tile_b, :] = _pointwise_fwd(x[tile_b, :])
         return out
 
-    def _pointwise_bwd_kernel(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    def _pointwise_bwd_kernel(g: torch.Tensor, y: torch.Tensor, _pointwise_bwd) -> torch.Tensor:
         _b, _w = g.size()
         out = torch.empty_like(g)
         for tile_b in hl.tile(_b):
@@ -29,7 +30,9 @@ def make_pointwise_kernels(_pointwise_fwd,
     _pointwise_fwd_kernel.__name__ = "_pointwise_fwd_" + str(id(_pointwise_fwd))
     _pointwise_bwd_kernel.__name__ = "_pointwise_bwd_" + str(id(_pointwise_bwd))
 
-    return _pointwise_fwd_kernel, _pointwise_bwd_kernel
+    return partial(_pointwise_fwd_kernel, _pointwise_fwd=_p_fwd), \
+           partial(_pointwise_bwd_kernel, _pointwise_bwd=_p_bwd)
+
 
 def _pointwise(_pointwise_fwd,
                _pointwise_bwd,
