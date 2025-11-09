@@ -7,24 +7,25 @@ def random_reduce(err):
     loss = weights * (err) ** 2
     return loss.mean()
 
+
+# tester kernels
+def _pointwise_fwd_kernel(x: torch.Tensor) -> torch.Tensor:
+    _b, _w = x.size()
+    out = torch.empty_like(x)
+    for tile_b in hl.tile(_b):
+        out[tile_b, :] = _pointwise_fwd(x[tile_b, :])
+    return out
+
+def _pointwise_bwd_kernel(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    _b, _w = g.size()
+    out = torch.empty_like(g)
+    for tile_b in hl.tile(_b):
+        out[tile_b, :] = _pointwise_bwd(g[tile_b, :], y[tile_b, :])
+    return out
+
 def _pointwise(_pointwise_fwd,
                _pointwise_bwd,
                true_fwd):
-    
-    # tester kernels
-    def _pointwise_fwd_kernel(x: torch.Tensor) -> torch.Tensor:
-        _b, _w = x.size()
-        out = torch.empty_like(x)
-        for tile_b in hl.tile(_b):
-            out[tile_b, :] = _pointwise_fwd(x[tile_b, :])
-        return out
-
-    def _pointwise_bwd_kernel(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        _b, _w = g.size()
-        out = torch.empty_like(g)
-        for tile_b in hl.tile(_b):
-            out[tile_b, :] = _pointwise_bwd(g[tile_b, :], y[tile_b, :])
-        return out
     
     # rename for uniqueness
     _pointwise_fwd_kernel.__name__ = "_pointwise_fwd_" + str(id(_pointwise_fwd))
