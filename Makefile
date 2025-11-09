@@ -35,7 +35,7 @@ py3-conf:
 # 	source "$(VENV)/bin/activate" && \
 # 	$(PYTHON) -m src.autoencoders.models.cuda.compile ${VENV}
 
-test-hl:
+test-hl: install
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m pytest -s -v src/autoencoders/models/kernels/layers/hl
 
 train: install

@@ -27,7 +27,6 @@ build-backend = "setuptools.build_meta"
 allow-direct-references = true
 
 [tool.pytest]
-minversion = "9.0"
 python_files = ["*.py"]
 python_classes = ["_TEST_*"]
 python_functions = ["_test_*"]
