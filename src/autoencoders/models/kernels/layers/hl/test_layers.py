@@ -25,11 +25,7 @@ def make_pointwise_kernels(_p_fwd,
         for tile_b in hl.tile(_b):
             out[tile_b, :] = _pointwise_bwd(g[tile_b, :], y[tile_b, :])
         return out
-
-    # # rename for uniqueness
-    # _pointwise_fwd_kernel.__name__ = "_pointwise_fwd_" + str(id(_p_fwd))
-    # _pointwise_bwd_kernel.__name__ = "_pointwise_bwd_" + str(id(_p_bwd))
-
+    
     return partial(_pointwise_fwd_kernel, _pointwise_fwd=_p_fwd), \
            partial(_pointwise_bwd_kernel, _pointwise_bwd=_p_bwd)
 
@@ -53,7 +49,7 @@ def _pointwise(_pointwise_fwd,
     assert torch.allclose(y_hat, y) # verify forward
     
     # compute true backward
-    y.requires_grad_()
+    y.retain_grad() # make sure we can access y.grad
     random_reduce(y).backward()
     x_g = x.grad
     
