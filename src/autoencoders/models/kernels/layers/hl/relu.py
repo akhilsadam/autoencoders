@@ -16,6 +16,6 @@ def _relu_fwd(x: torch.Tensor) -> torch.Tensor:
 def _relu_bwd(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     return g * (y > 0).to(g.dtype)
 
-def test_relu():
+def _test_relu():
     from .test_layers import _pointwise
     _pointwise(_relu_fwd, _relu_bwd)
