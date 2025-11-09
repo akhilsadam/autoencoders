@@ -1,5 +1,5 @@
 defaults:
-  - model: cu
+  - model: tiny_hl
   - data: fashion_mnist
   - _self_
 
@@ -36,7 +36,14 @@ git:
 
 hydra:
   run:
-    dir: runs/${data.name}/${model.name}/${now:%Y%m%d%H%M%S}
+    dir: runs/${data.name}/${model.name}/${sec_id:}
+  job:
+    config:
+      override_dirname:
+        kv_sep: '='
+        item_sep: '_'
+    name: ${hydra.job.name}
+    num: ${hydra.job.num}
   sweep:
-    dir: runs/multirun/${now:%Y%m%d}
-    subdir: ${hydra.job.num}
+    dir: runs/sweep/${run.name}_${sec_id:}
+    subdir: ${hydra.job.override_dirname}___${hydra.job.num}

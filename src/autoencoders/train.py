@@ -4,7 +4,10 @@ from __future__ import annotations
 import os
 from dataclasses import asdict
 from typing import Any, Dict
-
+os.environ['CC'] = 'gcc'
+os.environ['CXX'] = 'g++'
+os.environ['TRITON_BACKEND'] = 'cuda'
+# important for helion (else finds nvc, not nvcc)
 
 from git import Repo
 import hydra
@@ -20,9 +23,11 @@ from . import get_default_config, get_model
 from .data import build_dataloaders
 os.environ.setdefault("WANDB_MODE", "online")
 
+from .util import sec_id # sec_id resolver registration (OmegaConf)
 from .trainer import create_trainer
 
-torch.set_float32_matmul_precision('high')
+# torch.set_float32_matmul_precision('high') # obsolete
+torch.backends.cudnn.conv.fp32_precision = 'tf32'
 
 def _prepare_model(cfg: DictConfig) -> pl.LightningModule:
     default_cfg = get_default_config(cfg.model.name)

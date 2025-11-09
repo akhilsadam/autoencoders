@@ -35,17 +35,23 @@ py3-conf:
 # 	source "$(VENV)/bin/activate" && \
 # 	$(PYTHON) -m src.autoencoders.models.cuda.compile ${VENV}
 
+test-hl:
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m pytest -s -v src/autoencoders/models/kernels/layers/hl
+
 train: install
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train
 # 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train run.name=local-debug run.tags=[local,debug]
 
-slurm_compile: 
+scompile: 
 	source ${INSTALL}/module.sh && $(MAKE) compile
 
-slurm_install: 
+sinstall: 
 	source ${INSTALL}/module.sh && $(MAKE) install
 
-slurm_train:
+stest-hl:
+	source ${INSTALL}/module.sh && $(MAKE) test-hl
+
+strain:
 	source ${INSTALL}/module.sh && $(MAKE) train
 
 push-train: install-local
