@@ -1,7 +1,11 @@
-from .util import random_reduce
-
+import torch
 import helion
 import helion.language as hl
+
+def random_reduce(err):
+    weights = torch.rand_like(err)
+    loss = weights * (err) ** 2
+    return loss.mean()
 
 def _pointwise(_pointwise_fwd,
                _pointwise_bwd):
