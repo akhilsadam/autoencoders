@@ -12,22 +12,26 @@ def _pointwise(_pointwise_fwd,
                true_fwd):
     
     # tester kernels
-    def _pointwise_fwd(x: torch.Tensor) -> torch.Tensor:
+    def _pointwise_fwd_kernel(x: torch.Tensor) -> torch.Tensor:
         _b, _w = x.size()
         out = torch.empty_like(x)
         for tile_b in hl.tile(_b):
             out[tile_b, :] = _pointwise_fwd(x[tile_b, :])
         return out
 
-    def _pointwise_bwd(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    def _pointwise_bwd_kernel(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         _b, _w = g.size()
         out = torch.empty_like(g)
         for tile_b in hl.tile(_b):
             out[tile_b, :] = _pointwise_bwd(g[tile_b, :], y[tile_b, :])
         return out
     
-    hl_pointwise_fwd = helion.kernel(autotune_effort="quick")(_pointwise_fwd)
-    hl_pointwise_bwd = helion.kernel(autotune_effort="quick")(_pointwise_bwd)
+    # rename for uniqueness
+    _pointwise_fwd_kernel.__name__ = "_pointwise_fwd_" + str(id(_pointwise_fwd))
+    _pointwise_bwd_kernel.__name__ = "_pointwise_bwd_" + str(id(_pointwise_bwd))
+    
+    hl_pointwise_fwd = helion.kernel(autotune_effort="quick")(_pointwise_fwd_kernel)
+    hl_pointwise_bwd = helion.kernel(autotune_effort="quick")(_pointwise_bwd_kernel)
     
     # test data
     torch.manual_seed(42)
