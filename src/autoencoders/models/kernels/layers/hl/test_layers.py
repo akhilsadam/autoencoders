@@ -8,6 +8,7 @@ def random_reduce(err):
     loss = weights * (err) ** 2
     return loss.mean()
 
+_TRUE_FWD = None
 _POINTWISE_FWD = None
 _POINTWISE_BWD = None
 
@@ -33,7 +34,7 @@ def _pointwise_layer():
     x = torch.randn(1024, 512, device="cuda")
     x.requires_grad_()
 
-    y = true_fwd(x) # compute true forward
+    y = _TRUE_FWD(x) # compute true forward
     y_hat = _pointwise_fwd_kernel(x)              # compute helion forward
     assert torch.allclose(y_hat, y) # verify forward
 

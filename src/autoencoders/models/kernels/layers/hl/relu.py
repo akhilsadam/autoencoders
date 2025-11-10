@@ -20,6 +20,7 @@ def _relu_bwd(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 
 def _test_relu():
     from . import test_layers as tl
+    tl._TRUE_FWD = nn.functional.relu
     tl._POINTWISE_FWD = _relu_fwd
     tl._POINTWISE_BWD = _relu_bwd
     tl._pointwise_layer()
