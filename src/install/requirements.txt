@@ -5,7 +5,7 @@ logging
 pyyaml>=6.0.1
 torch==2.9.0+cu130
 lightning
-torchvision>=0.18.0
+torchvision>=0.24.0+cu130
 wandb>=0.17.0
 numpy
 pykeops
