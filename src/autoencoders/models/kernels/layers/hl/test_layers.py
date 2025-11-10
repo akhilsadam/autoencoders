@@ -9,18 +9,20 @@ def random_reduce(err):
 # tester kernels
 def make_pointwise_kernels(_p_fwd,
                            _p_bwd):
-    def _pointwise_fwd_kernel(x: torch.Tensor, _p_fwd=_p_fwd) -> torch.Tensor:
+    def _pointwise_fwd_kernel(x: torch.Tensor) -> torch.Tensor:
+        p_fwd=_p_fwd
         _b, _w = x.size()
         out = torch.empty_like(x)
         for tile_b in hl.tile(_b):
-            out[tile_b, :] = _p_fwd(x[tile_b, :])
+            out[tile_b, :] = p_fwd(x[tile_b, :])
         return out
 
-    def _pointwise_bwd_kernel(g: torch.Tensor, y: torch.Tensor, _p_bwd=_p_bwd) -> torch.Tensor:
+    def _pointwise_bwd_kernel(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        p_bwd=_p_bwd
         _b, _w = g.size()
         out = torch.empty_like(g)
         for tile_b in hl.tile(_b):
-            out[tile_b, :] = _p_bwd(g[tile_b, :], y[tile_b, :])
+            out[tile_b, :] = p_bwd(g[tile_b, :], y[tile_b, :])
         return out
     
     return _pointwise_fwd_kernel, _pointwise_bwd_kernel
