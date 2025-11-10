@@ -34,7 +34,7 @@ def make_pointwise_kernels(_p_fwd,
         {**globals(), '_p_fwd': _p_fwd},
         name=_pointwise_fwd_kernel.__name__,
         argdefs=_pointwise_fwd_kernel.__defaults__,
-        closure=None,
+        closure=(),
     )
 
     bwd = types.FunctionType(
@@ -42,7 +42,7 @@ def make_pointwise_kernels(_p_fwd,
         {**globals(), '_p_bwd': _p_bwd},
         name=_pointwise_bwd_kernel.__name__,
         argdefs=_pointwise_bwd_kernel.__defaults__,
-        closure=None,
+        closure=(),
     )
     
     return fwd, bwd
