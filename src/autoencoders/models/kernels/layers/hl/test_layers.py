@@ -8,45 +8,35 @@ def random_reduce(err):
     loss = weights * (err) ** 2
     return loss.mean()
 
+_POINTWISE_FWD = None
+_POINTWISE_BWD = None
+
 # tester kernels
 def make_pointwise_kernels(_p_fwd,
                            _p_bwd):
+
+    global _POINTWISE_FWD, _POINTWISE_BWD
+    _POINTWISE_FWD = _p_fwd
+    _POINTWISE_BWD = _p_bwd
+    
     def _pointwise_fwd_kernel(x: torch.Tensor) -> torch.Tensor:
-        p_fwd=_p_fwd
         _b, _w = x.size()
         out = torch.empty_like(x)
         for tile_b in hl.tile(_b):
-            out[tile_b, :] = p_fwd(x[tile_b, :])
+            out[tile_b, :] = _POINTWISE_FWD(x[tile_b, :])
         return out
 
     def _pointwise_bwd_kernel(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        p_bwd=_p_bwd
         _b, _w = g.size()
         out = torch.empty_like(g)
         for tile_b in hl.tile(_b):
-            out[tile_b, :] = p_bwd(g[tile_b, :], y[tile_b, :])
+            out[tile_b, :] = _POINTWISE_BWD(g[tile_b, :], y[tile_b, :])
         return out
     
+    _pointwise_fwd_kernel.__name__ = "_pointwise_fwd_kernel_" + _p_fwd.__name__
+    _pointwise_bwd_kernel.__name__ = "_pointwise_bwd_kernel_" + _p_bwd.__name__
     
-    # remove closures by creating new function objects with globals bound
-    fwd = types.FunctionType(
-        _pointwise_fwd_kernel.__code__,
-        {**globals(), '_p_fwd': _p_fwd},
-        name=_pointwise_fwd_kernel.__name__,
-        argdefs=_pointwise_fwd_kernel.__defaults__,
-        closure=(),
-    )
-
-    bwd = types.FunctionType(
-        _pointwise_bwd_kernel.__code__,
-        {**globals(), '_p_bwd': _p_bwd},
-        name=_pointwise_bwd_kernel.__name__,
-        argdefs=_pointwise_bwd_kernel.__defaults__,
-        closure=(),
-    )
-    
-    return fwd, bwd
-
+    return _pointwise_fwd_kernel, _pointwise_bwd_kernel
 
 def _pointwise(_pointwise_fwd,
                _pointwise_bwd,
