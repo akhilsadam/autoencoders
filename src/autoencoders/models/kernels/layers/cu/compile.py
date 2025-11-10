@@ -45,7 +45,7 @@ NVCC_FLAGS = [
 
 # Add PyTorch / Python includes
 NVCC_FLAGS += [f"-I{inc}" for inc in torch.utils.cpp_extension.include_paths()]
-NVCC_FLAGS.append(sysconfig.get_path("include"))
+NVCC_FLAGS.append(f"-I{sysconfig.get_path('include')}")
 NVCC_FLAGS += pybind11.get_include().split()
 
 setup(
