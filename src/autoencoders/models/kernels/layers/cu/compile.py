@@ -27,7 +27,7 @@ NVCC_FLAGS = [
     "-std=c++20",
     "-O3",
     "--use_fast_math",
-    "--dlto",
+    # "--dlto",
     "-Xnvlink=--verbose",
     "-Xptxas=--verbose",
     "-Xptxas=--warn-on-spills",
