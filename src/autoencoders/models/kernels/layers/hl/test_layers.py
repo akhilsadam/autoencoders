@@ -12,7 +12,7 @@ _TRUE_FWD = None
 _POINTWISE_FWD = None
 _POINTWISE_BWD = None
 
-@helion.kernel(autotune_effort="quick")
+@helion.kernel(autotune_effort="none")
 def _pointwise_fwd_kernel(x: torch.Tensor) -> torch.Tensor:
     _b, _w = x.size()
     out = torch.empty_like(x)
@@ -20,7 +20,7 @@ def _pointwise_fwd_kernel(x: torch.Tensor) -> torch.Tensor:
         out[tile_b, :] = _POINTWISE_FWD(x[tile_b, :])
     return out
 
-@helion.kernel(autotune_effort="quick")
+@helion.kernel(autotune_effort="none")
 def _pointwise_bwd_kernel(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     _b, _w = g.size()
     out = torch.empty_like(g)
