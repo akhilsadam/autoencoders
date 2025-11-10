@@ -21,14 +21,22 @@ def _pointwise_fwd_kernel(x: torch.Tensor) -> torch.Tensor:
     return out
 
 @helion.kernel(autotune_effort="none")
-def _pointwise_bwd_kernel(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+def _pointwise_bwd_kernel_unsaved(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     _b, _w = g.size()
     out = torch.empty_like(g)
     for tile_b in hl.tile(_b):
         out[tile_b, :] = _POINTWISE_BWD(g[tile_b, :], y[tile_b, :])
     return out
 
-def _pointwise_layer():
+@helion.kernel(autotune_effort="none")
+def _pointwise_bwd_kernel(g: torch.Tensor, y: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
+    _b, _w = g.size()
+    out = torch.empty_like(g)
+    for tile_b in hl.tile(_b):
+        out[tile_b, :] = _POINTWISE_BWD(g[tile_b, :], y[tile_b, :], x[tile_b, :])
+    return out
+
+def _pointwise_layer(state_saved: bool = False):
     # test data
     torch.manual_seed(42)
     x = torch.randn(1024, 512, device="cuda")
@@ -43,5 +51,8 @@ def _pointwise_layer():
     random_reduce(y).backward()
     x_g = x.grad
 
-    x_g_hat = _pointwise_bwd_kernel(y.grad, y)   # compute helion backward
+    if state_saved:
+        x_g_hat = _pointwise_bwd_kernel(y.grad, y, x)   # compute helion backward
+    else:
+        x_g_hat = _pointwise_bwd_kernel_unsaved(y.grad, y)   # compute helion backward
     assert torch.allclose(x_g, x_g_hat) # verify backward
