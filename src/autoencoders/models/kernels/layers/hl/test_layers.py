@@ -1,5 +1,3 @@
-import os
-os.environ['HELION_SKIP_CACHE'] = '1' # to avoid caching issues during testing
 
 import torch
 import helion
@@ -58,3 +56,11 @@ def _pointwise_layer(state_saved: bool = False):
     else:
         x_g_hat = _pointwise_bwd_kernel_unsaved(y.grad, y)   # compute helion backward
     assert torch.allclose(x_g, x_g_hat) # verify backward
+    
+    
+    # reset kernels for next compile
+    _pointwise_fwd_kernel.reset()
+    if state_saved:
+        _pointwise_bwd_kernel.reset()
+    else:
+        _pointwise_bwd_kernel_unsaved.reset()
