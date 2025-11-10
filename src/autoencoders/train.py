@@ -23,7 +23,7 @@ from . import get_default_config, get_model
 from .data import build_dataloaders
 os.environ.setdefault("WANDB_MODE", "online")
 
-from .util import sec_id # sec_id resolver registration (OmegaConf)
+# from .util import sec_id # sec_id resolver registration (OmegaConf)
 from .trainer import create_trainer
 
 # torch.set_float32_matmul_precision('high') # obsolete
