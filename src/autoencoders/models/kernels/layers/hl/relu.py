@@ -16,7 +16,7 @@ def _relu_fwd(x: torch.Tensor) -> torch.Tensor:
     return torch.clamp(x, min=0)
 
 def _relu_bwd(g: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-    return g * (y > 0).to(g.dtype)
+    return 1 + g * (y > 0).to(g.dtype)
 
 def _test_relu():
     from . import test_layers as tl
