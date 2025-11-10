@@ -38,16 +38,16 @@ def _silu_bwd(g: torch.Tensor, y: torch.Tensor, x: torch.Tensor) -> torch.Tensor
 #     tl._POINTWISE_BWD = _relu_bwd
 #     tl._pointwise_layer(False)
     
-def _test_sine():
-    from . import test_layers as tl
-    tl._TRUE_FWD = torch.sin
-    tl._POINTWISE_FWD = _sine_fwd
-    tl._POINTWISE_BWD = _sine_bwd
-    tl._pointwise_layer(True)
-    
-# def _test_silu():
+# def _test_sine():
 #     from . import test_layers as tl
-#     tl._TRUE_FWD = nn.functional.silu
-#     tl._POINTWISE_FWD = _silu_fwd
-#     tl._POINTWISE_BWD = _silu_bwd
+#     tl._TRUE_FWD = torch.sin
+#     tl._POINTWISE_FWD = _sine_fwd
+#     tl._POINTWISE_BWD = _sine_bwd
 #     tl._pointwise_layer(True)
+    
+def _test_silu():
+    from . import test_layers as tl
+    tl._TRUE_FWD = nn.functional.silu
+    tl._POINTWISE_FWD = _silu_fwd
+    tl._POINTWISE_BWD = _silu_bwd
+    tl._pointwise_layer(True)
