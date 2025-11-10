@@ -64,3 +64,5 @@ def _pointwise_layer(state_saved: bool = False):
         _pointwise_bwd_kernel.reset()
     else:
         _pointwise_bwd_kernel_unsaved.reset()
+        
+# _1D_layer = _pointwise_layer # alias, same testing (since 512 dim)

@@ -10,7 +10,6 @@ import torch.nn as nn
 import helion
 import helion.language as hl
 
-
 # device functions
 def _relu_fwd(x: torch.Tensor) -> torch.Tensor:
     return torch.clamp(x, min=0)

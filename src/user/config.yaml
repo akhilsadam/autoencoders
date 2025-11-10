@@ -7,7 +7,7 @@ ssh:
 
 repo:
   url: git@github.com:akhilsadam/autoencoders.git
-  deploy_branch: deploy
+  branch: a1744874
 
 paths:
   remote_workdir: /home/${ssh.user}/orcd/pool/autoencoders

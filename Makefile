@@ -42,8 +42,8 @@ train: install
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train
 # 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train run.name=local-debug run.tags=[local,debug]
 
-scompile: 
-	source ${INSTALL}/module.sh && $(MAKE) compile
+# scompile: 
+# 	source ${INSTALL}/module.sh && $(MAKE) compile
 
 sinstall: 
 	source ${INSTALL}/module.sh && $(MAKE) install
@@ -54,11 +54,11 @@ stest-hl:
 strain:
 	source ${INSTALL}/module.sh && $(MAKE) train
 
-push-train: install-local
-	$(PYTHON) -m src.deploy.hpc_deploy --dry-run
+# push-train: install-local
+# 	$(PYTHON) -m src.deploy.hpc_deploy --dry-run
 
-benchmark: install data
-	$(VENV)/bin/pytest -m benchmark -s
+# benchmark: install data
+# 	$(VENV)/bin/pytest -m benchmark -s
 
 #### Install specific ####
 # ONLY first time
