@@ -1,6 +1,8 @@
+import types
 import torch
 import helion
 import helion.language as hl
+
 def random_reduce(err):
     weights = torch.rand_like(err)
     loss = weights * (err) ** 2
