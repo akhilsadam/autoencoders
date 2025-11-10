@@ -1,4 +1,4 @@
---index-url https://download.pytorch.org/whl/cu130
+--extra-index-url https://download.pytorch.org/whl/cu130
 # force cuda 13.0 overall # change based on module/cluster cuda version
 gitpython
 logging
