@@ -54,7 +54,7 @@ setup(
         CUDAExtension(
             name="cuda_extension",
             sources=[
-                "example_bind.cu",
+                "src/autoencoders/models/kernels/layers/cu/example_bind.cu",
                 # "extension_kernel.cu",
                 # "extension_device.cu",
                 # "extension_device2.cu",
