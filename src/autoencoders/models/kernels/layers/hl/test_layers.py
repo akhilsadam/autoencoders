@@ -25,7 +25,25 @@ def make_pointwise_kernels(_p_fwd,
             out[tile_b, :] = p_bwd(g[tile_b, :], y[tile_b, :])
         return out
     
-    return _pointwise_fwd_kernel, _pointwise_bwd_kernel
+    
+    # remove closures by creating new function objects with globals bound
+    fwd = types.FunctionType(
+        _pointwise_fwd_kernel.__code__,
+        {**globals(), '_p_fwd': _p_fwd},
+        name=_pointwise_fwd_kernel.__name__,
+        argdefs=_pointwise_fwd_kernel.__defaults__,
+        closure=None,
+    )
+
+    bwd = types.FunctionType(
+        _pointwise_bwd_kernel.__code__,
+        {**globals(), '_p_bwd': _p_bwd},
+        name=_pointwise_bwd_kernel.__name__,
+        argdefs=_pointwise_bwd_kernel.__defaults__,
+        closure=None,
+    )
+    
+    return fwd, bwd
 
 
 def _pointwise(_pointwise_fwd,
