@@ -26,18 +26,18 @@ class Config:
 
 @helion.kernel(autotune_effort="quick")
 def relu_fwd(x: torch.Tensor) -> torch.Tensor:
-    _b, _w = x.size()
+    _b, _c, _h, _w = x.size()
     out = torch.empty_like(x)
     for tile_b in hl.tile(_b):
-        out[tile_b, :] = _relu_fwd(x[tile_b, :])
+        out[tile_b, ...] = _relu_fwd(x[tile_b, ...])
     return out
 
 @helion.kernel(autotune_effort="quick")
 def relu_bwd(g, y):
-    _b, _w = y.size()
+    _b, _c, _h, _w = y.size()
     out = torch.empty_like(y)
     for tile_b in hl.tile(_b):
-        out[tile_b, :] = _relu_bwd(g[tile_b, :], y[tile_b, :])
+        out[tile_b, ...] = _relu_bwd(g[tile_b, ...], y[tile_b, ...])
     return out
 
 class _ReLU(torch.autograd.Function):

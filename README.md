@@ -16,3 +16,9 @@ Occasionally, `make install` may not install all the requirements. To manually i
     ```bash
     uv pip install <package>
     ```
+
+Note if you are running on Engaging, there is a CUDA 13 mismatch that may require you to run the following:
+
+    ```bash
+    source src/install/cuda-13-compat.sh
+    ```

@@ -10,7 +10,7 @@ os.environ['TRITON_BACKEND'] = 'cuda'
 # important for helion (else finds nvc, not nvcc)
 
 # Workaround for CUDA issues 
-os.environ["PL_DEV_IGNORE_CUDA_VERSION"] = "1"
+
 
 from git import Repo
 import hydra
