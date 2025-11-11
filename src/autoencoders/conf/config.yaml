@@ -1,5 +1,5 @@
 defaults:
-  - model: tiny_hl
+  - model: tiny_cu
   - data: fashion_mnist
   - _self_
 
