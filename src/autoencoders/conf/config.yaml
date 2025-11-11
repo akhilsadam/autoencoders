@@ -36,14 +36,12 @@ git:
 
 hydra:
   run:
-    dir: runs/${data.name}/${model.name}/${now:%Y%m%d%H%M%S}
+    dir: runs/${data.name}/${model.name}/${sec_id:}
   job:
     config:
       override_dirname:
         kv_sep: '='
         item_sep: '_'
-    name: ${hydra.job.name}
-    num: ${hydra.job.num}
   sweep:
-    dir: runs/sweep/${run.name}_${now:%Y%m%d%H%M%S}
+    dir: runs/sweep/${run.name}_${sec_id:}
     subdir: ${hydra.job.override_dirname}___${hydra.job.num}
