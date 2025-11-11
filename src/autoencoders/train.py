@@ -27,6 +27,7 @@ from .data import build_dataloaders
 os.environ.setdefault("WANDB_MODE", "online")
 
 from .util import sec_id # sec_id resolver registration (OmegaConf)
+from .util import gitinfo # gitinfo resolver registration (OmegaConf)
 from .trainer import create_trainer
 
 # torch.set_float32_matmul_precision('high') # obsolete
@@ -56,17 +57,7 @@ def _create_logger(cfg: DictConfig) -> WandbLogger:
     kwargs['tags'] = cfg.run.tags
 
     logger = WandbLogger(**kwargs, log_model=False)
-    logger.experiment.config.update(OmegaConf.to_container(cfg, resolve=True, enum_to_str=True))
-    
-    repo = Repo(search_parent_directories=True)
-    sha = repo.head.object.hexsha
-    dirty = repo.is_dirty()
-    logger.experiment.config["git_sha"] = sha
-    logger.experiment.config["git_dirty"] = dirty
-    print(f"Git SHA: {sha}, Dirty: {dirty}")
-    cfg.git.sha = sha
-    cfg.git.dirty = dirty
-    
+    logger.experiment.config.update(OmegaConf.to_container(cfg, resolve=True, enum_to_str=True))    
     return logger
 
 
@@ -103,25 +94,6 @@ def _save_info_files(cfg: DictConfig, output_dir: str) -> None:
         diff_path = os.path.join(output_dir, "unstaged_diff.patch")
         with open(diff_path, "w") as f:
             f.write(diff)   
-        
-def _compute_diff(cfg: DictConfig) -> None:
-    """Calculate and save git changes to output directory."""
-    repo = Repo(search_parent_directories=True)
-    if repo.is_dirty():
-        diff = repo.git.diff()
-    else:
-        # diff to last commit
-        diff = repo.git.diff(f"{cfg.git.sha}~1", cfg.git.sha)
-
-    try:
-        from .util import llm
-        summary, short_sum = llm.summarize_diff(diff)
-        print(f"\nLong changelog message:{summary}\n")
-        print(f"\nShort changelog message:{short_sum}\n")
-        cfg.git.long_msg = summary
-        cfg.git.short_msg = short_sum
-    except Exception as e:
-        print(f"Warning: failed to summarize diff: {e}")
 
 def _log_wandb_artifacts(cfg: DictConfig, logger: WandbLogger, dirs: Dict[str, str]) -> None:
     """Upload checkpoints and reconstruction images to Weights & Biases as artifacts."""
@@ -159,9 +131,9 @@ def main(cfg: DictConfig) -> None:
     
     model = _prepare_model(cfg)
     logger = _create_logger(cfg)
-    
-    if rank == 0:
-        _compute_diff(cfg)
+    logger.experiment.config["git_sha"] = cfg.git.sha
+    logger.experiment.config["git_dirty"] = cfg.git.dirty
+    print(f"Git SHA: {cfg.git.sha}, Dirty: {cfg.git.dirty}")
     
     dirs = _artifact_dirs(cfg)
     
