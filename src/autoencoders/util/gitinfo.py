@@ -1,8 +1,8 @@
 from git import Repo
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import OmegaConf
 
 
-def _compute_diff(cfg: DictConfig) -> None:
+def _compute_diff():
     """Calculate and save git changes to output directory."""
     repo = Repo(search_parent_directories=True)
     sha = repo.head.object.hexsha
