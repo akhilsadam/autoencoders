@@ -4,6 +4,10 @@ import torch
 import sysconfig
 import os
 import pybind11
+os.environ['CC'] = 'gcc'
+os.environ['CXX'] = 'g++'
+os.environ['TRITON_BACKEND'] = 'cuda'
+os.environ["CUDAHOSTCXX"] = "g++"
 
 THUNDERKITTENS_ROOT = os.path.join(os.getcwd(), "lib/ext/tk")
 
