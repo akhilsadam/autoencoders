@@ -1,5 +1,6 @@
-from setuptools import setup
-from torch.utils.cpp_extension import BuildExtension, CUDAExtension
+# from setuptools import setup
+# from torch.utils.cpp_extension import BuildExtension, CUDAExtension
+from torch.utils.cpp_extension import load
 import torch
 import sysconfig
 import os
@@ -38,7 +39,6 @@ NVCC_FLAGS = [
     "-D__CUDA_NO_BFLOAT16_CONVERSIONS__",
     "-D__CUDA_NO_HALF2_OPERATORS__",
     "-DTORCH_API_INCLUDE_EXTENSION_H",
-    "-DTORCH_EXTENSION_NAME=_C",
     "-D_GLIBCXX_USE_CXX11_ABI=1",
     "-diag-suppress=3189",
 ] + GPU_FLAGS
@@ -48,23 +48,54 @@ NVCC_FLAGS += [f"-I{inc}" for inc in torch.utils.cpp_extension.include_paths()]
 NVCC_FLAGS.append(f"-I{sysconfig.get_path('include')}")
 NVCC_FLAGS += [f"-I{inc}" for inc in pybind11.get_include().split()]
 
-setup(
-    name="cuda_extension",
-    ext_modules=[
-        CUDAExtension(
-            name="cuda_extension",
-            sources=[
-                "src/autoencoders/models/kernels/layers/cu/example_bind.cu",
-                # "extension_kernel.cu",
-                # "extension_device.cu",
-                # "extension_device2.cu",
-            ],
-            extra_compile_args={
-                "cxx": ["-O2", "-g"],
-                "nvcc": NVCC_FLAGS,
-            },
-            include_dirs=[THUNDERKITTENS_ROOT],  # Optional additional include
+CXX_FLAGS = ["-O2", "-g"]
+
+def compile(name, sources, build_dir):
+    try:
+        module = load(
+            name=name,
+            sources=sources,
+            verbose=True,
+            extra_cflags=CXX_FLAGS,
+            extra_cuda_cflags=NVCC_FLAGS,
+            build_directory=build_dir,
         )
-    ],
-    cmdclass={"build_ext": BuildExtension},
-)
+        return module
+    except Exception as e:
+        print(f"Error compiling CUDA extension {name}: {e}")
+        raise e
+    
+    
+if __name__ == "__main__":
+    build_dir = os.path.dirname(os.path.abspath(__file__))
+    compile(
+        name="cuda_extension",
+        sources=[
+            os.path.join(build_dir, "example_bind.cu"),
+            # "extension_kernel.cu",
+            # "extension_device.cu",
+            # "extension_device2.cu",
+        ],
+        build_dir=build_dir,
+    )
+
+# setup(
+#     name="cuda_extension",
+#     ext_modules=[
+#         CUDAExtension(
+#             name="cuda_extension",
+#             sources=[
+#                 "src/autoencoders/models/kernels/layers/cu/example_bind.cu",
+#                 # "extension_kernel.cu",
+#                 # "extension_device.cu",
+#                 # "extension_device2.cu",
+#             ],
+#             extra_compile_args={
+#                 "cxx": CXX_FLAGS,
+#                 "nvcc": NVCC_FLAGS,
+#             },
+#             include_dirs=[THUNDERKITTENS_ROOT],  # Optional additional include
+#         )
+#     ],
+#     cmdclass={"build_ext": BuildExtension},
+# )
