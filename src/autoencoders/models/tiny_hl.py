@@ -40,7 +40,7 @@ def relu_bwd(g, y):
         out[tile_b, :] = _relu_bwd(g[tile_b, :], y[tile_b, :])
     return out
 
-class ReLU(torch.autograd.Function):
+class _ReLU(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
         # ctx.save_for_backward(input)
@@ -51,6 +51,10 @@ class ReLU(torch.autograd.Function):
         # input, = ctx.saved_tensors
         grad_input = relu_bwd(grad_output)
         return grad_input
+    
+class ReLU(nn.Module):
+    def forward(self, x):
+        return _ReLU.apply(x)
 
 class TinyHLAutoencoder(pl.LightningModule):
     """Tiny convolutional autoencoder for 28x28 grayscale images."""
@@ -64,18 +68,18 @@ class TinyHLAutoencoder(pl.LightningModule):
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=2, padding=1),
-            ReLU.apply,
+            ReLU(),
             nn.Conv2d(16, 32, 3, stride=2, padding=1),
-            ReLU.apply,
+            ReLU(),
             nn.Flatten(),
             nn.Linear(32 * 7 * 7, latent_dim),
         )
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, 32 * 7 * 7),
-            ReLU.apply,
+            ReLU(),
             nn.Unflatten(1, (32, 7, 7)),
             nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, output_padding=1),
-            ReLU.apply,
+            ReLU(),
             nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, output_padding=1),
             nn.Sigmoid(),
         )
