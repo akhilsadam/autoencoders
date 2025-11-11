@@ -36,7 +36,7 @@ py3-conf:
 # 	$(PYTHON) -m src.autoencoders.models.cuda.compile ${VENV}
 
 test-cu: install
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.models.kernels.layers.cu.compile build_ext --inplace
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.models.kernels.layers.cu.compile
 
 test-hl: install
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m pytest -s -v src/autoencoders/models/kernels/layers/hl
