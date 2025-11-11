@@ -1,4 +1,4 @@
-# force cuda 13.0 overall # change based on module/cluster cuda version
+# force consistent cuda overall # change based on module/cluster cuda version
 torch==2.9.0+cu130
 torchvision==0.24.0+cu130
 gitpython
