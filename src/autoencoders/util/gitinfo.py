@@ -31,4 +31,10 @@ def _compute_diff():
         'short_msg': short_sum,
     }
     
-OmegaConf.register_new_resolver("gitinfo", _compute_diff)
+    
+gitinfo = _compute_diff()
+
+def _gitinfo_resolver(key: str):
+    return gitinfo.get(key, '')
+    
+OmegaConf.register_new_resolver("gitinfo", _gitinfo_resolver)

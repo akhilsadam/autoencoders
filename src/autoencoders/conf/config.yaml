@@ -30,10 +30,10 @@ trainer:
   precision: 32
 
 git:
-  sha: ${gitinfo:}.sha
-  dirty: ${gitinfo:}.dirty
-  long_msg: ${gitinfo:}.long_msg
-  short_msg: ${gitinfo:}.short_msg
+  sha: ${gitinfo:sha}
+  dirty: ${gitinfo:dirty}
+  long_msg: ${gitinfo:long_msg}
+  short_msg: ${gitinfo:short_msg}
 
 hydra:
   run:
