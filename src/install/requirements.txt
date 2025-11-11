@@ -2,7 +2,7 @@ torch==2.9.0+cu130
 # force cuda 13.0 overall # change based on module/cluster cuda version
 gitpython
 logging
-ninja
+ninja>=1.13.0
 pyyaml>=6.0.1
 lightning
 torchvision==0.24.0+cu130
