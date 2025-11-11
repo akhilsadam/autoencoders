@@ -116,9 +116,10 @@ def _compute_diff(cfg: DictConfig) -> None:
     try:
         from .util import llm
         summary, short_sum = llm.summarize_diff(diff)
-        print(f"Changelog summary:\n{summary}")
-        print(f"Short summary:\n{short_sum}")
-        cfg.git.changelog = summary
+        print(f"\nLong changelog message:{summary}\n")
+        print(f"\nShort changelog message:{short_sum}\n")
+        cfg.git.long_msg = summary
+        cfg.git.short_msg = short_sum
     except Exception as e:
         print(f"Warning: failed to summarize diff: {e}")
 

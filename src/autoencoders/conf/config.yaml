@@ -32,11 +32,12 @@ trainer:
 git:
   sha: 000
   dirty: true
-  changelog: NA
+  long_msg: NA
+  short_msg: NA
 
 hydra:
   run:
-    dir: runs/${data.name}/${model.name}/${sec_id:}
+    dir: runs/${data.name}/${model.name}/${sec_id:}_${git.short_msg}
   job:
     config:
       override_dirname:

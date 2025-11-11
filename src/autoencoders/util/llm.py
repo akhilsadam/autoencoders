@@ -85,6 +85,7 @@ def summarize_diff(diff_text: str, quality=1) -> tuple[str, str]:
             .replace("'", "")
             .replace('"', "")
             .upper()
+            
         )
         if not short_summary:
             # fallback
