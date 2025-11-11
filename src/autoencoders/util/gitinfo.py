@@ -15,7 +15,7 @@ def _compute_diff():
         diff = repo.git.diff(f"{sha}~1", sha)
 
     try:
-        from .util import llm
+        from . import llm
         summary, short_sum = llm.summarize_diff(diff)
         print(f"\nLong changelog message:{summary}\n")
         print(f"\nShort changelog message:{short_sum}\n")
