@@ -1,4 +1,4 @@
-name: cu
+name: tiny_cu
 params:
   latent_dim: 32
   learning_rate: 1e-3
