@@ -41,34 +41,17 @@ __global__ void relu_bwd_kernel(const __grid_constant__ bwd_data g) {
         );
 }
 
-
-// ---- Host wrappers (return tensors) ----
-torch::Tensor relu_fwd(torch::Tensor x) {
-    auto y = torch::empty_like(x);
-    fwd_data g;
-    g.x = my_layout(x);
-    g.y = my_layout(y);
+void run_relu_fwd_kernel(fwd_data g) {
     relu_fwd_kernel<<<g.grid(), g.block()>>>(g);
-    // cudaDeviceSynchronize();
-    return y;
 }
-
-torch::Tensor relu_bwd(torch::Tensor grad, torch::Tensor y) {
-    auto out = torch::empty_like(grad);
-    bwd_data g;
-    g.grad = my_layout(grad);
-    g.y = my_layout(y);
-    g.out = my_layout(out);
+void run_relu_bwd_kernel(bwd_data g) {
     relu_bwd_kernel<<<g.grid(), g.block()>>>(g);
-    // cudaDeviceSynchronize();
-    return out;
 }
 
-// ---- Python bindings ----
 PYBIND11_MODULE(act, m) {
-    m.doc() = "Activation functions (ThunderKittens)";
+    m.doc() = "activation functions python module";
     py::bind_kernel<relu_fwd_kernel>(m, "relu_fwd_kernel", &fwd_data::x, &fwd_data::y);
     py::bind_kernel<relu_bwd_kernel>(m, "relu_bwd_kernel", &bwd_data::grad, &bwd_data::y);
-    m.def("relu_fwd", &relu_fwd, "ReLU forward returning output tensor");
-    m.def("relu_bwd", &relu_bwd, "ReLU backward returning grad_input");
+    py::bind_function<run_relu_fwd_kernel>(m, "relu_fwd", &fwd_data::x, &fwd_data::y);
+    py::bind_function<run_relu_bwd_kernel>(m, "relu_bwd", &bwd_data::grad, &bwd_data::y);
 }
