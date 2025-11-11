@@ -22,6 +22,8 @@ hydra-core
 datasets
 pybind11
 helion
-# for change tracking
+# for change tracking with LLMs
 transformers 
 accelerate
+causal-conv1d>=1.4.0
+mamba-ssm>=2.2.0

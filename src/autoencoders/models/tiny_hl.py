@@ -43,13 +43,14 @@ def relu_bwd(g, y):
 class _ReLU(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
-        # ctx.save_for_backward(input)
-        return relu_fwd(input)
+        output = relu_fwd(input)
+        ctx.save_for_backward(output)
+        return output
 
     @staticmethod
     def backward(ctx, grad_output):
-        # input, = ctx.saved_tensors
-        grad_input = relu_bwd(grad_output)
+        output, = ctx.saved_tensors
+        grad_input = relu_bwd(grad_output, output)
         return grad_input
     
 class ReLU(nn.Module):

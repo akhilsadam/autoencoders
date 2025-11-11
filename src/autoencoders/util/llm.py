@@ -73,7 +73,7 @@ def summarize_diff(diff_text: str, quality=1) -> tuple[str, str]:
             f"{long_summary}\n\n"
             "Output only the label:"
         )
-        label_out = generator(label_prompt, max_new_tokens=5, do_sample=False)
+        label_out = generator(label_prompt, max_new_tokens=10, do_sample=False)
         short_summary = label_out[0]["generated_text"].strip().replace(label_prompt, "").strip()
 
         # Clean up label
