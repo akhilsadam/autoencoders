@@ -1,5 +1,4 @@
-# from setuptools import setup
-# from torch.utils.cpp_extension import BuildExtension, CUDAExtension
+
 from torch.utils.cpp_extension import load
 import torch
 import sysconfig
@@ -50,16 +49,24 @@ NVCC_FLAGS += [f"-I{inc}" for inc in pybind11.get_include().split()]
 
 CXX_FLAGS = ["-O2", "-g"]
 
-def compile(kernel, device_functions = [], build_dir = os.path.dirname(os.path.abspath(__file__))):
+def compile(kernel, device_functions = [], build_dir = None):
     try:
         name = kernel.split('/')[-1].replace('.cu','')
+        
+        kwargs = {}
+        if build_dir is not None:
+            kernel_dir = os.path.join(build_dir, name)
+            os.makedirs(kernel_dir, exist_ok=True)
+            kwargs['build_directory'] = kernel_dir
+            # else PyTorch will use a default temp dir
+        
         module = load(
             name=name,
             sources=[kernel, *device_functions],
             verbose=True,
             extra_cflags=CXX_FLAGS,
             extra_cuda_cflags=NVCC_FLAGS,
-            build_directory=build_dir,
+            **kwargs
         )
         return module
     except Exception as e:
@@ -68,28 +75,10 @@ def compile(kernel, device_functions = [], build_dir = os.path.dirname(os.path.a
     
     
 if __name__ == "__main__":
-    build_dir = os.path.dirname(os.path.abspath(__file__))
     compile(
-        os.path.join(build_dir, "example_bind.cu")
+        os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "examples",
+            "copy_example.cu"
+            )
     )
-
-# setup(
-#     name="cuda_extension",
-#     ext_modules=[
-#         CUDAExtension(
-#             name="cuda_extension",
-#             sources=[
-#                 "src/autoencoders/models/kernels/layers/cu/example_bind.cu",
-#                 # "extension_kernel.cu",
-#                 # "extension_device.cu",
-#                 # "extension_device2.cu",
-#             ],
-#             extra_compile_args={
-#                 "cxx": CXX_FLAGS,
-#                 "nvcc": NVCC_FLAGS,
-#             },
-#             include_dirs=[THUNDERKITTENS_ROOT],  # Optional additional include
-#         )
-#     ],
-#     cmdclass={"build_ext": BuildExtension},
-# )

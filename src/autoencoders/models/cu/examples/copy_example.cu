@@ -17,8 +17,8 @@ void run_copy_kernel(globals g) {
     copy_kernel<<<g.grid(), g.block()>>>(g);
 }
 
-PYBIND11_MODULE(example_bind, m) {
-    m.doc() = "example_bind python module";
+PYBIND11_MODULE(copy_example, m) {
+    m.doc() = "copy_example python module";
     py::bind_kernel<copy_kernel>(m, "copy_kernel", &globals::in, &globals::out);
     py::bind_function<run_copy_kernel>(m, "wrapped_copy_kernel", &globals::in, &globals::out);
 }

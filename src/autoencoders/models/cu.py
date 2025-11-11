@@ -10,56 +10,30 @@ from torch import nn
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
-import helion
-from helion._testing import run_example
-import helion.language as hl
-import os
-os.environ['CC'] = 'gcc'
-os.environ['CXX'] = 'g++'
-os.environ['TRITON_BACKEND'] = 'cuda'
+from .cu.compile import compile
+activations = compile(
+    device_functions=[],
+    kernel="src/autoencoders/cu/layers/act.cu",
+)
 
+class ReLUFunction(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input):
+        ctx.save_for_backward(input)
+        output = activations.relu_fwd(input)
+        return output
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        input, = ctx.saved_tensors
+        grad_input = activations.relu_bwd(grad_output, input)
+        return grad_input
 
 @dataclass
 class Config:
     """Default hyperparameters for autoencoder."""
     latent_dim: int = 32
     learning_rate: float = 1e-3
-    
-# investigate "device functions"
-def add_5(x: torch.Tensor) -> torch.Tensor:
-    return x + 5
-
-def add_5_grad(x: torch.Tensor) -> torch.Tensor:
-    return x
-
-@helion.kernel(autotune_effort="quick")
-def h_plus(x: torch.Tensor) -> torch.Tensor:
-    _b, _w = x.size()
-    out = torch.empty_like(x)
-    for tile_b in hl.tile(_b):
-        out[tile_b, :] = add_5(x[tile_b, :])
-    return out
-
-@helion.kernel(autotune_effort="quick")
-def h_plus_grad(x: torch.Tensor) -> torch.Tensor:
-    _b, _w = x.size()
-    out = torch.empty_like(x)
-    for tile_b in hl.tile(_b):
-        out[tile_b, :] = add_5_grad(x[tile_b, :])
-    return out
-
-
-class h_function(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, input):
-        # ctx.save_for_backward(input)
-        return h_plus(input)
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        # input, = ctx.saved_tensors
-        grad_input = h_plus_grad(grad_output)
-        return grad_input
 
 class CUAutoencoder(pl.LightningModule):
     """Tiny convolutional autoencoder for 28x28 grayscale images."""
@@ -73,26 +47,26 @@ class CUAutoencoder(pl.LightningModule):
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=2, padding=1),
-            nn.ReLU(),
+            ReLUFunction.apply,
             nn.Conv2d(16, 32, 3, stride=2, padding=1),
-            nn.ReLU(),
+            ReLUFunction.apply,
             nn.Flatten(),
             nn.Linear(32 * 7 * 7, latent_dim),
         )
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, 32 * 7 * 7),
-            nn.ReLU(),
+            ReLUFunction.apply,
             nn.Unflatten(1, (32, 7, 7)),
             nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, output_padding=1),
-            nn.ReLU(),
+            ReLUFunction.apply,
             nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, output_padding=1),
             nn.Sigmoid(),
         )
         self.criterion = nn.MSELoss()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        
         z = self.encoder(x)
-        z = h_function.apply(z)
         return self.decoder(z)
 
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], _: int) -> torch.Tensor:
