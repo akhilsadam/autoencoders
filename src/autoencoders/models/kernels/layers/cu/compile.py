@@ -50,11 +50,12 @@ NVCC_FLAGS += [f"-I{inc}" for inc in pybind11.get_include().split()]
 
 CXX_FLAGS = ["-O2", "-g"]
 
-def compile(name, sources, build_dir):
+def compile(kernel, device_functions = [], build_dir = os.path.dirname(os.path.abspath(__file__))):
     try:
+        name = kernel.split('/')[-1].replace('.cu','')
         module = load(
             name=name,
-            sources=sources,
+            sources=[kernel, *device_functions],
             verbose=True,
             extra_cflags=CXX_FLAGS,
             extra_cuda_cflags=NVCC_FLAGS,
@@ -69,14 +70,7 @@ def compile(name, sources, build_dir):
 if __name__ == "__main__":
     build_dir = os.path.dirname(os.path.abspath(__file__))
     compile(
-        name="cuda_extension",
-        sources=[
-            os.path.join(build_dir, "example_bind.cu"),
-            # "extension_kernel.cu",
-            # "extension_device.cu",
-            # "extension_device2.cu",
-        ],
-        build_dir=build_dir,
+        os.path.join(build_dir, "example_bind.cu")
     )
 
 # setup(

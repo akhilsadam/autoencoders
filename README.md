@@ -11,3 +11,8 @@
     ```
 
 Note HuggingFace is only needed for special models and datasets.
+Occasionally, `make install` may not install all the requirements. To manually install, source the venv and run:
+
+    ```bash
+    uv pip install <package>
+    ```
