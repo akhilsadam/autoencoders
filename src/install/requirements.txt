@@ -26,5 +26,5 @@ helion
 # for change tracking with LLMs
 transformers 
 accelerate
-causal-conv1d>=1.4.0
-mamba-ssm>=2.2.0
+# causal-conv1d>=1.4.0
+# mamba-ssm>=2.2.0
