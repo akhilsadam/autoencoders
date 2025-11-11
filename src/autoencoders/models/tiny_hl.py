@@ -10,6 +10,8 @@ from torch import nn
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
+from .hl.layers.act import _relu_fwd, _relu_bwd
+
 import helion
 from helion._testing import run_example
 import helion.language as hl
@@ -21,40 +23,33 @@ class Config:
     latent_dim: int = 32
     learning_rate: float = 1e-3
     
-# investigate "device functions"
-def add_5(x: torch.Tensor) -> torch.Tensor:
-    return x + 5
-
-def add_5_grad(x: torch.Tensor) -> torch.Tensor:
-    return x
 
 @helion.kernel(autotune_effort="quick")
-def h_plus(x: torch.Tensor) -> torch.Tensor:
+def relu_fwd(x: torch.Tensor) -> torch.Tensor:
     _b, _w = x.size()
     out = torch.empty_like(x)
     for tile_b in hl.tile(_b):
-        out[tile_b, :] = add_5(x[tile_b, :])
+        out[tile_b, :] = _relu_fwd(x[tile_b, :])
     return out
 
 @helion.kernel(autotune_effort="quick")
-def h_plus_grad(x: torch.Tensor) -> torch.Tensor:
-    _b, _w = x.size()
-    out = torch.empty_like(x)
+def relu_bwd(g, y):
+    _b, _w = y.size()
+    out = torch.empty_like(y)
     for tile_b in hl.tile(_b):
-        out[tile_b, :] = add_5_grad(x[tile_b, :])
+        out[tile_b, :] = _relu_bwd(g[tile_b, :], y[tile_b, :])
     return out
 
-
-class h_function(torch.autograd.Function):
+class ReLU(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
         # ctx.save_for_backward(input)
-        return h_plus(input)
+        return relu_fwd(input)
 
     @staticmethod
     def backward(ctx, grad_output):
         # input, = ctx.saved_tensors
-        grad_input = h_plus_grad(grad_output)
+        grad_input = relu_bwd(grad_output)
         return grad_input
 
 class TinyHLAutoencoder(pl.LightningModule):
@@ -69,18 +64,18 @@ class TinyHLAutoencoder(pl.LightningModule):
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=2, padding=1),
-            nn.ReLU(),
+            ReLU.apply,
             nn.Conv2d(16, 32, 3, stride=2, padding=1),
-            nn.ReLU(),
+            ReLU.apply,
             nn.Flatten(),
             nn.Linear(32 * 7 * 7, latent_dim),
         )
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, 32 * 7 * 7),
-            nn.ReLU(),
+            ReLU.apply,
             nn.Unflatten(1, (32, 7, 7)),
             nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, output_padding=1),
-            nn.ReLU(),
+            ReLU.apply,
             nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, output_padding=1),
             nn.Sigmoid(),
         )
@@ -88,7 +83,6 @@ class TinyHLAutoencoder(pl.LightningModule):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         z = self.encoder(x)
-        z = h_function.apply(z)
         return self.decoder(z)
 
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], _: int) -> torch.Tensor:
