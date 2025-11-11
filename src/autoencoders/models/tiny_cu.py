@@ -53,16 +53,16 @@ class CUAutoencoder(pl.LightningModule):
             nn.Conv2d(1, 16, 3, stride=2, padding=1),
             ReLU(),
             nn.Conv2d(16, 32, 3, stride=2, padding=1),
-            ReLU(),
+            nn.ReLU(),
             nn.Flatten(),
             nn.Linear(32 * 7 * 7, latent_dim),
         )
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, 32 * 7 * 7),
-            ReLU(),
             nn.Unflatten(1, (32, 7, 7)),
+            nn.ReLU(),
             nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, output_padding=1),
-            ReLU(),
+            nn.ReLU(),
             nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, output_padding=1),
             nn.Sigmoid(),
         )

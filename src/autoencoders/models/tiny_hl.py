@@ -76,8 +76,8 @@ class TinyHLAutoencoder(pl.LightningModule):
         )
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, 32 * 7 * 7),
-            ReLU(),
             nn.Unflatten(1, (32, 7, 7)),
+            ReLU(),
             nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, output_padding=1),
             ReLU(),
             nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, output_padding=1),
