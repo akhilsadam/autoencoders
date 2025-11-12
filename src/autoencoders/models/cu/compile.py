@@ -72,6 +72,7 @@ def compile(kernel, device_functions = [], build_dir = None):
             extra_cuda_cflags=NVCC_FLAGS,
             **kwargs
         )
+        print(f"Successfully compiled CUDA extension {name}")
         return module
     except Exception as e:
         print(f"Error compiling CUDA extension {name}: {e}")

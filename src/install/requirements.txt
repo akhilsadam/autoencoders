@@ -24,6 +24,7 @@ datasets
 pybind11
 helion
 # for change tracking with LLMs
+packaging
 transformers 
 accelerate
 mamba-ssm[causal-conv1d]
