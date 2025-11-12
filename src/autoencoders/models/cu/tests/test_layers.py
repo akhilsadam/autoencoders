@@ -7,10 +7,11 @@ sizes=[
     (4, 3, 128, 128),
 ]
 
-def random_reduce(err):
-    weights = torch.rand_like(err)
+def random_reduce(err, weights=None):
+    if weights is None:
+        weights = torch.rand_like(err)
     loss = weights * (err) ** 2
-    return loss.mean()
+    return loss.mean(), weights
 
 def get_random_data(batch_size: int, channels: int, height: int, width: int) -> torch.Tensor:
     torch.manual_seed(42)
@@ -28,10 +29,11 @@ def _check(true_func, cu_func):
         y_hat = cu_func(x_2)
         assert torch.allclose(y_hat, y), f"Forward check failed for size {size}"
         
-        random_reduce(y).backward()
+        lz, wt = random_reduce(y)
+        lz.backward()
         x_g = x.grad
         
-        random_reduce(y_hat).backward()
+        random_reduce(y_hat, weights=wt)[0].backward()
         x_g_hat = x_2.grad
         assert torch.allclose(x_g, x_g_hat), f"Gradient check failed for size {size}"
         
