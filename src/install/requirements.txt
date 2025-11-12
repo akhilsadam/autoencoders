@@ -27,4 +27,4 @@ helion
 packaging
 transformers 
 accelerate
-mamba-ssm[causal-conv1d]
+# mamba-ssm[causal-conv1d]

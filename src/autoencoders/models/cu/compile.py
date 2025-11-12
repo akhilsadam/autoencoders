@@ -10,6 +10,7 @@ os.environ['TRITON_BACKEND'] = 'cuda'
 os.environ["CUDAHOSTCXX"] = "g++"
 
 THUNDERKITTENS_ROOT = os.path.join(os.getcwd(), "lib/ext/tk")
+CU_LAYERS_ROOT = os.path.join(os.getcwd(), "src/autoencoders/models/cu/layers")
 
 GPU = os.environ.get("GPU", "4090")
 if GPU == "4090":
@@ -37,6 +38,7 @@ NVCC_FLAGS = [
     "-Xptxas=--warn-on-spills",
     f"-I{THUNDERKITTENS_ROOT}/include",
     f"-I{THUNDERKITTENS_ROOT}/prototype",
+    f"-I{CU_LAYERS_ROOT}",
     "-D__CUDA_NO_HALF_OPERATORS__",
     "-D__CUDA_NO_HALF_CONVERSIONS__",
     "-D__CUDA_NO_BFLOAT16_CONVERSIONS__",

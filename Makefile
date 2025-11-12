@@ -15,8 +15,6 @@ install:
 	@# Ensure uv is available, then create venv (if missing) and install deps
 	@command -v $(UV) >/dev/null 2>&1 || $(SYS_PYTHON) -m pip install --user uv
 	@[ -d "$(VENV)" ] || $(UV) venv $(VENV)
-	$(UV) pip install packaging 
-# ensure packaging is available for SSM
 	$(UV) pip install -r $(INSTALL)/requirements.txt --python $(PYTHON)
 # if python3-config is missing, find and link it
 	$(MAKE) py3-conf;

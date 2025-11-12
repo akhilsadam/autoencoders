@@ -13,7 +13,7 @@ from torch import nn
 from .cu.compile import compile
 activations = compile(
     device_functions=[],
-    kernel="src/autoencoders/models/cu/layers/act.cu",
+    kernel="src/autoencoders/models/cu/kernels/act.cu",
 )
 ##
 # compiled?
