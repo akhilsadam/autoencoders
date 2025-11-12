@@ -1,9 +1,4 @@
-"""Convolutional autoencoder Lightning module and configuration."""
-from __future__ import annotations
-
-from dataclasses import asdict, dataclass
-from typing import Any, Dict, Tuple
-
+import os
 import torch
 from torch import nn
 
@@ -12,7 +7,7 @@ from torch import nn
 from cu.compile import compile
 activations = compile(
     device_functions=[],
-    kernel="src/autoencoders/models/cu/kernels/act.cu",
+    kernel=os.path.join(os.path.dirname(__file__), "act.cu"),
 )
 ##
 # compiled?
