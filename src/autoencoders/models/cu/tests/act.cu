@@ -5,8 +5,8 @@ using namespace kittens;
 // from layers
 #include "act.cuh"
 
-
-using my_layout = gl<float, -1, -1, -1, 64, st_fl<64,64>>; // bchw layout
+// need to think about templating with defines
+using my_layout = gl<float, -1, -1, -1, -1, st_fl<64,64>>; // bchw layout
 struct fwd_data {
     my_layout x, y;
     dim3 grid()  { return dim3(x.batch()); } // b

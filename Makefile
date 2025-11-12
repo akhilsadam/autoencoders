@@ -37,7 +37,8 @@ py3-conf:
 
 test-cu: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.models.cu.compile
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m pytest -s -v src/autoencoders/models/cu
+# 	src.autoencoders.models.cu.compile
 
 test-hl: install
 	source "$(VENV)/bin/activate" && \
