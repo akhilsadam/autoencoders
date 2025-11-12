@@ -22,7 +22,7 @@ print("Activations compiled:", activations is not None)
 class _ReLU(torch.autograd.Function):
     @staticmethod
     def forward(ctx, x):
-        output = torch.empty_like(x)
+        y = torch.empty_like(x)
         activations.relu_fwd(x, y)
         ctx.save_for_backward(y)
         return y
