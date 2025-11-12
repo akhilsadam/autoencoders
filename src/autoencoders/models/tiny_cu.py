@@ -18,16 +18,18 @@ activations = compile(
 
 class _ReLU(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, input):
-        output = activations.relu_fwd(input)
-        ctx.save_for_backward(output)
-        return output
+    def forward(ctx, x):
+        output = torch.empty_like(x)
+        activations.relu_fwd(x, y)
+        ctx.save_for_backward(y)
+        return y
 
     @staticmethod
-    def backward(ctx, grad_output):
-        output, = ctx.saved_tensors
-        grad_input = activations.relu_bwd(grad_output, output)
-        return grad_input
+    def backward(ctx, grad_y):
+        y, = ctx.saved_tensors
+        grad_x = torch.empty_like(grad_y)
+        activations.relu_bwd(grad_y, y, grad_x)
+        return grad_x
     
 class ReLU(nn.Module):
     def forward(self, x):

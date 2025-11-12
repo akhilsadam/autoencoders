@@ -42,16 +42,16 @@ def relu_bwd(g, y):
 
 class _ReLU(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, input):
-        output = relu_fwd(input)
-        ctx.save_for_backward(output)
-        return output
+    def forward(ctx, x):
+        y = relu_fwd(x)
+        ctx.save_for_backward(y)
+        return y
 
     @staticmethod
-    def backward(ctx, grad_output):
-        output, = ctx.saved_tensors
-        grad_input = relu_bwd(grad_output, output)
-        return grad_input
+    def backward(ctx, grad_y):
+        y, = ctx.saved_tensors
+        grad_x = relu_bwd(grad_y, y)
+        return grad_x
     
 class ReLU(nn.Module):
     def forward(self, x):
@@ -79,9 +79,9 @@ class TinyHLAutoencoder(pl.LightningModule):
             nn.Linear(latent_dim, 32 * 7 * 7),
             nn.Unflatten(1, (32, 7, 7)),
             ReLU(),
-            nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, y_padding=1),
             ReLU(),
-            nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, y_padding=1),
             nn.Sigmoid(),
         )
         self.criterion = nn.MSELoss()

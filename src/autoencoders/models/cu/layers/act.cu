@@ -22,9 +22,9 @@ struct fwd_data {
     dim3 block() { return dim3(x.depth(), x.cols(), x.rows()); } // whc
 };
 struct bwd_data {
-    my_layout grad, y;
-    dim3 grid()  { return dim3(grad.batch()); } // b
-    dim3 block() { return dim3(grad.depth(), grad.cols(), grad.rows()); } // whc
+    my_layout grad_y, y, grad_x;
+    dim3 grid()  { return dim3(grad_y.batch()); } // b
+    dim3 block() { return dim3(grad_y.depth(), grad_y.cols(), grad_y.rows()); } // whc
 };
 
 __global__ void relu_fwd_kernel(const __grid_constant__ fwd_data g) {
@@ -34,9 +34,9 @@ __global__ void relu_fwd_kernel(const __grid_constant__ fwd_data g) {
         );
 }
 __global__ void relu_bwd_kernel(const __grid_constant__ bwd_data g) {
-        g.y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}] 
+        g.grad_x[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}] 
         = relu_bwd(
-            g.grad[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}],
+            g.grad_y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}],
             g.y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}]
         );
 }
@@ -51,7 +51,7 @@ void run_relu_bwd_kernel(bwd_data g) {
 PYBIND11_MODULE(act, m) {
     m.doc() = "activation functions python module";
     py::bind_kernel<relu_fwd_kernel>(m, "relu_fwd_kernel", &fwd_data::x, &fwd_data::y);
-    py::bind_kernel<relu_bwd_kernel>(m, "relu_bwd_kernel", &bwd_data::grad, &bwd_data::y);
+    py::bind_kernel<relu_bwd_kernel>(m, "relu_bwd_kernel", &bwd_data::grad_y, &bwd_data::y, &bwd_data::grad_x);
     py::bind_function<run_relu_fwd_kernel>(m, "relu_fwd", &fwd_data::x, &fwd_data::y);
-    py::bind_function<run_relu_bwd_kernel>(m, "relu_bwd", &bwd_data::grad, &bwd_data::y);
+    py::bind_function<run_relu_bwd_kernel>(m, "relu_bwd", &bwd_data::grad_y, &bwd_data::y, &bwd_data::grad_x);
 }

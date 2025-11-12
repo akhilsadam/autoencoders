@@ -2,7 +2,7 @@
 
 
 #### install
-- On remote, make sure to login in WandB and HuggingFace after `make install`
+- On remote, make sure to login in WandB and HuggingFace after `make install` or `make sinstall` if on a SLURM cluster.
 - Don't forget to source the `venv` with `source .venv/bin/activate`
 
     ```bash
