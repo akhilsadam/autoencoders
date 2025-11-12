@@ -15,6 +15,9 @@ activations = compile(
     device_functions=[],
     kernel="src/autoencoders/models/cu/layers/act.cu",
 )
+##
+# compiled?
+print("Activations compiled:", activations is not None)
 
 class _ReLU(torch.autograd.Function):
     @staticmethod
