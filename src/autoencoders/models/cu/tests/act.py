@@ -9,7 +9,7 @@ from torch import nn
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
-from .cu.compile import compile
+from cu.compile import compile
 activations = compile(
     device_functions=[],
     kernel="src/autoencoders/models/cu/kernels/act.cu",
@@ -38,5 +38,5 @@ def _test_relu():
         def forward(self, x):
             return _ReLU.apply(x)
 
-    from . import test_layers as tl
+    from cu.tests import test_layers as tl
     tl._check(nn.ReLU(), ReLU())
