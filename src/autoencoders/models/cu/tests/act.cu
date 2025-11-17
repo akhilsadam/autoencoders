@@ -18,10 +18,15 @@ struct bwd_data {
 };
 
 __global__ void relu_fwd_kernel(const __grid_constant__ fwd_data g) {
-        g.y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}] 
-        = relu_fwd(
-            g.x[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}]
-        );
+    rt_reg<float, Tile::W.y, Tile::W.x> WARP_y, WARP_x; // register tiles
+    load(WARP_x, g.x, blockIdx.x); // load to register tile
+    map_xy(WARP_y, WARP_x, relu_fwd);  // apply relu in registers
+    store(WARP_y, g.y, blockIdx.x); // store to global memory
+
+    // g.y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}] 
+    // = relu_fwd(
+    //     g.x[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}]
+    // );
 }
 __global__ void relu_bwd_kernel(const __grid_constant__ bwd_data g) {
         g.grad_x[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}] 
