@@ -55,7 +55,7 @@ NVCC_FLAGS += [f"-I{inc}" for inc in pybind11.get_include().split()]
 
 CXX_FLAGS = ["-O2", "-g"]
 
-def compile(kernel, device_functions = [], build_dir = None):
+def compile(kernel, device_functions = [], build_dir = None, template_kwargs = {}):
     try:
         name = kernel.split('/')[-1].replace('.cu','')
         
@@ -65,6 +65,11 @@ def compile(kernel, device_functions = [], build_dir = None):
             os.makedirs(kernel_dir, exist_ok=True)
             kwargs['build_directory'] = kernel_dir
             # else PyTorch will use a default temp dir
+        
+        # convert kwargs to defines
+        for k, v in template_kwargs.items():
+            define_flag = f"-D{k}={v}"
+            NVCC_FLAGS.append(define_flag)
         
         module = load(
             name=name,

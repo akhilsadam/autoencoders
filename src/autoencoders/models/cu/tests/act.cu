@@ -4,18 +4,17 @@ using namespace kittens;
 
 // from layers
 #include "act.cuh"
+#include "tile.cuh"
 
-// need to think about templating with defines
-using my_layout = gl<float, -1, -1, -1, -1, st_fl<64,64>>; // bchw layout
 struct fwd_data {
-    my_layout x, y;
+    tiled_layout x, y;
     dim3 grid()  { return dim3(x.batch()); } // b
-    dim3 block() { return dim3(x.rows(), x.cols(), x.depth()); } // whc
+    dim3 block() { return dim3(x.cols(), x.rows(), x.depth()); } // whc
 };
 struct bwd_data {
-    my_layout grad_y, y, grad_x;
+    tiled_layout grad_y, y, grad_x;
     dim3 grid()  { return dim3(grad_y.batch()); } // b
-    dim3 block() { return dim3(grad_y.rows(), grad_y.cols(), grad_y.depth()); } // whc
+    dim3 block() { return dim3(grad_y.cols(), grad_y.rows(), grad_y.depth()); } // whc
 };
 
 __global__ void relu_fwd_kernel(const __grid_constant__ fwd_data g) {

@@ -10,33 +10,37 @@ from torch import nn
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
-from .cu.compile import compile
-activations = compile(
-    device_functions=[],
-    kernel="src/autoencoders/models/cu/tests/act.cu",
-)
-##
-# compiled?
-print("Activations compiled:", activations is not None)
+def jit_relu(**template_kwargs):
+    from .cu.compile import compile
+    activations = compile(
+        device_functions=[],
+        kernel="src/autoencoders/models/cu/tests/act.cu",
+        template_kwargs=template_kwargs,
+    )
+    ##
+    # compiled?
+    print("Activations compiled:", activations is not None)
 
-class _ReLU(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, x):
-        y = torch.empty_like(x)
-        activations.relu_fwd(x, y)
-        ctx.save_for_backward(y)
-        return y
+    class _ReLU(torch.autograd.Function):
+        @staticmethod
+        def forward(ctx, x):
+            y = torch.empty_like(x)
+            activations.relu_fwd(x, y)
+            ctx.save_for_backward(y)
+            return y
 
-    @staticmethod
-    def backward(ctx, grad_y):
-        y, = ctx.saved_tensors
-        grad_x = torch.empty_like(grad_y)
-        activations.relu_bwd(grad_y, y, grad_x)
-        return grad_x
-    
-class ReLU(nn.Module):
-    def forward(self, x):
-        return _ReLU.apply(x)
+        @staticmethod
+        def backward(ctx, grad_y):
+            y, = ctx.saved_tensors
+            grad_x = torch.empty_like(grad_y)
+            activations.relu_bwd(grad_y, y, grad_x)
+            return grad_x
+        
+    class ReLU(nn.Module):
+        def forward(self, x):
+            return _ReLU.apply(x)
+
+    return ReLU
 
 @dataclass
 class Config:
@@ -53,6 +57,8 @@ class CUAutoencoder(pl.LightningModule):
     
         latent_dim = config['latent_dim']
         self.learning_rate = config['learning_rate']
+
+        ReLU = jit_relu()
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=2, padding=1),
