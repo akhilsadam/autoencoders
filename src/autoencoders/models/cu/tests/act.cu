@@ -1,4 +1,5 @@
 #include "kittens.cuh"
+#include "ops/warp/warp.cuh" // for load/store/map_xy
 #include "pyutils/pyutils.cuh"
 using namespace kittens;
 

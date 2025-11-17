@@ -28,4 +28,4 @@ struct Tile {
     static constexpr int2 W = WARPTILE_XY;
 };
 
-using tiled_layout = gl<float, G_BATCH, G_CHANNEL, Tile::G.y, Tile::G.x, st_fl<Tile::G.y, Tile::G.x>>; // bchw layout
+using tiled_layout = gl<float, G_BATCH, G_CHANNEL, Tile::G.y, Tile::G.x, st_fl<Tile::B.y, Tile::B.x>>; // bchw layout
