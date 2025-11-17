@@ -22,10 +22,6 @@ using namespace kittens;
 #define WARPTILE_XY {16, 16}
 #endif
 
-struct int2 {
-    int x, y;
-};
-
 struct Tile {
     static constexpr int2 G = GTILE_XY;
     static constexpr int2 B = BLOCKTILE_XY;
