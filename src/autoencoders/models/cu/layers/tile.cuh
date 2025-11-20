@@ -47,10 +47,13 @@ struct Tile {
 };
 
 
-template<typename Layout, auto RefMember>
+template<typename Layout>
 struct TileBCHW {
+
+    const Layout* reference;
+
     __host__ __device__ const Layout& ref() const { 
-        return this->*RefMember; 
+        return *reference;
     }
 
     // Grid dimensions for kernel launch
@@ -80,18 +83,21 @@ struct TileBCHW {
 
 // Forward pass data structure (x, y)
 template<typename Layout>
-struct BCHW_fwd : public TileBCHW<Layout, &BCHW_fwd<Layout>::x> {
+struct BCHW_fwd : public TileBCHW<Layout> {
     Layout x, y;
+    BCHW_fwd() : TileBCHW<Layout>(&x) {}
 };
 
 template<typename Layout>
-struct BCHW_bwd_stateless : public TileBCHW<Layout, &BCHW_bwd_stateless<Layout>::grad_y> {
+struct BCHW_bwd_stateless : public TileBCHW<Layout> {
     Layout grad_y, y, grad_x;
+    BCHW_bwd_stateless() : TileBCHW<Layout>(&y) {}
 };
 
 template<typename Layout>
-struct BCHW_bwd : public TileBCHW<Layout, &BCHW_bwd<Layout>::grad_y> {
+struct BCHW_bwd : public TileBCHW<Layout> {
     Layout grad_y, y, grad_x, x;
+    BCHW_bwd() : TileBCHW<Layout>(&x) {}
 };
 
 using tiled_layout = gl<dtype, G_BATCH, G_CHANNEL, Tile::G.y, Tile::G.x, st_fl<Tile::B.y, Tile::B.x>>; // bchw layout
