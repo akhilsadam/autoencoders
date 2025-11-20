@@ -1,5 +1,4 @@
 #include "kittens.cuh"
-#include "ops/warp/warp.cuh" // for load/store/map_xy
 #include "pyutils/pyutils.cuh"
 using namespace kittens;
 
@@ -7,27 +6,18 @@ using namespace kittens;
 #include "act.cuh"
 #include "tile.cuh"
 
-struct fwd_data {
-    tiled_layout x, y;
-    dim3 grid()  { return dim3(x.batch()); } // b
-    dim3 block() { return dim3(x.cols(), x.rows(), x.depth()); } // whc
-};
-struct bwd_data {
-    tiled_layout grad_y, y, grad_x;
-    dim3 grid()  { return dim3(grad_y.batch()); } // b
-    dim3 block() { return dim3(grad_y.cols(), grad_y.rows(), grad_y.depth()); } // whc
-};
+using fwd_data = BCHW_fwd<tiled_layout>;
+using bwd_data = BCHW_bwd_stateless<tiled_layout>;
 
 __global__ void relu_fwd_kernel(const __grid_constant__ fwd_data g) {
-    rt_reg<float, Tile::W.y, Tile::W.x> WARP_y, WARP_x; // register tiles
-    load(WARP_x, g.x, blockIdx.x); // load to register tile
-    map_xy(WARP_y, WARP_x, relu_fwd);  // apply relu in registers
-    store(WARP_y, g.y, blockIdx.x); // store to global memory
-
-    // g.y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}] 
-    // = relu_fwd(
-    //     g.x[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}]
-    // );
+    reg_tile_dt WARP_y, WARP_x; // register tiles
+    
+    // Loop over all channels
+    for(uint32_t channel = 0; channel < g.tiles_depth(); channel++) {
+        load(WARP_x, g.x, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
+        map_xy(WARP_y, WARP_x, relu_fwd);
+        store(WARP_y, g.y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
+    }
 }
 __global__ void relu_bwd_kernel(const __grid_constant__ bwd_data g) {
         g.grad_x[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}] 
