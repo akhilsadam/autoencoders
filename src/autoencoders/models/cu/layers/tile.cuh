@@ -50,10 +50,10 @@ struct Tile {
 template<typename Layout>
 struct TileBCHW {
 
-    const Layout* reference;
+    const Layout& reference;
 
     __host__ __device__ const Layout& ref() const { 
-        return *reference;
+        return reference;
     }
 
     // Grid dimensions for kernel launch
