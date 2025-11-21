@@ -15,7 +15,7 @@ __global__ void relu_fwd_kernel(const __grid_constant__ fwd_data g) {
     // Loop over all channels
     for(uint32_t channel = 0; channel < g.tiles_depth(); channel++) {
         load(WARP_x, g.x, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
-        unary_map<relu_fwd>(WARP_y, WARP_x);
+        unary_map<relu_fwd, reg_tile_dt>(WARP_y, WARP_x);
         store(WARP_y, g.y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
     }
 }
