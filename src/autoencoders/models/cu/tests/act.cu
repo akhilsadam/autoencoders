@@ -31,7 +31,7 @@ __global__ void relu_bwd_kernel(const __grid_constant__ bwd_data g) {
     for(uint32_t channel = 0; channel < g.tiles_depth(); channel++) {
         load(WARP_grad_y, g.grad_y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
         load(WARP_y, g.y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
-        unary_map<relu_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
+        bin_map<relu_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
         store(g.grad_x, WARP_grad_x, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
     }
 }
