@@ -50,10 +50,10 @@ struct Tile {
 template<typename Layout>
 struct TileBCHW {
 
-    const Layout& reference;
+    const Layout* reference;
 
     __host__ __device__ const Layout& ref() const { 
-        return reference;
+        return *reference;
     }
 
     // Grid dimensions for kernel launch
@@ -92,7 +92,7 @@ struct BCHW_fwd : public TileBCHW<Layout> {
         x(x_),
         y(y_) 
     {
-        reference = x;
+        reference = &x;
     }
 };
 
@@ -107,7 +107,7 @@ struct BCHW_bwd_stateless : public TileBCHW<Layout> {
         grad_y(grad_y_), y(y_),
         grad_x(grad_x_)
     {
-        reference = y;
+        reference = &y;
     }
 };
 
@@ -122,7 +122,7 @@ struct BCHW_bwd : public TileBCHW<Layout> {
         grad_y(grad_y_), y(y_), x(x_),
         grad_x(grad_x_)
     {
-        reference = x;
+        reference = &x;
     }
 };
 
