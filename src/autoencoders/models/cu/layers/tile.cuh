@@ -92,7 +92,7 @@ struct BCHW_fwd : public TileBCHW<Layout> {
         x(x_),
         y(y_) 
     {
-        reference = &x;
+        this->reference = &x;
     }
 };
 
@@ -107,7 +107,7 @@ struct BCHW_bwd_stateless : public TileBCHW<Layout> {
         grad_y(grad_y_), y(y_),
         grad_x(grad_x_)
     {
-        reference = &y;
+        this->reference = &y;
     }
 };
 
@@ -122,7 +122,7 @@ struct BCHW_bwd : public TileBCHW<Layout> {
         grad_y(grad_y_), y(y_), x(x_),
         grad_x(grad_x_)
     {
-        reference = &x;
+        this->reference = &x;
     }
 };
 
