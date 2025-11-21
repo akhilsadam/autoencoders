@@ -13,7 +13,7 @@ __global__ void relu_fwd_kernel(const __grid_constant__ fwd_data g) {
     reg_tile_dt WARP_y, WARP_x; // register tiles
     
     // Loop over all channels
-    for(uint32_t channel = 0; channel < g.tiles_depth(); channel++) {
+    for(int32_t channel = 0; channel < g.tiles_depth(); channel++) {
         load(WARP_x, g.x, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
         unary_map<relu_fwd>(WARP_y, WARP_x);
         store(g.y, WARP_y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
@@ -28,7 +28,7 @@ __global__ void relu_bwd_kernel(const __grid_constant__ bwd_data g) {
 
     reg_tile_dt WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
     // Loop over all channels
-    for(uint32_t channel = 0; channel < g.tiles_depth(); channel++) {
+    for(int32_t channel = 0; channel < g.tiles_depth(); channel++) {
         load(WARP_grad_y, g.grad_y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
         load(WARP_y, g.y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
         bin_map<relu_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
