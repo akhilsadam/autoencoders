@@ -20,11 +20,20 @@ __global__ void relu_fwd_kernel(const __grid_constant__ fwd_data g) {
     }
 }
 __global__ void relu_bwd_kernel(const __grid_constant__ bwd_data g) {
-        g.grad_x[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}] 
-        = relu_bwd(
-            g.grad_y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}],
-            g.y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}]
-        );
+        // g.grad_x[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}] 
+        // = relu_bwd(
+        //     g.grad_y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}],
+        //     g.y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}]
+        // );
+
+    reg_tile_dt WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
+    // Loop over all channels
+    for(uint32_t channel = 0; channel < g.tiles_depth(); channel++) {
+        load(WARP_grad_y, g.grad_y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
+        load(WARP_y, g.y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
+        unary_map<relu_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
+        store(g.grad_x, WARP_grad_x, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
+    }
 }
 
 void run_relu_fwd_kernel(fwd_data g) {

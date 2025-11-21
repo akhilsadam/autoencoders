@@ -62,19 +62,19 @@ struct TileBCHW {
     unsigned long mem_size = 100000; // 100 KB default shared memory size
     
     // Number of block tiles in each dimension
-    __host__ __device__ uint32_t tiles_cols() const { return (ref().cols() + Tile::B.x - 1) / Tile::B.x; }
-    __host__ __device__ uint32_t tiles_rows() const { return (ref().rows() + Tile::B.y - 1) / Tile::B.y; }
-    __host__ __device__ uint32_t tiles_depth() const { return ref().depth(); }
+    __host__ __device__ int32_t tiles_cols() const { return (ref().cols() + Tile::B.x - 1) / Tile::B.x; }
+    __host__ __device__ int32_t tiles_rows() const { return (ref().rows() + Tile::B.y - 1) / Tile::B.y; }
+    __host__ __device__ int32_t tiles_depth() const { return ref().depth(); }
     
     // Block-level indices
-    __device__ uint32_t tile_col()  const { return blockIdx.z; }
-    __device__ uint32_t tile_row()  const { return blockIdx.y; }
-    __device__ uint32_t tile_batch() const { return blockIdx.x; }
+    __device__ int32_t tile_col()  const { return blockIdx.z; }
+    __device__ int32_t tile_row()  const { return blockIdx.y; }
+    __device__ int32_t tile_batch() const { return blockIdx.x; }
     
     // Warp-level indices
-    __device__ uint32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
-    __device__ uint32_t warp_col() const { return warp_id() % Tile::warps_x; }
-    __device__ uint32_t warp_row() const { return warp_id() / Tile::warps_x; }
+    __device__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
+    __device__ int32_t warp_col() const { return warp_id() % Tile::warps_x; }
+    __device__ int32_t warp_row() const { return warp_id() / Tile::warps_x; }
     
     // Global warp tile indices (for load/store operations)
     __device__ int32_t idx_col() const { return tile_col() * Tile::warps_x + warp_col(); }
