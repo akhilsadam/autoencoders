@@ -3,10 +3,12 @@
 using namespace kittens;
 
 // relu device function
-__device__ __forceinline__ float relu_fwd(float x) {
-    return x > 0.0f ? x : 0.0f;
+template<typename T>
+__device__ __forceinline__ T relu_fwd(T x) {
+    return x > T(0) ? x : T(0);
 }
 
-__device__ __forceinline__ float relu_bwd(float g, float y) {
-    return y > 0.0f ? g : 0.0f;
+template<typename T>
+__device__ __forceinline__ T relu_bwd(T g, T y) {
+    return y > T(0) ? g : T(0);
 }
