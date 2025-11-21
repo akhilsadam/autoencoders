@@ -1,5 +1,5 @@
 #include "kittens.cuh"
-#include "pyutils/pyutils.cuh"
+// #include "pyutils/pyutils.cuh"
 using namespace kittens;
 
 // from layers
