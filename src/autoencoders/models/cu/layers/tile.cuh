@@ -88,9 +88,12 @@ struct BCHW_fwd : public TileBCHW<Layout> {
     BCHW_fwd(
         const Layout& x_, 
         const Layout& y_)
-        : TileBCHW<Layout>(&x),
+        :
         x(x_),
-        y(y_) {}
+        y(y_) 
+    {
+        reference = x;
+    }
 };
 
 template<typename Layout>
@@ -100,9 +103,12 @@ struct BCHW_bwd_stateless : public TileBCHW<Layout> {
         const Layout& grad_y_,
         const Layout& y_,
         const Layout& grad_x_)
-        : TileBCHW<Layout>(&y),
+        :
         grad_y(grad_y_), y(y_),
-        grad_x(grad_x_) {}
+        grad_x(grad_x_)
+    {
+        reference = y;
+    }
 };
 
 template<typename Layout>
@@ -112,9 +118,12 @@ struct BCHW_bwd : public TileBCHW<Layout> {
         const Layout& y_,
         const Layout& x_,
         const Layout& grad_x_)
-        : TileBCHW<Layout>(&x),
+        :
         grad_y(grad_y_), y(y_), x(x_),
-        grad_x(grad_x_) {}
+        grad_x(grad_x_)
+    {
+        reference = x;
+    }
 };
 
 using tiled_layout = gl<dtype, G_BATCH, G_CHANNEL, Tile::G.y, Tile::G.x, st_fl<Tile::B.y, Tile::B.x>>; // bchw layout
