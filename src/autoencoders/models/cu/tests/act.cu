@@ -5,6 +5,7 @@ using namespace kittens;
 // from layers
 #include "act.cuh"
 #include "tile.cuh"
+#include "warp.cuh"
 
 using fwd_data = BCHW_fwd<tiled_layout>;
 using bwd_data = BCHW_bwd_stateless<tiled_layout>;
@@ -15,7 +16,7 @@ __global__ void relu_fwd_kernel(const __grid_constant__ fwd_data g) {
     // Loop over all channels
     for(uint32_t channel = 0; channel < g.tiles_depth(); channel++) {
         load(WARP_x, g.x, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
-        unary_map<relu_fwd>(WARP_y, WARP_x);
+        unary_wmap<relu_fwd>(WARP_y, WARP_x);
         store(g.y, WARP_y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
     }
 }
@@ -31,7 +32,7 @@ __global__ void relu_bwd_kernel(const __grid_constant__ bwd_data g) {
     for(uint32_t channel = 0; channel < g.tiles_depth(); channel++) {
         load(WARP_grad_y, g.grad_y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
         load(WARP_y, g.y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
-        bin_map<relu_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
+        binary_wmap<relu_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
         store(g.grad_x, WARP_grad_x, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
     }
 }
