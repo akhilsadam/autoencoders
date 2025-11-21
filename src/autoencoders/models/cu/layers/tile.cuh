@@ -77,8 +77,8 @@ struct TileBCHW {
     __device__ uint32_t warp_row() const { return warp_id() / Tile::warps_x; }
     
     // Global warp tile indices (for load/store operations)
-    __device__ uint32_t idx_col() const { return tile_col() * Tile::warps_x + warp_col(); }
-    __device__ uint32_t idx_row() const { return tile_row() * Tile::warps_y + warp_row(); }
+    __device__ int32_t idx_col() const { return tile_col() * Tile::warps_x + warp_col(); }
+    __device__ int32_t idx_row() const { return tile_row() * Tile::warps_y + warp_row(); }
 };
 
 // Forward pass data structure (x, y)
