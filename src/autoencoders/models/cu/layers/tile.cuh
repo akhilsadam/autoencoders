@@ -162,15 +162,19 @@ void dispatch_fwd_kernel(T kernel, const BaseData& g) {
     int W = g.x.cols();
     if(W == 28) {
         using Data = BCHW_fwd<Tile28>;
+        Data g_cast = Data(g);
+        kernel.template fwd<Data>(g_cast);
     } 
     else if(W == 64) {
         using Data = BCHW_fwd<Tile64>;
+        Data g_cast = Data(g);
+        kernel.template fwd<Data>(g_cast);
     }
     else {
         using Data = BCHW_fwd<Tile128>;
+        Data g_cast = Data(g);
+        kernel.template fwd<Data>(g_cast);
     }
-    Data g_cast = static_cast<Data>(g);
-    kernel.template fwd<Data>(g_cast);
 }
 
 template<typename T, typename BaseData>
@@ -178,15 +182,19 @@ void dispatch_bwd_sl_kernel(T kernel, const BaseData& g) {
     int W = g.y.cols();
     if(W == 28) {
         using Data = BCHW_bwd_stateless<Tile28>;
+        Data g_cast = Data(g);
+        kernel.template bwd<Data>(g_cast);
     } 
     else if(W == 64) {
         using Data = BCHW_bwd_stateless<Tile64>;
+        Data g_cast = Data(g);
+        kernel.template bwd<Data>(g_cast);
     }
     else {
         using Data = BCHW_bwd_stateless<Tile128>;
+        Data g_cast = Data(g);
+        kernel.template bwd<Data>(g_cast);
     }
-    Data g_cast = Data(g);
-    kernel.template bwd<Data>(g_cast);
 }
 
 template<typename T, typename BaseData>
@@ -194,13 +202,17 @@ void dispatch_bwd_kernel(T kernel, const BaseData& g) {
     int W = g.y.cols();
     if(W == 28) {
         using Data = BCHW_bwd<Tile28>;
+        Data g_cast = Data(g);
+        kernel.template bwd<Data>(g_cast);
     } 
     else if(W == 64) {
         using Data = BCHW_bwd<Tile64>;
+        Data g_cast = Data(g);
+        kernel.template bwd<Data>(g_cast);
     }
     else {
         using Data = BCHW_bwd<Tile128>;
+        Data g_cast = Data(g);
+        kernel.template bwd<Data>(g_cast);
     }
-    Data g_cast = Data(g);
-    kernel.template bwd<Data>(g_cast);
 }
