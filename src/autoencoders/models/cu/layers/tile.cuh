@@ -83,16 +83,24 @@ struct TileBCHW : public TileType {
     __device__ int32_t warptile_gy() const { return tile_y() * warps_y + warp_idy(); }
 };
 
-// Forward pass data structure (x, y)
+// blank fwd, bwd data structures
+using base_layout = gl<dtype, -1, -1, -1, -1, st_fl<1,1>>;
+struct fwd_data
+{
+    const base_layout& x, y;
+};
+struct bwd_data
+{
+    const base_layout& grad_y, y, grad_x, x;
+};
+
 template<typename Layout, typename TileType>
 struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     Layout x, y;
-    _BCHW_fwd(
-        const Layout& x_, 
-        const Layout& y_)
+    _BCHW_fwd(const fwd_data& g)
         :
-        x(x_),
-        y(y_) 
+        x(g.x),
+        y(g.y) 
     {
         this->reference = &x;
     }
@@ -101,13 +109,10 @@ struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
 template<typename Layout, typename TileType>
 struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x;
-    _BCHW_bwd_stateless(
-        const Layout& grad_y_,
-        const Layout& y_,
-        const Layout& grad_x_)
+    _BCHW_bwd_stateless(const bwd_data& g)
         :
-        grad_y(grad_y_), y(y_),
-        grad_x(grad_x_)
+        grad_y(g.grad_y), y(g.y),
+        grad_x(g.grad_x)
     {
         this->reference = &y;
     }
@@ -116,20 +121,16 @@ struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
 template<typename Layout, typename TileType>
 struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x, x;
-    _BCHW_bwd(const Layout& grad_y_,
-        const Layout& y_,
-        const Layout& x_,
-        const Layout& grad_x_)
+    _BCHW_bwd(const bwd_data& g)
         :
-        grad_y(grad_y_), y(y_), x(x_),
-        grad_x(grad_x_)
+        grad_y(g.grad_y), y(g.y), x(g.x),
+        grad_x(g.grad_x)
     {
         this->reference = &x;
     }
 };
 
 // ------------------- Type aliases -------------------
-
 template<typename TileType>
 using tiled_layout = gl<dtype, G_BATCH, G_CHANNEL,
  TileType::G.y, TileType::G.x,
@@ -142,7 +143,7 @@ template<typename TileType>
 using reg_tile_dt = rt<dtype, TileType::W.y, TileType::W.x>;
 
 template<typename TileType>
-using fwd_data = _BCHW_fwd<tiled_layout<TileType>, TileType>;
+using BCHW_fwd = _BCHW_fwd<tiled_layout<TileType>, TileType>;
 
 template<typename TileType>
 using BCHW_bwd_stateless = _BCHW_bwd_stateless<tiled_layout<TileType>, TileType>;
@@ -156,30 +157,50 @@ using Tile128 = Tile<{-1, -1}, {128, 128}, {16, 16}>;
 
 // select tile based on width
 
-template<typename T, typename Data>
-void dispatch_fwd_kernel(T kernel, const Data& g) {
+template<typename T, typename BaseData>
+void dispatch_fwd_kernel(T kernel, const BaseData& g) {
     int W = g.x.cols();
     if(W == 28) {
-        kernel.template fwd<Tile28>(g);
+        using Data = BCHW_fwd<Tile28>;
     } 
     else if(W == 64) {
-        kernel.template fwd<Tile64>(g);
+        using Data = BCHW_fwd<Tile64>;
     }
     else {
-        kernel.template fwd<Tile128>(g);
+        using Data = BCHW_fwd<Tile128>;
     }
+    Data g_cast = static_cast<Data>(g);
+    kernel.template fwd<Data>(g_cast);
 }
 
-template<typename T, typename Data>
-void dispatch_bwd_kernel(T kernel, const Data& g) {
+template<typename T, typename BaseData>
+void dispatch_bwd_sl_kernel(T kernel, const BaseData& g) {
     int W = g.y.cols();
     if(W == 28) {
-        kernel.template bwd<Tile28>(g);
+        using Data = BCHW_bwd_stateless<Tile28>;
     } 
     else if(W == 64) {
-        kernel.template bwd<Tile64>(g);
+        using Data = BCHW_bwd_stateless<Tile64>;
     }
     else {
-        kernel.template bwd<Tile128>(g);
+        using Data = BCHW_bwd_stateless<Tile128>;
     }
+    Data g_cast = Data(g);
+    kernel.template bwd<Data>(g_cast);
+}
+
+template<typename T, typename BaseData>
+void dispatch_bwd_kernel(T kernel, const BaseData& g) {
+    int W = g.y.cols();
+    if(W == 28) {
+        using Data = BCHW_bwd<Tile28>;
+    } 
+    else if(W == 64) {
+        using Data = BCHW_bwd<Tile64>;
+    }
+    else {
+        using Data = BCHW_bwd<Tile128>;
+    }
+    Data g_cast = Data(g);
+    kernel.template bwd<Data>(g_cast);
 }

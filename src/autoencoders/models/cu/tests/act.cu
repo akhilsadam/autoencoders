@@ -8,8 +8,8 @@ using namespace kittens;
 
 struct ReLU
 {
-    template<typename TileType>
-    __global__ void fwd(const __grid_constant__ BCHW_fwd<TileType> g) {
+    template<typename Layout>
+    __global__ void fwd(const __grid_constant__ Layout g) {
         reg_tile_dt WARP_y, WARP_x; // register tiles
         
         for(int32_t channel = 0; channel < g.channels(); channel++) {
@@ -20,8 +20,8 @@ struct ReLU
         }
     }
 
-    template<typename TileType>
-    __global__ void bwd(const __grid_constant__ BCHW_bwd_stateless<TileType> g) {
+    template<typename Layout>
+    __global__ void bwd(const __grid_constant__ Layout g) {
         reg_tile_dt WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
 
         for(int32_t channel = 0; channel < g.channels(); channel++) {
@@ -39,7 +39,7 @@ void run_relu_fwd_kernel(fwd_data g) {
     kernel<<<g.grid(), g.block()>>>(g); // no need for shared memory
 }
 void run_relu_bwd_kernel(bwd_data g) {
-    auto kernel = dispatch_bwd_kernel(ReLU, g);
+    auto kernel = dispatch_bwd_sl_kernel(ReLU, g);
     kernel<<<g.grid(), g.block()>>>(g); // no need for shared memory
 }
 
@@ -47,4 +47,5 @@ PYBIND11_MODULE(act, m) {
     m.doc() = "activation functions python module";
     py::bind_function<run_relu_fwd_kernel>(m, "relu_fwd", &fwd_data::x, &fwd_data::y);
     py::bind_function<run_relu_bwd_kernel>(m, "relu_bwd", &bwd_data::grad_y, &bwd_data::y, &bwd_data::grad_x);
+    // no need for x since relu is stateless
 }
