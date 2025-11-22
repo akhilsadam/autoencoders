@@ -1,5 +1,8 @@
 #include "kittens.cuh"
 #include "pyutils/pyutils.cuh"
+#include <array>
+#include <functional>
+
 using namespace kittens;
 
 #ifndef NUM_WORKERS
