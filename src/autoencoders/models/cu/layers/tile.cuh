@@ -156,12 +156,9 @@ using Tile64 = Tile<-1, -1, 64, 64, 16, 16>;
 using Tile128 = Tile<-1, -1, 128, 128, 16, 16>;
 
 // select tile based on width
-static constexpr auto sizes = {28, 64, 128};
-// static constexpr auto tile_types = std::tuple<Tile28, Tile64, Tile128>;
-    
 template<typename BaseData>
 __host__ size_t TileIndex(const BaseData& g) {
     int W = g.x.cols();
-    size_t idx = (W == sizes[0]) ? 0 : (W == sizes[1]) ? 1 : 2;
+    size_t idx = (W == 28) ? 0 : (W == 64) ? 1 : 2;
     return idx;
 }
