@@ -49,26 +49,25 @@ struct ReLU {
         +[](bwd_data d){return BCHW_bwd_stateless<Tile128>(d);},
     };
 
-    static constexpr auto relu_fwd = 
-    std::array<void(*)(fwd_data), 3>{
-        &_relu_fwd_kernel<BCHW_fwd<Tile28>, Tile28>,
-        &_relu_fwd_kernel<BCHW_fwd<Tile64>, Tile64>,
-        &_relu_fwd_kernel<BCHW_fwd<Tile128>, Tile128>
+    static constexpr void(*relu_fwd[3])(fwd_data) = {
+        _relu_fwd_kernel<BCHW_fwd<Tile28>, Tile28>,
+        _relu_fwd_kernel<BCHW_fwd<Tile64>, Tile64>,
+        _relu_fwd_kernel<BCHW_fwd<Tile128>, Tile128>
     };
 
-    static constexpr auto relu_bwd = 
-    std::array<void(*)(bwd_data), 3>{
-        &_relu_bwd_kernel<BCHW_bwd_stateless<Tile28>, Tile28>,
-        &_relu_bwd_kernel<BCHW_bwd_stateless<Tile64>, Tile64>,
-        &_relu_bwd_kernel<BCHW_bwd_stateless<Tile128>, Tile128>
+    static constexpr void(*relu_bwd[3])(bwd_data) = {
+        _relu_bwd_kernel<BCHW_bwd_stateless<Tile28>, Tile28>,
+        _relu_bwd_kernel<BCHW_bwd_stateless<Tile64>, Tile64>,
+        _relu_bwd_kernel<BCHW_bwd_stateless<Tile128>, Tile128>
     };
 };
 
 void run_relu_fwd_kernel(fwd_data g) {
     auto tile_idx = TileIndex(g);
     auto data = ReLU::layout_fwd[tile_idx](g);
-    auto kernel = ReLU::relu_fwd[tile_idx];
-    kernel<<<data.grid(), data.block()>>>(data);
+    void* kernel = ReLU::relu_fwd[tile_idx];
+    void* args[] = { &data };
+    cudaLaunchKernel(kernel, data.grid(), data.block(), args, 0, nullptr);
 }
 void run_relu_bwd_kernel(bwd_data g) {
     auto tile_idx = TileIndex(g);
