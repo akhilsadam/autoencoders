@@ -35,14 +35,14 @@ static __global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
 struct ReLU {
     // list of types supported
 
-    inline static const std::array<std::function<void(fwd_data)>, 3> layout_fwd = 
+    inline static const layout_fwd[3] = 
     {
         +[](fwd_data d){return BCHW_fwd<Tile28>(d);},
         +[](fwd_data d){return BCHW_fwd<Tile64>(d);},
         +[](fwd_data d){return BCHW_fwd<Tile128>(d);},
     };
 
-    inline static const std::array<std::function<void(bwd_data)>, 3> layout_bwd = 
+    inline static const layout_bwd[3] = 
     {
         +[](bwd_data d){return BCHW_bwd_stateless<Tile28>(d);},
         +[](bwd_data d){return BCHW_bwd_stateless<Tile64>(d);},
@@ -64,9 +64,8 @@ struct ReLU {
 
 void run_relu_fwd_kernel(fwd_data g) {
     auto tile_idx = TileIndex(g);
-    auto data = ReLU::layout_fwd[tile_idx](g);
     void* kernel = ReLU::relu_fwd[tile_idx];
-    void* args[] = { &data };
+    void* args[] = { &ReLU::layout_fwd[tile_idx](g) };
     cudaLaunchKernel(kernel, data.grid(), data.block(), args, 0, nullptr);
 }
 void run_relu_bwd_kernel(bwd_data g) {
