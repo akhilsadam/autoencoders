@@ -30,16 +30,11 @@ __global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
     }
 }
 
-struct ReLU {
-    auto fwd = _relu_fwd_kernel;
-    auto bwd = _relu_bwd_kernel;
-};
-
 void run_relu_fwd_kernel(fwd_data g) {
-    auto kernel = dispatch_fwd_kernel<ReLU>(g);
+    auto kernel = dispatch_fwd_kernel<_relu_fwd_kernel>(g);
 }
 void run_relu_bwd_kernel(bwd_data g) {
-    auto kernel = dispatch_bwd_sl_kernel<ReLU>(g);
+    auto kernel = dispatch_bwd_sl_kernel<_relu_bwd_kernel>(g);
 }
 
 PYBIND11_MODULE(act, m) {
