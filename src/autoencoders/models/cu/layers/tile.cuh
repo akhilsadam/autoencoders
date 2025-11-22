@@ -47,7 +47,7 @@ struct Tile {
     static constexpr uint32_t warps_y = B.y / W.y;
 };
 
-template<typename Layout, typename TileType>
+template<typename Layout, Tile TileType>
 struct TileBCHW : public TileType {
     // equivalently Bzyx for threads
     // and zCyx for blocks
@@ -64,8 +64,8 @@ struct TileBCHW : public TileType {
     unsigned long mem_size = 100000; // 100 KB default shared memory size
     
     // Number of block tiles in each dimension
-    __host__ __device__ int32_t tiles_x() const { return (ref().cols() + B.x - 1) / B.x; }
-    __host__ __device__ int32_t tiles_y() const { return (ref().rows() + B.y - 1) / B.y; }
+    __host__ __device__ int32_t tiles_x() const { return (ref().cols() + TileType::B.x - 1) / TileType::B.x; }
+    __host__ __device__ int32_t tiles_y() const { return (ref().rows() + TileType::B.y - 1) / TileType::B.y; }
     __host__ __device__ int32_t channels() const { return ref().depth(); }
     
     // Block-level indices
@@ -75,12 +75,12 @@ struct TileBCHW : public TileType {
     
     // Warp-level indices
     __device__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
-    __device__ int32_t warp_idx() const { return warp_id() % warps_x; }
-    __device__ int32_t warp_idy() const { return warp_id() / warps_x; }
+    __device__ int32_t warp_idx() const { return warp_id() % TileType::warps_x; }
+    __device__ int32_t warp_idy() const { return warp_id() / TileType::warps_x; }
     
     // Global warp tile indices (for load/store operations)
-    __device__ int32_t warptile_gx() const { return tile_x() * warps_x + warp_idx(); }
-    __device__ int32_t warptile_gy() const { return tile_y() * warps_y + warp_idy(); }
+    __device__ int32_t warptile_gx() const { return tile_x() * TileType::warps_x + warp_idx(); }
+    __device__ int32_t warptile_gy() const { return tile_y() * TileType::warps_y + warp_idy(); }
 };
 
 // blank fwd, bwd data structures
