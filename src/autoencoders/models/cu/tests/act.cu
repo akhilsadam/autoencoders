@@ -35,14 +35,14 @@ static __global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
 struct ReLU {
     // list of types supported
 
-    static const std::array<std::function<void(fwd_data)>, 3> layout_fwd = 
+    inline static const std::array<std::function<void(fwd_data)>, 3> layout_fwd = 
     {
         +[](fwd_data d){return BCHW_fwd<Tile28>(d);},
         +[](fwd_data d){return BCHW_fwd<Tile64>(d);},
         +[](fwd_data d){return BCHW_fwd<Tile128>(d);},
     };
 
-    static const std::array<std::function<void(bwd_data)>, 3> layout_bwd = 
+    inline static const std::array<std::function<void(bwd_data)>, 3> layout_bwd = 
     {
         +[](bwd_data d){return BCHW_bwd_stateless<Tile28>(d);},
         +[](bwd_data d){return BCHW_bwd_stateless<Tile64>(d);},
