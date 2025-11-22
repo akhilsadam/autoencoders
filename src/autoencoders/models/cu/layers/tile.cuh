@@ -47,7 +47,7 @@ struct Tile {
     static constexpr uint32_t warps_y = B.y / W.y;
 };
 
-template<typename Layout, Tile TileType>
+template<typename Layout, typename TileType>
 struct TileBCHW : public TileType {
     // equivalently Bzyx for threads
     // and zCyx for blocks
