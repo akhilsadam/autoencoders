@@ -1,14 +1,13 @@
 #include "kittens.cuh"
-// #include "pyutils/pyutils.cuh"
 using namespace kittens;
 
 // from layers
 #include "act.cuh"
 #include "tile.cuh"
 
-template<typename Layout>
+template<typename Layout, typename TileType>
 __global__ void _relu_fwd_kernel(const __grid_constant__ Layout g) {
-    reg_tile_dt WARP_y, WARP_x; // register tiles
+    reg_tile_dt<TileType> WARP_y, WARP_x; // register tiles
     
     for(int32_t channel = 0; channel < g.channels(); channel++) {
         auto warptile_x = {g.batch(), channel, g.warptile_gx(), g.warptile_gy()};
@@ -18,9 +17,9 @@ __global__ void _relu_fwd_kernel(const __grid_constant__ Layout g) {
     }
 }
 
-template<typename Layout>
+template<typename Layout, typename TileType>
 __global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
-    reg_tile_dt WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
+    reg_tile_dt<TileType> WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
 
     for(int32_t channel = 0; channel < g.channels(); channel++) {
         auto warptile_x = {g.batch(), channel, g.warptile_gx(), g.warptile_gy()};
