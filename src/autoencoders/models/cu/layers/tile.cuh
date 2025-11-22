@@ -36,11 +36,11 @@ using namespace kittens;
 #define dtype bf16
 #endif
 
-template<int2 G, int2 B, int2 W>
+template<int Gx, int Gy, int Bx, int By, int Wx, int Wy>
 struct Tile {
-    // static constexpr int2 G = GTILE_XY;
-    // static constexpr int2 B = BLOCKTILE_XY;
-    // static constexpr int2 W = WARPTILE_XY;
+    static constexpr int2 G = {Gx, Gy};
+    static constexpr int2 B = {Bx, By};
+    static constexpr int2 W = {Wx, Wy};
     
     // Tile hierarchy ratios
     static constexpr uint32_t warps_x = B.x / W.x;
@@ -151,9 +151,9 @@ using BCHW_bwd_stateless = _BCHW_bwd_stateless<tiled_layout<TileType>, TileType>
 template<typename TileType>
 using BCHW_bwd = _BCHW_bwd<tiled_layout<TileType>, TileType>;
 
-using Tile28 = Tile<{-1, -1}, {28, 28}, {28, 28}>;
-using Tile64 = Tile<{-1, -1}, {64, 64}, {16, 16}>;
-using Tile128 = Tile<{-1, -1}, {128, 128}, {16, 16}>;
+using Tile28 = Tile<-1, -1, 28, 28, 28, 28>;
+using Tile64 = Tile<-1, -1, 64, 64, 16, 16>;
+using Tile128 = Tile<-1, -1, 128, 128, 16, 16>;
 
 // select tile based on width
 
