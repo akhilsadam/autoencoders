@@ -156,72 +156,12 @@ using Tile64 = Tile<-1, -1, 64, 64, 16, 16>;
 using Tile128 = Tile<-1, -1, 128, 128, 16, 16>;
 
 // select tile based on width
-
-template<class T, typename BaseData>
-void dispatch_fwd_kernel(T dummy, const BaseData& g) {
+static constexpr auto sizes = {28, 64, 128};
+// static constexpr auto tile_types = std::tuple<Tile28, Tile64, Tile128>;
+    
+template<typename BaseData>
+__host__ size_t TileIndex(const BaseData& g) {
     int W = g.x.cols();
-    if(W == 28) {
-        using Data = BCHW_fwd<Tile28>;
-        Data g_cast = Data(g);
-        auto kernel = T::template fwd<Data, Tile28>;
-        kernel<<<g.grid(), g.block()>>>(g_cast);
-    } 
-    else if(W == 64) {
-        using Data = BCHW_fwd<Tile64>;
-        Data g_cast = Data(g);
-        auto kernel = T::template fwd<Data, Tile64>;
-        kernel<<<g.grid(), g.block()>>>(g_cast);
-    }
-    else {
-        using Data = BCHW_fwd<Tile128>;
-        Data g_cast = Data(g);
-        auto kernel = T::template fwd<Data, Tile128>;
-        kernel<<<g.grid(), g.block()>>>(g_cast);
-    }
+    size_t idx = (W == sizes[0]) ? 0 : (W == sizes[1]) ? 1 : 2;
+    return idx;
 }
-
-template<class T, typename BaseData>
-void dispatch_bwd_sl_kernel(T dummy, const BaseData& g) {
-    int W = g.y.cols();
-    if(W == 28) {
-        using Data = BCHW_bwd_stateless<Tile28>;
-        Data g_cast = Data(g);
-        auto kernel = T::template bwd<Data, Tile28>;
-        kernel<<<g.grid(), g.block()>>>(g_cast);
-    } 
-    else if(W == 64) {
-        using Data = BCHW_bwd_stateless<Tile64>;
-        Data g_cast = Data(g);
-        auto kernel = T::template bwd<Data, Tile64>;
-        kernel<<<g.grid(), g.block()>>>(g_cast);
-    }
-    else {
-        using Data = BCHW_bwd_stateless<Tile128>;
-        Data g_cast = Data(g);
-        auto kernel = T::template bwd<Data, Tile128>;
-        kernel<<<g.grid(), g.block()>>>(g_cast);
-    }
-}
-
-// template<class T, typename BaseData>
-// void dispatch_bwd_kernel(T dummy, const BaseData& g) {
-//     int W = g.y.cols();
-//     if(W == 28) {
-//         using Data = BCHW_bwd<Tile28>;
-//         Data g_cast = Data(g);
-//         auto kernel = T::template bwd<DaButa, Tile28>;
-//         kernel<<<g.grid(), g.block()>>>(g_cast);
-//     } 
-//     else if(W == 64) {
-//         using Data = BCHW_bwd<Tile64>;
-//         Data g_cast = Data(g);
-//         auto kernel = T::template bwd<Data, Tile64>;
-//         kernel<<<g.grid(), g.block()>>>(g_cast);
-//     }
-//     else {
-//         using Data = BCHW_bwd<Tile128>;
-//         Data g_cast = Data(g);
-//         auto kernel = T::template bwd<Data, Tile128>;
-//         kernel<<<g.grid(), g.block()>>>(g_cast);
-//     }
-// }
