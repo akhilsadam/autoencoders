@@ -6,47 +6,45 @@ using namespace kittens;
 #include "act.cuh"
 #include "tile.cuh"
 
-using fwd_data = BCHW_fwd<tiled_layout>;
-using bwd_data = BCHW_bwd_stateless<tiled_layout>;
-
-__global__ void relu_fwd_kernel(const __grid_constant__ fwd_data g) {
-    reg_tile_dt WARP_y, WARP_x; // register tiles
-    
-    // Loop over all channels
-    for(int32_t channel = 0; channel < g.tiles_depth(); channel++) {
-        load(WARP_x, g.x, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
-        unary_map<relu_fwd>(WARP_y, WARP_x);
-        store(g.y, WARP_y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
+struct ReLU
+{
+    template<typename TileType>
+    __global__ void fwd(const __grid_constant__ BCHW_fwd<TileType> g) {
+        reg_tile_dt WARP_y, WARP_x; // register tiles
+        
+        for(int32_t channel = 0; channel < g.channels(); channel++) {
+            auto warptile_x = {g.batch(), channel, g.warptile_gx(), g.warptile_gy()};
+            load(WARP_x, g.x, warptile_x);
+            unary_map<relu_fwd>(WARP_y, WARP_x);
+            store(g.y, WARP_y, warptile_x);
+        }
     }
-}
-__global__ void relu_bwd_kernel(const __grid_constant__ bwd_data g) {
-        // g.grad_x[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}] 
-        // = relu_bwd(
-        //     g.grad_y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}],
-        //     g.y[{blockIdx.x, threadIdx.z, threadIdx.y, threadIdx.x}]
-        // );
 
-    reg_tile_dt WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
-    // Loop over all channels
-    for(int32_t channel = 0; channel < g.tiles_depth(); channel++) {
-        load(WARP_grad_y, g.grad_y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
-        load(WARP_y, g.y, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
-        bin_map<relu_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
-        store(g.grad_x, WARP_grad_x, {g.tile_batch(), channel, g.idx_row(), g.idx_col()});
+    template<typename TileType>
+    __global__ void bwd(const __grid_constant__ BCHW_bwd_stateless<TileType> g) {
+        reg_tile_dt WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
+
+        for(int32_t channel = 0; channel < g.channels(); channel++) {
+            auto warptile_x = {g.batch(), channel, g.warptile_gx(), g.warptile_gy()};
+            load(WARP_grad_y, g.grad_y, warptile_x);
+            load(WARP_y, g.y, warptile_x);
+            bin_map<relu_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
+            store(g.grad_x, WARP_grad_x, warptile_x);
+        }
     }
-}
+};
 
 void run_relu_fwd_kernel(fwd_data g) {
-    relu_fwd_kernel<<<g.grid(), g.block()>>>(g);
+    auto kernel = dispatch_fwd_kernel(ReLU, g);
+    kernel<<<g.grid(), g.block()>>>(g); // no need for shared memory
 }
 void run_relu_bwd_kernel(bwd_data g) {
-    relu_bwd_kernel<<<g.grid(), g.block()>>>(g);
+    auto kernel = dispatch_bwd_kernel(ReLU, g);
+    kernel<<<g.grid(), g.block()>>>(g); // no need for shared memory
 }
 
 PYBIND11_MODULE(act, m) {
     m.doc() = "activation functions python module";
-    py::bind_kernel<relu_fwd_kernel>(m, "relu_fwd_kernel", &fwd_data::x, &fwd_data::y);
-    py::bind_kernel<relu_bwd_kernel>(m, "relu_bwd_kernel", &bwd_data::grad_y, &bwd_data::y, &bwd_data::grad_x);
     py::bind_function<run_relu_fwd_kernel>(m, "relu_fwd", &fwd_data::x, &fwd_data::y);
     py::bind_function<run_relu_bwd_kernel>(m, "relu_bwd", &bwd_data::grad_y, &bwd_data::y, &bwd_data::grad_x);
 }

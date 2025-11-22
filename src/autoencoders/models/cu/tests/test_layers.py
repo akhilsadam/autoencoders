@@ -5,6 +5,7 @@ sizes=[
     (16, 1, 28, 28),
     (32, 3, 64, 64),
     (4, 3, 128, 128),
+    (4, 3, 512, 512),
 ]
 
 def random_reduce(err, weights=None):
