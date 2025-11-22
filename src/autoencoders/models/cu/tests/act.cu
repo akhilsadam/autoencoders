@@ -52,14 +52,14 @@ struct ReLU {
 
 void run_relu_fwd_kernel(fwd_data g) {
     auto tile_idx = TileIndex(g);
-    auto kernel = std::get<tile_idx>(ReLU::relu_fwd);
-    auto data = std::get<tile_idx>(ReLU::layout_fwd)(g);
+    auto data = ReLU::layout_fwd[tile_idx](g);
+    auto kernel = ReLU::relu_fwd[tile_idx];
     kernel<<<data.grid(), data.block()>>>(data);
 }
 void run_relu_bwd_kernel(bwd_data g) {
     auto tile_idx = TileIndex(g);
-    auto kernel = std::get<tile_idx>(ReLU::relu_bwd);
-    auto data = std::get<tile_idx>(ReLU::layout_bwd)(g);
+    auto data = ReLU::layout_bwd[tile_idx](g);
+    auto kernel = ReLU::relu_bwd[tile_idx];
     kernel<<<data.grid(), data.block()>>>(data);
 }
 
