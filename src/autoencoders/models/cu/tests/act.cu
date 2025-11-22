@@ -31,17 +31,15 @@ __global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
 }
 
 struct ReLU {
-    using fwd = _relu_fwd_kernel;
-    using bwd = _relu_bwd_kernel;
+    auto fwd = _relu_fwd_kernel;
+    auto bwd = _relu_bwd_kernel;
 };
 
 void run_relu_fwd_kernel(fwd_data g) {
     auto kernel = dispatch_fwd_kernel(ReLU, g);
-    kernel<<<g.grid(), g.block()>>>(g); // no need for shared memory
 }
 void run_relu_bwd_kernel(bwd_data g) {
     auto kernel = dispatch_bwd_sl_kernel(ReLU, g);
-    kernel<<<g.grid(), g.block()>>>(g); // no need for shared memory
 }
 
 PYBIND11_MODULE(act, m) {
