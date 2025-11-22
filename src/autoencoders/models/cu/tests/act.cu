@@ -36,15 +36,15 @@ struct ReLU {
     // list of types supported
 
     static constexpr auto layout_fwd = {
-        +[](fwd_data d){BCHW_fwd<Tile28>(d);},
-        +[](fwd_data d){BCHW_fwd<Tile64>(d);},
-        +[](fwd_data d){BCHW_fwd<Tile128>(d);},
+        +[](fwd_data d){return BCHW_fwd<Tile28>(d);},
+        +[](fwd_data d){return BCHW_fwd<Tile64>(d);},
+        +[](fwd_data d){return BCHW_fwd<Tile128>(d);},
     };
 
     static constexpr auto layout_bwd = {
-        +[](bwd_data d){BCHW_bwd_stateless<Tile28>(d);},
-        +[](bwd_data d){BCHW_bwd_stateless<Tile64>(d);},
-        +[](bwd_data d){BCHW_bwd_stateless<Tile128>(d);},
+        +[](bwd_data d){return BCHW_bwd_stateless<Tile28>(d);},
+        +[](bwd_data d){return BCHW_bwd_stateless<Tile64>(d);},
+        +[](bwd_data d){return BCHW_bwd_stateless<Tile128>(d);},
     };
 
     static constexpr auto relu_fwd = std::array<void(*)(fwd_data), 3>{
