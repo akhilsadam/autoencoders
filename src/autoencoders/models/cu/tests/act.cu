@@ -50,15 +50,15 @@ struct ReLU {
     };
 
     static constexpr void(*relu_fwd[3])(fwd_data) = {
-        _relu_fwd_kernel<BCHW_fwd<Tile28>, Tile28>,
-        _relu_fwd_kernel<BCHW_fwd<Tile64>, Tile64>,
-        _relu_fwd_kernel<BCHW_fwd<Tile128>, Tile128>
+        (void*)_relu_fwd_kernel<BCHW_fwd<Tile28>, Tile28>,
+        (void*)_relu_fwd_kernel<BCHW_fwd<Tile64>, Tile64>,
+        (void*)_relu_fwd_kernel<BCHW_fwd<Tile128>, Tile128>
     };
 
     static constexpr void(*relu_bwd[3])(bwd_data) = {
-        _relu_bwd_kernel<BCHW_bwd_stateless<Tile28>, Tile28>,
-        _relu_bwd_kernel<BCHW_bwd_stateless<Tile64>, Tile64>,
-        _relu_bwd_kernel<BCHW_bwd_stateless<Tile128>, Tile128>
+        (void*)_relu_bwd_kernel<BCHW_bwd_stateless<Tile28>, Tile28>,
+        (void*)_relu_bwd_kernel<BCHW_bwd_stateless<Tile64>, Tile64>,
+        (void*)_relu_bwd_kernel<BCHW_bwd_stateless<Tile128>, Tile128>
     };
 };
 
