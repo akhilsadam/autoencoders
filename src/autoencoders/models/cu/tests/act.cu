@@ -6,7 +6,7 @@ using namespace kittens;
 #include "tile.cuh"
 
 template<typename Layout, typename TileType>
-__global__ void _relu_fwd_kernel(const __grid_constant__ Layout g) {
+__global__ static void _relu_fwd_kernel(const __grid_constant__ Layout g) {
     reg_tile_dt<TileType> WARP_y, WARP_x; // register tiles
     
     for(int32_t channel = 0; channel < g.channels(); channel++) {
@@ -18,7 +18,7 @@ __global__ void _relu_fwd_kernel(const __grid_constant__ Layout g) {
 }
 
 template<typename Layout, typename TileType>
-__global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
+__global__ static void _relu_bwd_kernel(const __grid_constant__ Layout g) {
     reg_tile_dt<TileType> WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
 
     for(int32_t channel = 0; channel < g.channels(); channel++) {

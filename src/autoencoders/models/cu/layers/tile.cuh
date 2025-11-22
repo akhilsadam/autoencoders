@@ -209,7 +209,7 @@ void dispatch_bwd_kernel(T kernel_template, const BaseData& g) {
     if(W == 28) {
         using Data = BCHW_bwd<Tile28>;
         Data g_cast = Data(g);
-        auto kernel = kernel_template.bwd<Data, Tile28>;
+        auto kernel = kernel_template.bwd<DaButa, Tile28>;
         kernel<<<g.grid(), g.block()>>>(g_cast);
     } 
     else if(W == 64) {
