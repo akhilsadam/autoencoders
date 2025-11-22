@@ -42,19 +42,19 @@ struct ReLU {
         return BCHW_bwd_stateless<Tile>{g};
     }
 
-    static constexpr auto* layout_fwd = {
+    static constexpr auto layout_fwd = std::array{
         fwd_layout<Tile28>,
         fwd_layout<Tile64>,
         fwd_layout<Tile128>};
-    static constexpr auto* layout_bwd = {
+    static constexpr auto layout_bwd = std::array{
         bwd_layout<Tile28>,
         bwd_layout<Tile64>,
         bwd_layout<Tile128>};
-    static constexpr auto* relu_fwd = {
+    static constexpr auto relu_fwd = std::array{
         _relu_fwd_kernel<BCHW_fwd<Tile28>, Tile28>,
         _relu_fwd_kernel<BCHW_fwd<Tile64>, Tile64>,
         _relu_fwd_kernel<BCHW_fwd<Tile128>, Tile128>};
-    static constexpr auto* relu_bwd = {
+    static constexpr auto relu_bwd = std::array{
         _relu_bwd_kernel<BCHW_bwd_stateless<Tile28>, Tile28>,
         _relu_bwd_kernel<BCHW_bwd_stateless<Tile64>, Tile64>,
         _relu_bwd_kernel<BCHW_bwd_stateless<Tile128>, Tile128>};
