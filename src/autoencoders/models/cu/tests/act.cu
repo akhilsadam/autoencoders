@@ -30,18 +30,18 @@ static __global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
     }
 }
 
+template<typename Tile>
+BCHW_fwd<Tile> fwd_layout(const fwd_data& g) {
+    return BCHW_fwd<Tile>{g};
+}
+
+template<typename Tile>
+BCHW_bwd_stateless<Tile> bwd_layout(const bwd_data& g) {
+    return BCHW_bwd_stateless<Tile>{g};
+}
+
 struct ReLU {
     // list of types supported
-    template<typename Tile>
-    BCHW_fwd<Tile> fwd_layout(const fwd_data& g) {
-        return BCHW_fwd<Tile>{g};
-    }
-
-    template<typename Tile>
-    BCHW_bwd_stateless<Tile> bwd_layout(const bwd_data& g) {
-        return BCHW_bwd_stateless<Tile>{g};
-    }
-
     static constexpr auto layout_fwd = std::array{
         &fwd_layout<Tile28>,
         &fwd_layout<Tile64>,
@@ -50,11 +50,11 @@ struct ReLU {
         &bwd_layout<Tile28>,
         &bwd_layout<Tile64>,
         &bwd_layout<Tile128>};
-    static constexpr auto relu_fwd = std::array{
+    static constexpr auto relu_fwd = std::array<void(*)(fwd_data), 3>{
         &_relu_fwd_kernel<BCHW_fwd<Tile28>, Tile28>,
         &_relu_fwd_kernel<BCHW_fwd<Tile64>, Tile64>,
         &_relu_fwd_kernel<BCHW_fwd<Tile128>, Tile128>};
-    static constexpr auto relu_bwd = std::array{
+    static constexpr auto relu_bwd = std::array<void(*)(bwd_data), 3>{
         &_relu_bwd_kernel<BCHW_bwd_stateless<Tile28>, Tile28>,
         &_relu_bwd_kernel<BCHW_bwd_stateless<Tile64>, Tile64>,
         &_relu_bwd_kernel<BCHW_bwd_stateless<Tile128>, Tile128>};
