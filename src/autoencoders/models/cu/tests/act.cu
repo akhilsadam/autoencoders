@@ -6,7 +6,7 @@ using namespace kittens;
 #include "tile.cuh"
 
 template<typename Layout, typename TileType>
-__global__ void _relu_fwd_kernel(const __grid_constant__ Layout g) {
+static __global__ void _relu_fwd_kernel(const __grid_constant__ Layout g) {
     reg_tile_dt<TileType> WARP_y, WARP_x; // register tiles
     
     for(int32_t channel = 0; channel < g.channels(); channel++) {
@@ -18,7 +18,7 @@ __global__ void _relu_fwd_kernel(const __grid_constant__ Layout g) {
 }
 
 template<typename Layout, typename TileType>
-__global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
+static __global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
     reg_tile_dt<TileType> WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
 
     for(int32_t channel = 0; channel < g.channels(); channel++) {
@@ -30,11 +30,16 @@ __global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
     }
 }
 
+struct ReLU {
+    auto fwd = _relu_fwd_kernel;
+    auto bwd = _relu_bwd_kernel;
+};
+
 void run_relu_fwd_kernel(fwd_data g) {
-    auto kernel = dispatch_fwd_kernel<_relu_fwd_kernel>(g);
+    auto kernel = dispatch_fwd_kernel(ReLU{}, g);
 }
 void run_relu_bwd_kernel(bwd_data g) {
-    auto kernel = dispatch_bwd_sl_kernel<_relu_bwd_kernel>(g);
+    auto kernel = dispatch_bwd_sl_kernel(ReLU{}, g);
 }
 
 PYBIND11_MODULE(act, m) {
