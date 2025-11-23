@@ -64,7 +64,7 @@ struct TileBCHW : public TileType {
     // Grid dimensions for kernel launch
     dim3 grid()  { return dim3(tiles_x(), tiles_y(), ref().batch()); }
     dim3 block() { return dim3(NUM_THREADS); }
-    unsigned long mem_size = 100000; // 100 KB default shared memory size
+    unsigned long shmem_size = 100000; // 100 KB default shared memory size
     
     // Number of block tiles in each dimension
     __host__ __device__ int32_t tiles_x() const { return (ref().cols() + TileType::B.x - 1) / TileType::B.x; }
