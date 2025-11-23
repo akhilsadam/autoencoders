@@ -52,6 +52,9 @@ void run_relu_fwd_kernel(fwd_data g) {
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
+        printf("Layout and Tile are %s and %s\n", typeid(Layout).name(), typeid(Tile).name());
+        printf("Running ReLU forward with tile size %dx%d\n", Tile::B.x, Tile::B.y);
+
         auto* kernel = _relu_fwd_kernel<Layout, Tile>;
         // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
         kernel<<<layout.grid(), layout.block()>>>(layout);
