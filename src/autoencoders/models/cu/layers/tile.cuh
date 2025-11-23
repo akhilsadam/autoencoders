@@ -92,7 +92,6 @@ struct TileBCHW : public TileType {
 
 // blank fwd, bwd data structures
 using base_layout = gl<dtype, -1, -1, -1, -1, st_fl<64, 64>>;
-
 struct fwd_data
 {
     base_layout x, y;
@@ -102,8 +101,8 @@ struct bwd_data
     base_layout grad_y, y, grad_x, x;
 };
 
-template<typename L>
-__host__ L LYC(base_layout base) {
+template<typename L, typename BL>
+__host__ L LYC(BL base) {
     return make_gl<L>(
         reinterpret_cast<uint64_t>(base.raw_ptr),
         base.batch(),
