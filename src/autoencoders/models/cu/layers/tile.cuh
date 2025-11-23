@@ -92,6 +92,7 @@ struct TileBCHW : public TileType {
 
 // blank fwd, bwd data structures
 using base_layout = gl<dtype, -1, -1, -1, -1, st_fl<16,16>>;
+
 struct fwd_data
 {
     const base_layout x, y;
@@ -101,13 +102,24 @@ struct bwd_data
     const base_layout grad_y, y, grad_x, x;
 };
 
+template<typename L>
+__host__ L LYC(base_layout &base) {
+    return make_gl<L>(
+        reinterpret_cast<uint64_t>(base.raw_ptr),
+        base.batch(),
+        base.depth(),
+        base.rows(),
+        base.cols()
+    );
+    // layout constructor (short LYC)
+}
+
 template<typename Layout, typename TileType>
 struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     Layout x, y;
-    _BCHW_fwd(const fwd_data& g)
-        :
-        x(&g.x),
-        y(&g.y) 
+    _BCHW_fwd(const fwd_data& g):
+        x(LYC<Layout>(g.x)),
+        y(LYC<Layout>(g.y))
     {
         this->reference = &x;
         printf("GL parts of x: B=%d C=%d R=%d C=%d\n", g.x.batch_internal, g.x.depth_internal, g.x.rows_internal, g.x.cols_internal);
@@ -117,10 +129,10 @@ struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
 template<typename Layout, typename TileType>
 struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x;
-    _BCHW_bwd_stateless(const bwd_data& g)
-        :
-        grad_y(&g.grad_y), y(&g.y),
-        grad_x(&g.grad_x)
+    _BCHW_bwd_stateless(const bwd_data& g):
+        grad_y(LYC<Layout>(g.grad_y)),
+             y(LYC<Layout>(g.y)),
+        grad_x(LYC<Layout>(g.grad_x))
     {
         this->reference = &y;
     }
@@ -129,10 +141,11 @@ struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
 template<typename Layout, typename TileType>
 struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x, x;
-    _BCHW_bwd(const bwd_data& g)
-        :
-        grad_y(&g.grad_y), y(&g.y), x(&g.x),
-        grad_x(&g.grad_x)
+    _BCHW_bwd(const bwd_data& g):
+        grad_y(LYC<Layout>(g.grad_y)),
+             y(LYC<Layout>(g.y)),
+             x(LYC<Layout>(g.x)),
+        grad_x(LYC<Layout>(g.grad_x))
     {
         this->reference = &x;
     }
