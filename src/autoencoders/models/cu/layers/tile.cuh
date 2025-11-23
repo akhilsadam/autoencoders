@@ -106,8 +106,8 @@ struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     Layout x, y;
     _BCHW_fwd(const fwd_data& g)
         :
-        x(g.x),
-        y(g.y) 
+        x(&g.x),
+        y(&g.y) 
     {
         this->reference = &x;
     }
@@ -118,8 +118,8 @@ struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x;
     _BCHW_bwd_stateless(const bwd_data& g)
         :
-        grad_y(g.grad_y), y(g.y),
-        grad_x(g.grad_x)
+        grad_y(&g.grad_y), y(&g.y),
+        grad_x(&g.grad_x)
     {
         this->reference = &y;
     }
@@ -130,8 +130,8 @@ struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x, x;
     _BCHW_bwd(const bwd_data& g)
         :
-        grad_y(g.grad_y), y(g.y), x(g.x),
-        grad_x(g.grad_x)
+        grad_y(&g.grad_y), y(&g.y), x(&g.x),
+        grad_x(&g.grad_x)
     {
         this->reference = &x;
     }
