@@ -94,11 +94,11 @@ struct TileBCHW : public TileType {
 using base_layout = gl<dtype, -1, -1, -1, -1, st_fl<1,1>>;
 struct fwd_data
 {
-    const base_layout& x, y;
+    const base_layout x, y;
 };
 struct bwd_data
 {
-    const base_layout& grad_y, y, grad_x, x;
+    const base_layout grad_y, y, grad_x, x;
 };
 
 template<typename Layout, typename TileType>
