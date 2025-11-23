@@ -55,20 +55,20 @@ void run_relu_fwd_kernel(fwd_data g) {
         printf("Layout and Tile are %s and %s\n", typeid(Layout).name(), typeid(Tile).name());
         printf("Running ReLU forward with tile size %dx%d\n", Tile::B.x, Tile::B.y);
 
-        auto* kernel = _relu_fwd_kernel<Layout, Tile>;
+        // auto* kernel = _relu_fwd_kernel<Layout, Tile>;
         // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
-        kernel<<<layout.grid(), layout.block()>>>(layout);
+        // kernel<<<layout.grid(), layout.block()>>>(layout);
     }, layout);
 }
 void run_relu_bwd_kernel(bwd_data g) {
-    layout_variant<BCHW_bwd_stateless> layout = create_layout<BCHW_bwd_stateless>(g);
-    std::visit([&](auto& layout) {
-        using Layout = std::decay_t<decltype(layout)>;
-        using Tile   = typename Layout::tile_type;
-        auto* kernel = _relu_bwd_kernel<Layout, Tile>;
-        // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
-        kernel<<<layout.grid(), layout.block()>>>(layout);
-    }, layout);
+    // layout_variant<BCHW_bwd_stateless> layout = create_layout<BCHW_bwd_stateless>(g);
+    // std::visit([&](auto& layout) {
+    //     using Layout = std::decay_t<decltype(layout)>;
+    //     using Tile   = typename Layout::tile_type;
+    //     auto* kernel = _relu_bwd_kernel<Layout, Tile>;
+    //     // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
+    //     kernel<<<layout.grid(), layout.block()>>>(layout);
+    // }, layout);
 }
 
 PYBIND11_MODULE(act, m) {
