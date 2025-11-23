@@ -113,10 +113,10 @@ __host__ L LYC(BL base) {
     // layout constructor (short LYC)
 }
 
-template<typename Layout, typename TileType>
+template<typename Layout, typename TileType, typename FD>
 struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     Layout x, y;
-    _BCHW_fwd(const fwd_data& g):
+    _BCHW_fwd(const FD& g):
         x(LYC<Layout>(g.x)),
         y(LYC<Layout>(g.y))
     {
@@ -125,10 +125,10 @@ struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     }
 };
 
-template<typename Layout, typename TileType>
+template<typename Layout, typename TileType, typename BD>
 struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x;
-    _BCHW_bwd_stateless(const bwd_data& g):
+    _BCHW_bwd_stateless(const BD& g):
         grad_y(LYC<Layout>(g.grad_y)),
              y(LYC<Layout>(g.y)),
         grad_x(LYC<Layout>(g.grad_x))
@@ -137,10 +137,10 @@ struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     }
 };
 
-template<typename Layout, typename TileType>
+template<typename Layout, typename TileType, typename BD>
 struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x, x;
-    _BCHW_bwd(const bwd_data& g):
+    _BCHW_bwd(const BD& g):
         grad_y(LYC<Layout>(g.grad_y)),
              y(LYC<Layout>(g.y)),
              x(LYC<Layout>(g.x)),
