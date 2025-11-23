@@ -103,7 +103,7 @@ struct bwd_data
 };
 
 template<typename L>
-__host__ L LYC(base_layout &base) {
+__host__ L LYC(const base_layout base) {
     return make_gl<L>(
         reinterpret_cast<uint64_t>(base.raw_ptr),
         base.batch(),
