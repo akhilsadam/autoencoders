@@ -1,4 +1,4 @@
-#include <torch/extension.h> 
+// #include <torch/extension.h> 
 #include "kittens.cuh"
 #include <array>
 #include <functional>
@@ -91,14 +91,16 @@ struct TileBCHW : public TileType {
 };
 
 // blank fwd, bwd data structures
-struct base_layout {
-    torch::Tensor tensor;
-    void* raw_ptr() const { return reinterpret_cast<uint64_t>(tensor.data_ptr()); }
-    int64_t batch() const { return tensor.size(0); }
-    int64_t depth() const { return tensor.size(1); }
-    int64_t rows()  const { return tensor.size(2); }
-    int64_t cols()  const { return tensor.size(3); }
-};
+// struct base_layout {
+//     torch::Tensor tensor;
+//     void* raw_ptr() const { return reinterpret_cast<uint64_t>(tensor.data_ptr()); }
+//     int64_t batch() const { return tensor.size(0); }
+//     int64_t depth() const { return tensor.size(1); }
+//     int64_t rows()  const { return tensor.size(2); }
+//     int64_t cols()  const { return tensor.size(3); }
+// };
+
+using base_layout = kittens::GL;
 
 struct fwd_data
 {
