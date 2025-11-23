@@ -91,7 +91,7 @@ struct TileBCHW : public TileType {
 };
 
 // blank fwd, bwd data structures
-using base_layout = gl<dtype, -1, -1, -1, -1, st_fl<1,1>>;
+using base_layout = gl<dtype, -1, -1, -1, -1, st_fl<16,16>>;
 struct fwd_data
 {
     const base_layout x, y;
@@ -110,6 +110,7 @@ struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
         y(&g.y) 
     {
         this->reference = &x;
+        printf("GL parts of x: B=%d,%d C=%d R=%d C=%d\n", g.x.batch_internal, g.x.depth_internal, g.x.rows_internal, g.x.cols_internal);
     }
 };
 
