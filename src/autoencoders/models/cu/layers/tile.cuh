@@ -104,24 +104,23 @@ struct bwd_data
 template<typename Layout, typename TileType>
 struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     Layout x, y;
-    _BCHW_fwd(const fwd_data& g)
-        :
-        x(&g.x),
-        y(&g.y) 
+    _BCHW_fwd(const fwd_data& g):
     {
+        x.raw_ptr = g.x.raw_ptr;
+        y.raw_ptr = g.y.raw_ptr;
         this->reference = &x;
-        printf("GL parts of x: B=%d,%d C=%d R=%d C=%d\n", g.x.batch_internal, g.x.depth_internal, g.x.rows_internal, g.x.cols_internal);
+        printf("GL parts of x: B=%d C=%d R=%d C=%d\n", g.x.batch_internal, g.x.depth_internal, g.x.rows_internal, g.x.cols_internal);
     }
 };
 
 template<typename Layout, typename TileType>
 struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x;
-    _BCHW_bwd_stateless(const bwd_data& g)
-        :
-        grad_y(&g.grad_y), y(&g.y),
-        grad_x(&g.grad_x)
+    _BCHW_bwd_stateless(const bwd_data& g):
     {
+        grad_y.raw_ptr = g.grad_y.raw_ptr;
+        y.raw_ptr = g.y.raw_ptr;
+        grad_x.raw_ptr = g.grad_x.raw_ptr;
         this->reference = &y;
     }
 };
@@ -129,11 +128,12 @@ struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
 template<typename Layout, typename TileType>
 struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x, x;
-    _BCHW_bwd(const bwd_data& g)
-        :
-        grad_y(&g.grad_y), y(&g.y), x(&g.x),
-        grad_x(&g.grad_x)
+    _BCHW_bwd(const bwd_data& g):
     {
+        grad_y.raw_ptr = g.grad_y.raw_ptr;
+        y.raw_ptr = g.y.raw_ptr;
+        x.raw_ptr = g.x.raw_ptr;
+        grad_x.raw_ptr = g.grad_x.raw_ptr;
         this->reference = &x;
     }
 };
