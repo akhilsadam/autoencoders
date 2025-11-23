@@ -35,16 +35,16 @@ struct ReLU {
 
     inline static const void(*layout_fwd[3])(fwd_data) = 
     {
-        +[](fwd_data d) -> void* {return BCHW_fwd<Tile28>(d);},
-        +[](fwd_data d) -> void* {return BCHW_fwd<Tile64>(d);},
-        +[](fwd_data d) -> void* {return BCHW_fwd<Tile128>(d);},
+        +[](fwd_data d) -> void* {return new BCHW_fwd<Tile28>(d);},
+        +[](fwd_data d) -> void* {return new BCHW_fwd<Tile64>(d);},
+        +[](fwd_data d) -> void* {return new BCHW_fwd<Tile128>(d);},
     };
 
     inline static const void(*layout_bwd[3])(bwd_data) = 
     {
-        +[](bwd_data d) -> void* {return BCHW_bwd_stateless<Tile28>(d);},
-        +[](bwd_data d) -> void* {return BCHW_bwd_stateless<Tile64>(d);},
-        +[](bwd_data d) -> void* {return BCHW_bwd_stateless<Tile128>(d);},
+        +[](bwd_data d) -> void* {return new BCHW_bwd_stateless<Tile28>(d);},
+        +[](bwd_data d) -> void* {return new BCHW_bwd_stateless<Tile64>(d);},
+        +[](bwd_data d) -> void* {return new BCHW_bwd_stateless<Tile128>(d);},
     };
 
     static constexpr void(*relu_fwd[3]) = {
