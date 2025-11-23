@@ -65,7 +65,8 @@ struct TileBCHW : public TileType {
     dim3 grid()  { return dim3(tiles_x(), tiles_y(), ref().batch()); }
     dim3 block() { return dim3(NUM_THREADS); }
     unsigned long shmem_size = 100000; // 100 KB default shared memory size
-    
+    long mem() {return shmem_size;}
+
     // Number of block tiles in each dimension
     __host__ __device__ int32_t tiles_x() const { return (ref().cols() + TileType::B.x - 1) / TileType::B.x; }
     __host__ __device__ int32_t tiles_y() const { return (ref().rows() + TileType::B.y - 1) / TileType::B.y; }
@@ -165,3 +166,27 @@ __host__ size_t TileIndex(const BaseData& g) {
     size_t idx = (W == 28) ? 0 : (W == 64) ? 1 : 2;
     return idx;
 }
+
+template<template<typename TileType> class layoutv>
+using layout_variant = std::variant<
+    layoutv<Tile28>,
+    layoutv<Tile64>,
+    layoutv<Tile128>
+>;
+
+template<template<typename TileType> class layoutv, typename _data>
+__host__ layout_variant<layoutv> create_layout(_data g) {
+    auto tile_idx = TileIndex(g);
+    switch (tile_idx) {
+        case 0:
+            return layoutv<Tile28>(g);
+        case 1:
+            return layoutv<Tile64>(g);
+        case 2:
+            return layoutv<Tile128>(g);
+        default:
+            throw std::runtime_error("Unsupported tile size");
+    }
+}
+
+

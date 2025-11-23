@@ -33,45 +33,39 @@ static __global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
 struct ReLU {
     // list of types supported
 
-    inline static const auto(*layout_fwd[3])(fwd_data) = 
-    {
-        +[](fwd_data d) -> void* {return new BCHW_fwd<Tile28>(d);},
-        +[](fwd_data d) -> void* {return new BCHW_fwd<Tile64>(d);},
-        +[](fwd_data d) -> void* {return new BCHW_fwd<Tile128>(d);},
-    };
 
-    inline static const auto(*layout_bwd[3])(bwd_data) = 
-    {
-        +[](bwd_data d) -> void* {return new BCHW_bwd_stateless<Tile28>(d);},
-        +[](bwd_data d) -> void* {return new BCHW_bwd_stateless<Tile64>(d);},
-        +[](bwd_data d) -> void* {return new BCHW_bwd_stateless<Tile128>(d);},
-    };
+    // static constexpr void(*relu_fwd[3]) = {
+    //     (void*)_relu_fwd_kernel<BCHW_fwd<Tile28>, Tile28>,
+    //     (void*)_relu_fwd_kernel<BCHW_fwd<Tile64>, Tile64>,
+    //     (void*)_relu_fwd_kernel<BCHW_fwd<Tile128>, Tile128>
+    // };
 
-    static constexpr void(*relu_fwd[3]) = {
-        (void*)_relu_fwd_kernel<BCHW_fwd<Tile28>, Tile28>,
-        (void*)_relu_fwd_kernel<BCHW_fwd<Tile64>, Tile64>,
-        (void*)_relu_fwd_kernel<BCHW_fwd<Tile128>, Tile128>
-    };
-
-    static constexpr void(*relu_bwd[3]) = {
-        (void*)_relu_bwd_kernel<BCHW_bwd_stateless<Tile28>, Tile28>,
-        (void*)_relu_bwd_kernel<BCHW_bwd_stateless<Tile64>, Tile64>,
-        (void*)_relu_bwd_kernel<BCHW_bwd_stateless<Tile128>, Tile128>
-    };
+    // static constexpr void(*relu_bwd[3]) = {
+    //     (void*)_relu_bwd_kernel<BCHW_bwd_stateless<Tile28>, Tile28>,
+    //     (void*)_relu_bwd_kernel<BCHW_bwd_stateless<Tile64>, Tile64>,
+    //     (void*)_relu_bwd_kernel<BCHW_bwd_stateless<Tile128>, Tile128>
+    // };
 };
 
 void run_relu_fwd_kernel(fwd_data g) {
-    auto tile_idx = TileIndex(g);
-    void* data = (void*) ReLU::layout_fwd[tile_idx](g);
-    void* kernel = ReLU::relu_fwd[tile_idx];
-    void* args[] = { &data };
-    cudaLaunchKernel(kernel, data.grid(), data.block(), args, data.shmem_size, nullptr);
+    layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd>(g);
+    std::visit([&](auto& layout) {
+        using Layout = std::decay_t<decltype(layout)>;
+        using Tile   = typename Layout::tile_type;
+        auto* kernel = _relu_fwd_kernel<Layout, Tile>;
+        // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
+        kernel<<<layout.grid(), layout.block()>>>(layout);
+    }, layout);
 }
 void run_relu_bwd_kernel(bwd_data g) {
-    auto tile_idx = TileIndex(g);
-    auto data = ReLU::layout_bwd[tile_idx](g);
-    auto kernel = ReLU::relu_bwd[tile_idx];
-    kernel<<<data.grid(), data.block()>>>(data);
+    layout_variant<BCHW_bwd_stateless> layout = create_layout<BCHW_bwd_stateless>(g);
+    std::visit([&](auto& layout) {
+        using Layout = std::decay_t<decltype(layout)>;
+        using Tile   = typename Layout::tile_type;
+        auto* kernel = _relu_bwd_kernel<Layout, Tile>;
+        // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
+        kernel<<<layout.grid(), layout.block()>>>(layout);
+    }, layout);
 }
 
 PYBIND11_MODULE(act, m) {
