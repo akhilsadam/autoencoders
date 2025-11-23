@@ -91,7 +91,7 @@ struct TileBCHW : public TileType {
 };
 
 // blank fwd, bwd data structures
-using base_layout = gl<dtype, -1, -1, -1, -1>;
+using base_layout = gl<dtype, -1, -1, -1, -1, st_fl<16,16>>;
 
 struct fwd_data
 {
