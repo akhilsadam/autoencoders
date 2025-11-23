@@ -104,7 +104,7 @@ struct bwd_data
 template<typename Layout, typename TileType>
 struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     Layout x, y;
-    _BCHW_fwd(const fwd_data& g):
+    _BCHW_fwd(const fwd_data& g)
     {
         x.raw_ptr = g.x.raw_ptr;
         y.raw_ptr = g.y.raw_ptr;
@@ -116,7 +116,7 @@ struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
 template<typename Layout, typename TileType>
 struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x;
-    _BCHW_bwd_stateless(const bwd_data& g):
+    _BCHW_bwd_stateless(const bwd_data& g)
     {
         grad_y.raw_ptr = g.grad_y.raw_ptr;
         y.raw_ptr = g.y.raw_ptr;
@@ -128,7 +128,7 @@ struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
 template<typename Layout, typename TileType>
 struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x, x;
-    _BCHW_bwd(const bwd_data& g):
+    _BCHW_bwd(const bwd_data& g)
     {
         grad_y.raw_ptr = g.grad_y.raw_ptr;
         y.raw_ptr = g.y.raw_ptr;
