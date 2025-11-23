@@ -51,7 +51,7 @@ NVCC_FLAGS = [
 # Add PyTorch / Python includes
 NVCC_FLAGS += [f"-I{inc}" for inc in torch.utils.cpp_extension.include_paths()]
 NVCC_FLAGS.append(f"-I{sysconfig.get_path('include')}")
-NVCC_FLAGS += [f"-I{inc}" for inc in pybind11.get_include().split()]
+# NVCC_FLAGS += [f"-I{inc}" for inc in pybind11.get_include().split()]
 
 CXX_FLAGS = ["-O2", "-g"]
 

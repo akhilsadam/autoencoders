@@ -1,5 +1,4 @@
 #include "kittens.cuh"
-#include "pyutils/pyutils.cuh"
 using namespace kittens;
 
 // relu device function

@@ -1,9 +1,8 @@
+#include <torch/extension.h> 
 #include "kittens.cuh"
-#include "pyutils/pyutils.cuh"
 #include <array>
 #include <functional>
 #include <variant>
-#include <torch/extension.h> 
 
 using namespace kittens;
 
