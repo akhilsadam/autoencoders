@@ -2,6 +2,7 @@
 #include "pyutils/pyutils.cuh"
 #include <array>
 #include <functional>
+#include <variant>
 
 using namespace kittens;
 
