@@ -93,7 +93,7 @@ struct TileBCHW : public TileType {
 // blank fwd, bwd data structures
 struct base_layout {
     torch::Tensor tensor;
-    void* raw_ptr() const { return tensor.data_ptr(); }
+    void* raw_ptr() const { return reinterpret_cast<uint64_t>(tensor.data_ptr()); }
     int64_t batch() const { return tensor.size(0); }
     int64_t depth() const { return tensor.size(1); }
     int64_t rows()  const { return tensor.size(2); }
@@ -112,7 +112,7 @@ struct bwd_data
 template<typename L>
 __host__ L LYC(base_layout base) {
     return make_gl<L>(
-        reinterpret_cast<uint64_t>(base.raw_ptr),
+        base.raw_ptr(),
         base.batch(),
         base.depth(),
         base.rows(),
