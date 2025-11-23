@@ -100,7 +100,7 @@ struct TileBCHW : public TileType {
 //     int64_t cols()  const { return tensor.size(3); }
 // };
 
-using base_layout = kittens::GL;
+using base_layout = gl;
 
 struct fwd_data
 {
