@@ -91,7 +91,15 @@ struct TileBCHW : public TileType {
 };
 
 // blank fwd, bwd data structures
-using base_layout = gl<dtype, -1, -1, -1, -1, st_fl<64, 64>>;
+struct base_layout {
+    torch::Tensor tensor;
+    void* raw_ptr() const { return tensor.data_ptr(); }
+    int64_t batch() const { return tensor.size(0); }
+    int64_t depth() const { return tensor.size(1); }
+    int64_t rows()  const { return tensor.size(2); }
+    int64_t cols()  const { return tensor.size(3); }
+};
+
 struct fwd_data
 {
     base_layout x, y;
@@ -101,8 +109,8 @@ struct bwd_data
     base_layout grad_y, y, grad_x, x;
 };
 
-template<typename L, typename BL>
-__host__ L LYC(BL base) {
+template<typename L>
+__host__ L LYC(base_layout base) {
     return make_gl<L>(
         reinterpret_cast<uint64_t>(base.raw_ptr),
         base.batch(),
@@ -113,10 +121,10 @@ __host__ L LYC(BL base) {
     // layout constructor (short LYC)
 }
 
-template<typename Layout, typename TileType, typename FD>
+template<typename Layout, typename TileType>
 struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     Layout x, y;
-    _BCHW_fwd(const FD& g):
+    _BCHW_fwd(const fwd_data& g):
         x(LYC<Layout>(g.x)),
         y(LYC<Layout>(g.y))
     {
@@ -125,10 +133,10 @@ struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     }
 };
 
-template<typename Layout, typename TileType, typename BD>
+template<typename Layout, typename TileType>
 struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x;
-    _BCHW_bwd_stateless(const BD& g):
+    _BCHW_bwd_stateless(const bwd_data& g):
         grad_y(LYC<Layout>(g.grad_y)),
              y(LYC<Layout>(g.y)),
         grad_x(LYC<Layout>(g.grad_x))
@@ -137,10 +145,10 @@ struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     }
 };
 
-template<typename Layout, typename TileType, typename BD>
+template<typename Layout, typename TileType>
 struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x, x;
-    _BCHW_bwd(const BD& g):
+    _BCHW_bwd(const bwd_data& g):
         grad_y(LYC<Layout>(g.grad_y)),
              y(LYC<Layout>(g.y)),
              x(LYC<Layout>(g.x)),
