@@ -172,7 +172,7 @@ using BCHW_bwd_stateless = _BCHW_bwd_stateless<tiled_layout<TileType>, TileType>
 template<typename TileType>
 using BCHW_bwd = _BCHW_bwd<tiled_layout<TileType>, TileType>;
 
-using Tile28 = Tile<-1, -1, 28, 28, 16, 16>;
+using Tile28 = Tile<-1, -1, 32, 32, 16, 16>;
 using Tile64 = Tile<-1, -1, 64, 64, 16, 16>;
 using Tile128 = Tile<-1, -1, 128, 128, 16, 16>;
 
