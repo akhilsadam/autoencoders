@@ -53,6 +53,8 @@ struct Tile {
 
 template<typename Layout, typename TileType>
 struct TileBCHW : public TileType {
+    using tile_type = TileType; // for external access
+
     // equivalently Bzyx for threads
     // and zCyx for blocks
     // and column-major:  BC rows, cols
