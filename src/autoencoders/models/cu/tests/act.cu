@@ -36,7 +36,7 @@ void run_relu_fwd_kernel(fwd_data g) {
 
     // printf("true g.x shape: (%d, %d, %d, %d)\n", g.x.batch(), g.x.depth(), g.x.rows(), g.x.cols());
 
-    layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd, fwd_data>(g);
+    layout_variant<tiled_layout, BCHW_fwd> layout = create_layout<tiled_layout, BCHW_fwd, fwd_data>(g);
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;

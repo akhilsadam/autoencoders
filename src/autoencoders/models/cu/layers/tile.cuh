@@ -199,20 +199,20 @@ __host__ size_t TileIndex(const BaseData& g) {
     return idx;
 }
 
-template<template<typename TileType> class layoutv>
+template<template<typename TileType> class Layout, template<Layout, typename TileType> class DataLayout>
 using layout_variant = std::variant<
-    layoutv<Tile28>,
-    layoutv<Tile64>,
-    layoutv<Tile128>
+    DataLayout<Layout<Tile28>, Tile28>,
+    DataLayout<Layout<Tile64>, Tile64>,
+    DataLayout<Layout<Tile128>, Tile128>
 >;
 
-template<template<typename TileType> class layoutv, typename Data>
-__host__ layout_variant<layoutv> create_layout(Data g) {
+template<template<typename TileType> class Layout, template<Layout, typename TileType> class DataLayout, typename Data>
+__host__ layout_variant<DataLayout> create_layout(Data g) {
     auto tile_idx = TileIndex(g);
     switch (tile_idx) {
-        case 0: return layoutv<Tile28>(g);
-        case 1: return layoutv<Tile64>(g);
-        case 2: return layoutv<Tile128>(g);
+        case 0: return DataLayout<Layout<Tile28>, Tile28>(g);
+        case 1: return DataLayout<Layout<Tile64>, Tile64>(g);
+        case 2: return DataLayout<Layout<Tile128>, Tile128>(g);
         default:
             throw std::runtime_error("Unsupported tile size");
     }
