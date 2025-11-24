@@ -1,6 +1,6 @@
 
 from torch.utils.cpp_extension import load
-from functools import lru_cache
+# from functools import lru_cache
 import torch
 import sysconfig
 import os
@@ -56,7 +56,7 @@ NVCC_FLAGS += [f"-I{inc}" for inc in pybind11.get_include().split()]
 
 CXX_FLAGS = ["-O2", "-g"]
 
-@lru_cache(maxsize=128)
+# @lru_cache(maxsize=128)
 def compile(kernel, build_dir = None, template_kwargs = {}):
     device_functions = []
     try:
