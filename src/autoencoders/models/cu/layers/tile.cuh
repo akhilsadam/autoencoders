@@ -130,9 +130,9 @@ __host__ L LYC(BL base) {
 }
 
 template<typename Layout, typename TileType>
-struct BCHW_fwd : public TileBCHW<Layout, TileType> {
+struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     Layout x, y;
-    BCHW_fwd(const fwd_data& g):
+    _BCHW_fwd(const fwd_data& g):
         x(LYC<Layout>(g.x)),
         y(LYC<Layout>(g.y))
     {
@@ -142,9 +142,9 @@ struct BCHW_fwd : public TileBCHW<Layout, TileType> {
 };
 
 template<typename Layout, typename TileType>
-struct BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
+struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x;
-    BCHW_bwd_stateless(const bwd_data& g):
+    _BCHW_bwd_stateless(const bwd_data& g):
         grad_y(LYC<Layout>(g.grad_y)),
              y(LYC<Layout>(g.y)),
         grad_x(LYC<Layout>(g.grad_x))
@@ -154,9 +154,9 @@ struct BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
 };
 
 template<typename Layout, typename TileType>
-struct BCHW_bwd : public TileBCHW<Layout, TileType> {
+struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x, x;
-    BCHW_bwd(const bwd_data& g):
+    _BCHW_bwd(const bwd_data& g):
         grad_y(LYC<Layout>(g.grad_y)),
              y(LYC<Layout>(g.y)),
              x(LYC<Layout>(g.x)),
@@ -178,6 +178,15 @@ using reg_tile_ft = rt<ftype, TileType::W.y, TileType::W.x>;
 template<typename TileType>
 using reg_tile_dt = rt<dtype, TileType::W.y, TileType::W.x>;
 
+template<typename TileType>
+using BCHW_fwd = _BCHW_fwd<tiled_layout<TileType>, TileType>;
+
+template<typename TileType>
+using BCHW_bwd_stateless = _BCHW_bwd_stateless<tiled_layout<TileType>, TileType>;
+
+template<typename TileType>
+using BCHW_bwd = _BCHW_bwd<tiled_layout<TileType>, TileType>;
+
 using Tile28 = Tile<-1, -1, 32, 32, 16, 16>;
 using Tile64 = Tile<-1, -1, 64, 64, 16, 16>;
 using Tile128 = Tile<-1, -1, 128, 128, 16, 16>;
@@ -190,20 +199,20 @@ __host__ size_t TileIndex(const BaseData& g) {
     return idx;
 }
 
-template<template<typename TileType> class Layout, template<Layout, typename TileType> class DataLayout>
+template<template<class> class DataLayout>
 using layout_variant = std::variant<
-    DataLayout<Layout<Tile28>, Tile28>,
-    DataLayout<Layout<Tile64>, Tile64>,
-    DataLayout<Layout<Tile128>, Tile128>
+    DataLayout<Tile28>,
+    DataLayout<Tile64>,
+    DataLayout<Tile128>
 >;
 
-template<template<typename TileType> class Layout, template<Layout, typename TileType> class DataLayout, typename Data>
+template<template<class> class DataLayout, typename Data>
 __host__ layout_variant<DataLayout> create_layout(Data g) {
     auto tile_idx = TileIndex(g);
     switch (tile_idx) {
-        case 0: return DataLayout<Layout<Tile28>, Tile28>(g);
-        case 1: return DataLayout<Layout<Tile64>, Tile64>(g);
-        case 2: return DataLayout<Layout<Tile128>, Tile128>(g);
+        case 0: return DataLayout<Tile28>(g);
+        case 1: return DataLayout<Tile64>(g);
+        case 2: return DataLayout<Tile128>(g);
         default:
             throw std::runtime_error("Unsupported tile size");
     }
