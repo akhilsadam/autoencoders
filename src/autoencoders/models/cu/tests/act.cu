@@ -7,8 +7,8 @@ using namespace kittens;
 #include "tile.cuh"
 
 
-template<typename Layout, typename TileType>
-static __global__ void _relu_fwd_kernel(const __grid_constant__ Layout g) {
+template<typename DataLayout, typename TileType>
+static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
     reg_tile_dt<TileType> WARP_y, WARP_x; // register tiles
     
     for(int32_t channel = 0; channel < g.channels(); channel++) {
@@ -19,8 +19,8 @@ static __global__ void _relu_fwd_kernel(const __grid_constant__ Layout g) {
     }
 }
 
-template<typename Layout, typename TileType>
-static __global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
+template<typename DataLayout, typename TileType>
+static __global__ void _relu_bwd_kernel(const __grid_constant__ DataLayout g) {
     reg_tile_dt<TileType> WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
 
     for(int32_t channel = 0; channel < g.channels(); channel++) {
@@ -42,7 +42,6 @@ void run_relu_fwd_kernel(fwd_data g) {
         using Tile   = typename Layout::tile_type;
         printf("Layout and Tile are %s and %s\n", typeid(Layout).name(), typeid(Tile).name());
         printf("Running ReLU forward with tile size %dx%d\n", Tile::B.x, Tile::B.y);
-        printf("TYPEOF layout.x: %s\n", typeid(typename Layout::x).name());
 
         // auto* kernel = _relu_fwd_kernel<Layout, Tile>;
         // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());

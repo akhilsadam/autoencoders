@@ -206,16 +206,13 @@ using layout_variant = std::variant<
     layoutv<Tile128>
 >;
 
-template<template<typename TileType> class layoutv, typename _data>
-__host__ layout_variant<layoutv> create_layout(_data g) {
+template<template<typename TileType> class layoutv, typename Data>
+__host__ layout_variant<layoutv> create_layout(Data g) {
     auto tile_idx = TileIndex(g);
     switch (tile_idx) {
-        case 0:
-            return layoutv<Tile28>(g);
-        case 1:
-            return layoutv<Tile64>(g);
-        case 2:
-            return layoutv<Tile128>(g);
+        case 0: return layoutv<Tile28>(g);
+        case 1: return layoutv<Tile64>(g);
+        case 2: return layoutv<Tile128>(g);
         default:
             throw std::runtime_error("Unsupported tile size");
     }
