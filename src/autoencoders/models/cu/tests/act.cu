@@ -6,17 +6,6 @@ using namespace kittens;
 #include "act.cuh"
 #include "tile.cuh"
 
-using base_layout_ = gl<ftype, -1, -1, -1, -1, st_fl<64, 64>>;
-
-struct fwd_data
-{
-    base_layout_ x, y;
-};
-struct bwd_data
-{
-    base_layout_ grad_y, y, grad_x, x;
-};
-
 
 // template<typename Layout, typename TileType>
 // static __global__ void _relu_fwd_kernel(const __grid_constant__ Layout g) {
