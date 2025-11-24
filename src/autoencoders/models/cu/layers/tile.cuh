@@ -52,7 +52,7 @@ struct Tile {
     static constexpr uint32_t warps_y = B.y / W.y;
 };
 
-template<typename Layout, typename TileType>
+template<template<typename TileType> class Layout, typename TileType>
 struct TileBCHW : public TileType {
     using tile_type = TileType; // for external access
 
@@ -129,10 +129,10 @@ __host__ L LYC(BL base) {
     // layout constructor (short LYC)
 }
 
-template<typename Layout, typename TileType>
-struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
+template<template<typename TileType> class Layout, typename TileType>
+struct BCHW_fwd : public TileBCHW<Layout, TileType> {
     Layout x, y;
-    _BCHW_fwd(const fwd_data& g):
+    BCHW_fwd(const fwd_data& g):
         x(LYC<Layout>(g.x)),
         y(LYC<Layout>(g.y))
     {
@@ -141,10 +141,10 @@ struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     }
 };
 
-template<typename Layout, typename TileType>
-struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
+template<template<typename TileType> class Layout, typename TileType>
+struct BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x;
-    _BCHW_bwd_stateless(const bwd_data& g):
+    BCHW_bwd_stateless(const bwd_data& g):
         grad_y(LYC<Layout>(g.grad_y)),
              y(LYC<Layout>(g.y)),
         grad_x(LYC<Layout>(g.grad_x))
@@ -153,10 +153,10 @@ struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     }
 };
 
-template<typename Layout, typename TileType>
-struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
+template<template<typename TileType> class Layout, typename TileType>
+struct BCHW_bwd : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x, x;
-    _BCHW_bwd(const bwd_data& g):
+    BCHW_bwd(const bwd_data& g):
         grad_y(LYC<Layout>(g.grad_y)),
              y(LYC<Layout>(g.y)),
              x(LYC<Layout>(g.x)),
@@ -177,15 +177,6 @@ using reg_tile_ft = rt<ftype, TileType::W.y, TileType::W.x>;
 
 template<typename TileType>
 using reg_tile_dt = rt<dtype, TileType::W.y, TileType::W.x>;
-
-template<typename TileType>
-using BCHW_fwd = _BCHW_fwd<tiled_layout<TileType>, TileType>;
-
-template<typename TileType>
-using BCHW_bwd_stateless = _BCHW_bwd_stateless<tiled_layout<TileType>, TileType>;
-
-template<typename TileType>
-using BCHW_bwd = _BCHW_bwd<tiled_layout<TileType>, TileType>;
 
 using Tile28 = Tile<-1, -1, 32, 32, 16, 16>;
 using Tile64 = Tile<-1, -1, 64, 64, 16, 16>;
