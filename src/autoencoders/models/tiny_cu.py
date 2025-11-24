@@ -13,7 +13,6 @@ from torch import nn
 def jit_relu(**template_kwargs):
     from .cu.compile import compile
     activations = compile(
-        device_functions=[],
         kernel="src/autoencoders/models/cu/tests/act.cu",
         template_kwargs=template_kwargs,
     )

@@ -6,7 +6,6 @@ from torch import nn
 
 from cu.compile import compile
 activations = compile(
-    device_functions=[],
     kernel=os.path.join(os.path.dirname(__file__), "act.cu"),
 )
 ##

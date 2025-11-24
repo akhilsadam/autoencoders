@@ -57,7 +57,8 @@ NVCC_FLAGS += [f"-I{inc}" for inc in pybind11.get_include().split()]
 CXX_FLAGS = ["-O2", "-g"]
 
 @lru_cache(maxsize=128)
-def compile(kernel, device_functions = [], build_dir = None, template_kwargs = {}):
+def compile(kernel, build_dir = None, template_kwargs = {}):
+     device_functions = []
     try:
         name = kernel.split('/')[-1].replace('.cu','')
         
