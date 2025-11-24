@@ -52,6 +52,9 @@ train: install
 # scompile: 
 # 	source ${INSTALL}/module.sh && $(MAKE) compile
 
+clean-cu:
+	rm -rf ~/.cache/torch_extensions/py*
+
 sinstall: 
 	source ${INSTALL}/module.sh && $(MAKE) install
 
