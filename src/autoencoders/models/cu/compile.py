@@ -1,5 +1,6 @@
 
 from torch.utils.cpp_extension import load
+from functools import lru_cache
 import torch
 import sysconfig
 import os
@@ -55,6 +56,7 @@ NVCC_FLAGS += [f"-I{inc}" for inc in pybind11.get_include().split()]
 
 CXX_FLAGS = ["-O2", "-g"]
 
+@lru_cache(maxsize=128)
 def compile(kernel, device_functions = [], build_dir = None, template_kwargs = {}):
     try:
         name = kernel.split('/')[-1].replace('.cu','')
