@@ -121,10 +121,10 @@ template<typename L, typename BL>
 __host__ L LYC(BL base) {
     return make_gl<L>(
         reinterpret_cast<uint64_t>(base.raw_ptr),
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr
+        (GL::__b__ == -1) ? base.batch() : 1,
+        (GL::__d__ == -1) ? base.depth() : 1,
+        (GL::__r__ == -1) ? base.rows() : 1,
+        (GL::__c__ == -1) ? base.cols() : 1
     );
     // layout constructor (short LYC)
 }
