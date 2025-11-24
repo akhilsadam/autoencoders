@@ -59,22 +59,18 @@ struct TileBCHW : public TileType {
     // equivalently Bzyx for threads
     // and zCyx for blocks
     // and column-major:  BC rows, cols
-    const Layout* reference;
-
-    __host__ __device__ const Layout& ref() const { 
-        return *reference;
-    }
+    Layout x;
 
     // Grid dimensions for kernel launch
-    dim3 grid()  { return dim3(tiles_x(), tiles_y(), ref().batch()); }
+    dim3 grid()  { return dim3(tiles_x(), tiles_y(), x.batch()); }
     dim3 block() { return dim3(NUM_THREADS); }
     unsigned long shmem_size = 100000; // 100 KB default shared memory size
     long mem() {return shmem_size;}
 
     // Number of block tiles in each dimension
-    __host__ __device__ int32_t tiles_x() const { return (ref().cols() + TileType::B.x - 1) / TileType::B.x; }
-    __host__ __device__ int32_t tiles_y() const { return (ref().rows() + TileType::B.y - 1) / TileType::B.y; }
-    __host__ __device__ int32_t channels() const { return ref().depth(); }
+    __host__ __device__ int32_t tiles_x() const { return (x.cols() + TileType::B.x - 1) / TileType::B.x; }
+    __host__ __device__ int32_t tiles_y() const { return (x.rows() + TileType::B.y - 1) / TileType::B.y; }
+    __host__ __device__ int32_t channels() const { return x.depth(); }
     
     // Block-level indices
     __device__ int32_t tile_x()  const { return blockIdx.x; }
@@ -131,13 +127,11 @@ __host__ L LYC(BL base) {
 
 template<typename Layout, typename TileType>
 struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
-    Layout x, y;
+    Layout y;
     _BCHW_fwd(const fwd_data& g):
-        x(LYC<Layout>(g.x)),
         y(LYC<Layout>(g.y))
     {
-        this->reference = &x;
-        // printf("GL parts of x: B=%d C=%d R=%d C=%d\n", g.x.batch_internal, g.x.depth_internal, g.x.rows_internal, g.x.cols_internal);
+        this->x = LYC<Layout>(g.x);
     }
 };
 
@@ -149,20 +143,19 @@ struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
              y(LYC<Layout>(g.y)),
         grad_x(LYC<Layout>(g.grad_x))
     {
-        this->reference = &y;
+        this->x = y; // wrap same GPU memory
     }
 };
 
 template<typename Layout, typename TileType>
 struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
-    Layout grad_y, y, grad_x, x;
+    Layout grad_y, y, grad_x;
     _BCHW_bwd(const bwd_data& g):
         grad_y(LYC<Layout>(g.grad_y)),
              y(LYC<Layout>(g.y)),
-             x(LYC<Layout>(g.x)),
         grad_x(LYC<Layout>(g.grad_x))
     {
-        this->reference = &x;
+        this->x = LYC<Layout>(g.x);
     }
 };
 
