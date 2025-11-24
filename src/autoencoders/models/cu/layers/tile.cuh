@@ -119,7 +119,7 @@ struct bwd_data
 template<typename L, typename BL>
 __host__ L LYC(BL base) {
     return make_gl<L>(
-        base.raw_ptr(),
+        base.raw_ptr,
         base.batch(),
         base.depth(),
         base.rows(),
