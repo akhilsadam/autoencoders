@@ -104,7 +104,7 @@ struct TileBCHW : public TileType {
 
 // forward facing temporaries to parse tensor
 
-using base_layout_ = gl<dtype, 1, 1, 1, 1, st_fl<16, 16>>;
+using base_layout_ = gl<ftype, -1, -1, -1, -1, st_fl<16, 16>>;
 
 struct fwd_data
 {
