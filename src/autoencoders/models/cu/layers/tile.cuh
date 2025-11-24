@@ -115,7 +115,7 @@ struct bwd_data
     base_layout_ grad_y, y, grad_x, x;
 };
 
-now for backward facing stuff
+// now for backward facing stuff
 
 template<typename L, typename BL>
 __host__ L LYC(BL base) {
