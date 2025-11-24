@@ -104,7 +104,7 @@ struct TileBCHW : public TileType {
 
 // forward facing temporaries to parse tensor
 
-using base_layout_ = gl<ftype, -1, -1, -1, -1, st_fl<-1, -1>>;
+using base_layout_ = gl<ftype, -1, -1, -1, -1, st_fl<64, 64>>;
 
 struct fwd_data
 {
@@ -121,10 +121,10 @@ template<typename L, typename BL>
 __host__ L LYC(BL base) {
     return make_gl<L>(
         reinterpret_cast<uint64_t>(base.raw_ptr),
-        base.batch(),
-        base.depth(),
-        base.rows(),
-        base.cols()
+        make_unsafe_gl_arg<L::__b__>(base.batch()),  // -1 → int
+        make_unsafe_gl_arg<L::__d__>(base.depth()),  // -1 → int
+        make_unsafe_gl_arg<L::__r__>(base.rows()),   // 32 → nullptr
+        make_unsafe_gl_arg<L::__c__>(base.cols())    // 32 → nullptr
     );
     // layout constructor (short LYC)
 }
