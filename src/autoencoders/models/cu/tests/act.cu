@@ -48,6 +48,10 @@ void run_relu_fwd_kernel(fwd_data g) {
         printf("Layout block: (%d, %d, %d)\n", layout.block().x, layout.block().y, layout.block().z);
         printf("Layout mem: %d\n", layout.mem());
 
+        // print the tensor shapes
+        printf("g.x shape: (%d, %d, %d, %d)\n", g.x.batch(), g.x.depth(), g.x.rows(), g.x.cols());
+        printf("g.y shape: (%d, %d, %d, %d)\n", g.y.batch(), g.y.depth(), g.y.rows(), g.y.cols());
+
         // auto* kernel = _relu_fwd_kernel<Layout, Tile>;
         // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
         // kernel<<<layout.grid(), layout.block()>>>(layout);
