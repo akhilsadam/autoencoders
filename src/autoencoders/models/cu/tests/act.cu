@@ -38,21 +38,21 @@ void run_relu_fwd_kernel(fwd_data g) {
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
-        // printf("Layout and Tile are %s and %s\n", typeid(Layout).name(), typeid(Tile).name());
-        // printf("Running ReLU forward with tile size %dx%d\n", Tile::B.x, Tile::B.y);
+        printf("Layout and Tile are %s and %s\n", typeid(Layout).name(), typeid(Tile).name());
+        printf("Running ReLU forward with tile size %dx%d\n", Tile::B.x, Tile::B.y);
 
-        // // show what's inside layout (passes)
-        // printf("Layout grid: (%d, %d, %d)\n", layout.grid().x, layout.grid().y, layout.grid().z);
-        // printf("Layout block: (%d, %d, %d)\n", layout.block().x, layout.block().y, layout.block().z);
-        // printf("Layout mem: %d\n", layout.mem());
+        // show what's inside layout (passes)
+        printf("Layout grid: (%d, %d, %d)\n", layout.grid().x, layout.grid().y, layout.grid().z);
+        printf("Layout block: (%d, %d, %d)\n", layout.block().x, layout.block().y, layout.block().z);
+        printf("Layout mem: %d\n", layout.mem());
 
-        // // print the tensor shapes (passes)
-        // printf("g.x shape: (%d, %d, %d, %d)\n", g.x.batch(), g.x.depth(), g.x.rows(), g.x.cols());
-        // printf("g.y shape: (%d, %d, %d, %d)\n", g.y.batch(), g.y.depth(), g.y.rows(), g.y.cols());
+        // print the tensor shapes (passes)
+        printf("g.x shape: (%d, %d, %d, %d)\n", g.x.batch(), g.x.depth(), g.x.rows(), g.x.cols());
+        printf("g.y shape: (%d, %d, %d, %d)\n", g.y.batch(), g.y.depth(), g.y.rows(), g.y.cols());
 
-        // // now from layout print the tensor shapes (passes as well)
-        // printf("layout.x shape: (%d, %d, %d, %d)\n", layout.x.batch(), layout.x.depth(), layout.x.rows(), layout.x.cols());
-        // printf("layout.y shape: (%d, %d, %d, %d)\n", layout.y.batch(), layout.y.depth(), layout.y.rows(), layout.y.cols());
+        // now from layout print the tensor shapes (passes as well)
+        printf("layout.x shape: (%d, %d, %d, %d)\n", layout.x.batch(), layout.x.depth(), layout.x.rows(), layout.x.cols());
+        printf("layout.y shape: (%d, %d, %d, %d)\n", layout.y.batch(), layout.y.depth(), layout.y.rows(), layout.y.cols());
 
         auto* kernel = _relu_fwd_kernel<Layout, Tile>;
         // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
@@ -60,14 +60,14 @@ void run_relu_fwd_kernel(fwd_data g) {
     }, layout);
 }
 void run_relu_bwd_kernel(bwd_data g) {
-    // layout_variant<BCHW_bwd_stateless> layout = create_layout<BCHW_bwd_stateless>(g);
-    // std::visit([&](auto& layout) {
-    //     using Layout = std::decay_t<decltype(layout)>;
-    //     using Tile   = typename Layout::tile_type;
-    //     auto* kernel = _relu_bwd_kernel<Layout, Tile>;
-    //     // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
-    //     kernel<<<layout.grid(), layout.block()>>>(layout);
-    // }, layout);
+    layout_variant<BCHW_bwd_stateless> layout = create_layout<BCHW_bwd_stateless>(g);
+    std::visit([&](auto& layout) {
+        using Layout = std::decay_t<decltype(layout)>;
+        using Tile   = typename Layout::tile_type;
+        auto* kernel = _relu_bwd_kernel<Layout, Tile>;
+        // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
+        kernel<<<layout.grid(), layout.block()>>>(layout);
+    }, layout);
 }
 
 PYBIND11_MODULE(act, m) {
