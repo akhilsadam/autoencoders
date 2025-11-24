@@ -34,7 +34,7 @@ static __global__ void _relu_bwd_kernel(const __grid_constant__ Layout g) {
 
 void run_relu_fwd_kernel(fwd_data g) {
 
-    // printf("g.x shape: (%d, %d, %d, %d)\n", g.x.batch(), g.x.depth(), g.x.rows(), g.x.cols());
+    printf("g.x shape: (%d, %d, %d, %d)\n", g.x.batch(), g.x.depth(), g.x.rows(), g.x.cols());
 
     // layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd, fwd_data>(g);
     // std::visit([&](auto& layout) {
