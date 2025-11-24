@@ -61,6 +61,8 @@ struct TileBCHW : public TileType {
     // and column-major:  BC rows, cols
     Layout x;
 
+    TileBCHW(const Layout& x_) : x(x_) {}
+
     // Grid dimensions for kernel launch
     dim3 grid()  { return dim3(tiles_x(), tiles_y(), x.batch()); }
     dim3 block() { return dim3(NUM_THREADS); }
