@@ -32,7 +32,7 @@ using namespace kittens;
 // }
 
 void run_relu_fwd_kernel(fwd_data g) {
-    layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd>(g);
+    layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd, fwd_data>(g);
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;

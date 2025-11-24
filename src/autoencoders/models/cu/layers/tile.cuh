@@ -100,7 +100,9 @@ struct TileBCHW : public TileType {
 //     int64_t cols()  const { return tensor.size(3); }
 // };
 
-using base_layout = gl;
+// forward facing temporaries to parse tensor
+
+using base_layout = gl<-1, -1, -1, -1, st_fl<16, 16>>;
 
 struct fwd_data
 {
@@ -111,8 +113,10 @@ struct bwd_data
     base_layout grad_y, y, grad_x, x;
 };
 
-template<typename L>
-__host__ L LYC(base_layout base) {
+// now for backward facing stuff
+
+template<typename L, typename BL>
+__host__ L LYC(BL base) {
     return make_gl<L>(
         base.raw_ptr(),
         base.batch(),
