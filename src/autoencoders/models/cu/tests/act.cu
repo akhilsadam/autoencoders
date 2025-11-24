@@ -34,7 +34,7 @@ using namespace kittens;
 
 void run_relu_fwd_kernel(fwd_data g) {
 
-    printf("g.x shape: (%d, %d, %d, %d)\n", g.x.batch(), g.x.depth(), g.x.rows(), g.x.cols());
+    // printf("g.x shape: (%d, %d, %d, %d)\n", g.x.batch(), g.x.depth(), g.x.rows(), g.x.cols());
 
     // layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd, fwd_data>(g);
     // std::visit([&](auto& layout) {
@@ -62,6 +62,6 @@ void run_relu_bwd_kernel(bwd_data g) {
 PYBIND11_MODULE(act, m) {
     m.doc() = "activation functions python module";
     py::bind_function<run_relu_fwd_kernel>(m, "relu_fwd", &fwd_data::x, &fwd_data::y);
-    py::bind_function<run_relu_bwd_kernel>(m, "relu_bwd", &bwd_data::grad_y, &bwd_data::y, &bwd_data::grad_x);
+    py::bind_function<run_relu_bwd_kernel>(m, "relu_bwd", &bwd_data::grad_y, &bwd_data::y, &bwd_data::grad_x, &bwd_data::x);
     // no need for x since relu is stateless
 }

@@ -112,113 +112,113 @@ struct fwd_data
 };
 struct bwd_data
 {
-    base_layout_ grad_y, y, grad_x;
+    base_layout_ grad_y, y, grad_x, x;
 };
 
-// now for backward facing stuff
+now for backward facing stuff
 
-// template<typename L, typename BL>
-// __host__ L LYC(BL base) {
-//     return make_gl<L>(
-//         reinterpret_cast<uint64_t>(base.raw_ptr),
-//         base.batch(),
-//         base.depth(),
-//         base.rows(),
-//         base.cols()
-//     );
-//     // layout constructor (short LYC)
-// }
+template<typename L, typename BL>
+__host__ L LYC(BL base) {
+    return make_gl<L>(
+        reinterpret_cast<uint64_t>(base.raw_ptr),
+        base.batch(),
+        base.depth(),
+        base.rows(),
+        base.cols()
+    );
+    // layout constructor (short LYC)
+}
 
-// template<typename Layout, typename TileType>
-// struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
-//     Layout x, y;
-//     _BCHW_fwd(const fwd_data& g):
-//         x(LYC<Layout>(g.x)),
-//         y(LYC<Layout>(g.y))
-//     {
-//         this->reference = &x;
-//         // printf("GL parts of x: B=%d C=%d R=%d C=%d\n", g.x.batch_internal, g.x.depth_internal, g.x.rows_internal, g.x.cols_internal);
-//     }
-// };
+template<typename Layout, typename TileType>
+struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
+    Layout x, y;
+    _BCHW_fwd(const fwd_data& g):
+        x(LYC<Layout>(g.x)),
+        y(LYC<Layout>(g.y))
+    {
+        this->reference = &x;
+        // printf("GL parts of x: B=%d C=%d R=%d C=%d\n", g.x.batch_internal, g.x.depth_internal, g.x.rows_internal, g.x.cols_internal);
+    }
+};
 
-// template<typename Layout, typename TileType>
-// struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
-//     Layout grad_y, y, grad_x;
-//     _BCHW_bwd_stateless(const bwd_data& g):
-//         grad_y(LYC<Layout>(g.grad_y)),
-//              y(LYC<Layout>(g.y)),
-//         grad_x(LYC<Layout>(g.grad_x))
-//     {
-//         this->reference = &y;
-//     }
-// };
+template<typename Layout, typename TileType>
+struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
+    Layout grad_y, y, grad_x;
+    _BCHW_bwd_stateless(const bwd_data& g):
+        grad_y(LYC<Layout>(g.grad_y)),
+             y(LYC<Layout>(g.y)),
+        grad_x(LYC<Layout>(g.grad_x))
+    {
+        this->reference = &y;
+    }
+};
 
-// template<typename Layout, typename TileType>
-// struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
-//     Layout grad_y, y, grad_x, x;
-//     _BCHW_bwd(const bwd_data& g):
-//         grad_y(LYC<Layout>(g.grad_y)),
-//              y(LYC<Layout>(g.y)),
-//              x(LYC<Layout>(g.x)),
-//         grad_x(LYC<Layout>(g.grad_x))
-//     {
-//         this->reference = &x;
-//     }
-// };
+template<typename Layout, typename TileType>
+struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
+    Layout grad_y, y, grad_x, x;
+    _BCHW_bwd(const bwd_data& g):
+        grad_y(LYC<Layout>(g.grad_y)),
+             y(LYC<Layout>(g.y)),
+             x(LYC<Layout>(g.x)),
+        grad_x(LYC<Layout>(g.grad_x))
+    {
+        this->reference = &x;
+    }
+};
 
-// // ------------------- Type aliases -------------------
-// template<typename TileType>
-// using tiled_layout = gl<dtype, G_BATCH, G_CHANNEL,
-//  TileType::G.y, TileType::G.x,
-//  st_fl<TileType::B.y, TileType::B.x>>; // bchw layout
+// ------------------- Type aliases -------------------
+template<typename TileType>
+using tiled_layout = gl<dtype, G_BATCH, G_CHANNEL,
+ TileType::G.y, TileType::G.x,
+ st_fl<TileType::B.y, TileType::B.x>>; // bchw layout
 
-// template<typename TileType>
-// using reg_tile_ft = rt<ftype, TileType::W.y, TileType::W.x>;
+template<typename TileType>
+using reg_tile_ft = rt<ftype, TileType::W.y, TileType::W.x>;
 
-// template<typename TileType>
-// using reg_tile_dt = rt<dtype, TileType::W.y, TileType::W.x>;
+template<typename TileType>
+using reg_tile_dt = rt<dtype, TileType::W.y, TileType::W.x>;
 
-// template<typename TileType>
-// using BCHW_fwd = _BCHW_fwd<tiled_layout<TileType>, TileType>;
+template<typename TileType>
+using BCHW_fwd = _BCHW_fwd<tiled_layout<TileType>, TileType>;
 
-// template<typename TileType>
-// using BCHW_bwd_stateless = _BCHW_bwd_stateless<tiled_layout<TileType>, TileType>;
+template<typename TileType>
+using BCHW_bwd_stateless = _BCHW_bwd_stateless<tiled_layout<TileType>, TileType>;
 
-// template<typename TileType>
-// using BCHW_bwd = _BCHW_bwd<tiled_layout<TileType>, TileType>;
+template<typename TileType>
+using BCHW_bwd = _BCHW_bwd<tiled_layout<TileType>, TileType>;
 
-// using Tile28 = Tile<-1, -1, 32, 32, 16, 16>;
-// using Tile64 = Tile<-1, -1, 64, 64, 16, 16>;
-// using Tile128 = Tile<-1, -1, 128, 128, 16, 16>;
+using Tile28 = Tile<-1, -1, 32, 32, 16, 16>;
+using Tile64 = Tile<-1, -1, 64, 64, 16, 16>;
+using Tile128 = Tile<-1, -1, 128, 128, 16, 16>;
 
-// // select tile based on width
-// template<typename BaseData>
-// __host__ size_t TileIndex(const BaseData& g) {
-//     int W = g.x.cols();
-//     size_t idx = (W == 28) ? 0 : (W == 64) ? 1 : 2;
-//     return idx;
-// }
+// select tile based on width
+template<typename BaseData>
+__host__ size_t TileIndex(const BaseData& g) {
+    int W = g.x.cols();
+    size_t idx = (W == 28) ? 0 : (W == 64) ? 1 : 2;
+    return idx;
+}
 
-// template<template<typename TileType> class layoutv>
-// using layout_variant = std::variant<
-//     layoutv<Tile28>,
-//     layoutv<Tile64>,
-//     layoutv<Tile128>
-// >;
+template<template<typename TileType> class layoutv>
+using layout_variant = std::variant<
+    layoutv<Tile28>,
+    layoutv<Tile64>,
+    layoutv<Tile128>
+>;
 
-// template<template<typename TileType> class layoutv, typename _data>
-// __host__ layout_variant<layoutv> create_layout(_data g) {
-//     auto tile_idx = TileIndex(g);
-//     switch (tile_idx) {
-//         case 0:
-//             return layoutv<Tile28>(g);
-//         case 1:
-//             return layoutv<Tile64>(g);
-//         case 2:
-//             return layoutv<Tile128>(g);
-//         default:
-//             throw std::runtime_error("Unsupported tile size");
-//     }
-// }
+template<template<typename TileType> class layoutv, typename _data>
+__host__ layout_variant<layoutv> create_layout(_data g) {
+    auto tile_idx = TileIndex(g);
+    switch (tile_idx) {
+        case 0:
+            return layoutv<Tile28>(g);
+        case 1:
+            return layoutv<Tile64>(g);
+        case 2:
+            return layoutv<Tile128>(g);
+        default:
+            throw std::runtime_error("Unsupported tile size");
+    }
+}
 
 

@@ -26,7 +26,8 @@ def _test_relu():
         def backward(ctx, grad_y):
             y, = ctx.saved_tensors
             grad_x = torch.empty_like(grad_y)
-            activations.relu_bwd(grad_y, y, grad_x)
+            # placeholder for x argument
+            activations.relu_bwd(grad_y, y, grad_x, y)
             return grad_x
         
     class ReLU(nn.Module):
