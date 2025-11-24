@@ -43,6 +43,11 @@ void run_relu_fwd_kernel(fwd_data g) {
         printf("Layout and Tile are %s and %s\n", typeid(Layout).name(), typeid(Tile).name());
         printf("Running ReLU forward with tile size %dx%d\n", Tile::B.x, Tile::B.y);
 
+        // show what's inside layout
+        printf("Layout grid: (%d, %d, %d)\n", layout.grid().x, layout.grid().y, layout.grid().z);
+        printf("Layout block: (%d, %d, %d)\n", layout.block().x, layout.block().y, layout.block().z);
+        printf("Layout mem: %d\n", layout.mem());
+
         // auto* kernel = _relu_fwd_kernel<Layout, Tile>;
         // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
         // kernel<<<layout.grid(), layout.block()>>>(layout);
