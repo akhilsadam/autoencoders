@@ -61,7 +61,7 @@ void run_relu_fwd_kernel(fwd_data g) {
     }, layout);
 }
 void run_relu_bwd_kernel(bwd_data g) {
-    layout_variant<BCHW_bwd_stateless> layout = create_layout<BCHW_bwd_stateless>(g);
+    layout_variant<BCHW_bwd> layout = create_layout<BCHW_bwd>(g);
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
