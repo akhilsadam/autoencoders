@@ -117,6 +117,17 @@ struct bwd_data
 
 // now for backward facing stuff
 
+using base_layout_ = gl<dtype, 1, 1, 1, 1, st_fl<16, 16>>;
+
+struct _fwd_data
+{
+    base_layout_ x, y;
+};
+struct _bwd_data
+{
+    base_layout_ grad_y, y, grad_x, x;
+};
+
 template<typename L, typename BL>
 __host__ L LYC(BL base) {
     return make_gl<L>(
@@ -132,7 +143,7 @@ __host__ L LYC(BL base) {
 template<typename Layout, typename TileType>
 struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     Layout x, y;
-    _BCHW_fwd(const fwd_data& g):
+    _BCHW_fwd(const _fwd_data& g):
         x(LYC<Layout>(g.x)),
         y(LYC<Layout>(g.y))
     {
@@ -144,7 +155,7 @@ struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
 template<typename Layout, typename TileType>
 struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x;
-    _BCHW_bwd_stateless(const bwd_data& g):
+    _BCHW_bwd_stateless(const _bwd_data& g):
         grad_y(LYC<Layout>(g.grad_y)),
              y(LYC<Layout>(g.y)),
         grad_x(LYC<Layout>(g.grad_x))
@@ -156,7 +167,7 @@ struct _BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
 template<typename Layout, typename TileType>
 struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x, x;
-    _BCHW_bwd(const bwd_data& g):
+    _BCHW_bwd(const _bwd_data& g):
         grad_y(LYC<Layout>(g.grad_y)),
              y(LYC<Layout>(g.y)),
              x(LYC<Layout>(g.x)),
