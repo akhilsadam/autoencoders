@@ -52,7 +52,7 @@ struct Tile {
     static constexpr uint32_t warps_y = B.y / W.y;
 };
 
-template<template<typename TileType> class Layout, typename TileType>
+template<typename Layout, typename TileType>
 struct TileBCHW : public TileType {
     using tile_type = TileType; // for external access
 
@@ -129,7 +129,7 @@ __host__ L LYC(BL base) {
     // layout constructor (short LYC)
 }
 
-template<template<typename TileType> class Layout, typename TileType>
+template<typename Layout, typename TileType>
 struct BCHW_fwd : public TileBCHW<Layout, TileType> {
     Layout x, y;
     BCHW_fwd(const fwd_data& g):
@@ -141,7 +141,7 @@ struct BCHW_fwd : public TileBCHW<Layout, TileType> {
     }
 };
 
-template<template<typename TileType> class Layout, typename TileType>
+template<typename Layout, typename TileType>
 struct BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x;
     BCHW_bwd_stateless(const bwd_data& g):
@@ -153,7 +153,7 @@ struct BCHW_bwd_stateless : public TileBCHW<Layout, TileType> {
     }
 };
 
-template<template<typename TileType> class Layout, typename TileType>
+template<typename Layout, typename TileType>
 struct BCHW_bwd : public TileBCHW<Layout, TileType> {
     Layout grad_y, y, grad_x, x;
     BCHW_bwd(const bwd_data& g):
