@@ -58,7 +58,7 @@ CXX_FLAGS = ["-O2", "-g"]
 
 @lru_cache(maxsize=128)
 def compile(kernel, build_dir = None, template_kwargs = {}):
-     device_functions = []
+    device_functions = []
     try:
         name = kernel.split('/')[-1].replace('.cu','')
         
