@@ -100,6 +100,7 @@ struct TileBCHW : public TileType {
 //     int64_t rows()  const { return tensor.size(2); }
 //     int64_t cols()  const { return tensor.size(3); }
 // };
+///// notice raw_ptr is now ()
 
 // forward facing temporaries to parse tensor
 
@@ -119,7 +120,7 @@ struct bwd_data
 template<typename L, typename BL>
 __host__ L LYC(BL base) {
     return make_gl<L>(
-        base.raw_ptr,
+        reinterpret_cast<uint64_t>(base.raw_ptr),
         base.batch(),
         base.depth(),
         base.rows(),
