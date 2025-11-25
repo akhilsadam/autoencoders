@@ -19,6 +19,7 @@ static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
     
     for(int32_t chan = 0; chan < g.channels(); chan++) {
         for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) {
+            // if (!g.warptile_active(wave)) { continue; }
             int2 p = g.warptile_gxy(wave);
             
             // Debug: only print for first block, first channel
@@ -40,6 +41,7 @@ static __global__ void _relu_bwd_kernel(const __grid_constant__ DataLayout g) {
 
     for(int32_t chan = 0; chan < g.channels(); chan++) {
         for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) {
+            // if (!g.warptile_active(wave)) { continue; }
             int2 p = g.warptile_gxy(wave);
             load(WARP_grad_y, g.grad_y, {g.batch(), chan, p.y, p.x});
             load(WARP_y, g.y, {g.batch(), chan, p.y, p.x});

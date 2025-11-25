@@ -4,11 +4,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 sizes=[
-    # (16, 1, 28, 28),
     (1, 1, 64, 64),
     (32, 3, 64, 64),
     (4, 3, 128, 128),
     (4, 3, 512, 512),
+    (16, 1, 28, 28)
 ]
 
 def random_reduce(err, weights=None):

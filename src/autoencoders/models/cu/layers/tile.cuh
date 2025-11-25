@@ -84,26 +84,32 @@ struct TileBCHW : public TileType {
     static constexpr int32_t warptiles = warptile_nx * warptile_ny;
     static constexpr int32_t warpwaves = (warptiles + NUM_WORKERS - 1) / NUM_WORKERS;
 
-    __device__ __forceinline__ int2 warptile_ixy(int32_t wave){
-            int32_t warptile_id = wave * NUM_WORKERS + warp_id();
-            int32_t warptile_ix = warptile_id % warptile_nx;
-            int32_t warptile_iy = warptile_id / warptile_nx;
-            return make_int2(warptile_ix, warptile_iy);
-        }
+    __device__ __forceinline__ int32_t warptile_linear_id(int32_t wave) const {
+        return wave * NUM_WORKERS + warp_id();
+    }
+
+    __device__ __forceinline__ bool warptile_active(int32_t wave) const {
+        return warptile_linear_id(wave) < warptiles;
+    }
+
+    __device__ __forceinline__ int2 warptile_ixy(int32_t wave) const {
+        int32_t warptile_id = warptile_linear_id(wave);
+        int32_t warptile_ix = warptile_id % warptile_nx; // iterate x (cols) first
+        int32_t warptile_iy = warptile_id / warptile_nx;
+        return make_int2(warptile_ix, warptile_iy);
+    }
     
     __device__ __forceinline__ int2 warptile_xy(int32_t wave) const {
-            int32_t warptile_id = wave * NUM_WORKERS + warp_id();
-            int32_t warptile_ix = warptile_id % warptile_nx;
-            int32_t warptile_iy = warptile_id / warptile_nx;
-            return make_int2(warptile_ix * TileType::W.x,
-                             warptile_iy * TileType::W.y);
-        }
+        int2 ij = warptile_ixy(wave);
+        return make_int2(ij.x * TileType::W.x,
+                    ij.y * TileType::W.y);
+    }
 
     __device__ __forceinline__ int2 warptile_gxy(int32_t wave) const {
-            int2 xy = warptile_xy(wave);
-            xy.x = tile_x() + xy.x;
-            xy.y = tile_y() + xy.y;
-            return xy;
+        int2 xy = warptile_xy(wave);
+        xy.x = tile_x() + xy.x;
+        xy.y = tile_y() + xy.y;
+        return xy;
     }
 
 };
