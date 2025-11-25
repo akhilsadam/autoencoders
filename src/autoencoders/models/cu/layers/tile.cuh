@@ -39,7 +39,6 @@ using namespace kittens;
 
 #ifndef dtype
 #define dtype bf16
-// #define dtype bf16
 #endif
 
 template<int Gx, int Gy, int Bx, int By, int Wx, int Wy>
@@ -86,8 +85,11 @@ struct TileBCHW : public TileType {
     __device__ int32_t warp_idy() const { return warp_id() / TileType::warps_x; }
     
     // Global warp tile indices (for load/store operations)
-    __device__ int32_t warptile_gx() const { return tile_x() * TileType::warps_x + warp_idx(); }
-    __device__ int32_t warptile_gy() const { return tile_y() * TileType::warps_y + warp_idy(); }
+    __device__ int32_t warptile_idx() const { return tile_x() * TileType::warps_x + warp_idx(); }
+    __device__ int32_t warptile_idy() const { return tile_y() * TileType::warps_y + warp_idy(); }
+    __device__ int32_t warptile_gx() const { return warptile_idx() * TileType::W.x; }
+    __device__ int32_t warptile_gy() const { return warptile_idy() * TileType::W.y; }
+    
 };
 
 // blank fwd, bwd data structures
