@@ -101,10 +101,11 @@ struct TileBCHW : public TileType {
                              warptile_iy * TileType::W.y);
         }
 
-    __device__ __forceinline__ int32_t warptile_gxy(int32_t wave) const {
+    __device__ __forceinline__ int2 warptile_gxy(int32_t wave) const {
             int2 xy = warptile_xy(wave);
             xy.x = tile_x() + xy.x;
             xy.y = tile_y() + xy.y;
+            return xy;
     }
 
 };
