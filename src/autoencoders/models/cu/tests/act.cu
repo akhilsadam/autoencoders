@@ -16,11 +16,11 @@ static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
             int2 p = g.warptile_gxy(wave);
             // print wave index
             if (threadIdx.x == 0) {
-                printf("wave %d: p=(%d, %d)\n", wave, p.x, p.y);
+                printf("wave %d: p=(%d, %d)yx\n", wave, p.y, p.x);
             }
-            load(WARP_x, g.x, {g.batch(), chan, p.x, p.y});
+            load(WARP_x, g.x, {g.batch(), chan, p.y, p.x});
             unary_map<relu_fwd>(WARP_y, WARP_x);
-            store(g.y, WARP_y, {g.batch(), chan, p.x, p.y});
+            store(g.y, WARP_y, {g.batch(), chan, p.y, p.x});
         }
     }
 }
@@ -32,10 +32,10 @@ static __global__ void _relu_bwd_kernel(const __grid_constant__ DataLayout g) {
     for(int32_t chan = 0; chan < g.channels(); chan++) {
         for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) {
             int2 p = g.warptile_gxy(wave);
-            load(WARP_grad_y, g.grad_y, {g.batch(), chan, p.x, p.y});
-            load(WARP_y, g.y, {g.batch(), chan, p.x, p.y});
+            load(WARP_grad_y, g.grad_y, {g.batch(), chan, p.y, p.x});
+            load(WARP_y, g.y, {g.batch(), chan, p.y, p.x});
             bin_map<relu_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
-            store(g.grad_x, WARP_grad_x, {g.batch(), chan, p.x, p.y});
+            store(g.grad_x, WARP_grad_x, {g.batch(), chan, p.y, p.x});
         }
     }
 }
