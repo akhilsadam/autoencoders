@@ -11,12 +11,6 @@ template<typename DataLayout, typename TileType>
 static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
     reg_tile_ft<TileType> WARP_y, WARP_x; // register tiles
     
-    // Debug: print block info once per block
-    if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) {
-        printf("Block (%d,%d,%d), warp %d, warpwaves=%d\n", 
-               blockIdx.x, blockIdx.y, blockIdx.z, g.warp_id(), DataLayout::warpwaves);
-    }
-    
     for(int32_t chan = 0; chan < g.channels(); chan++) {
         for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) {
             // if (!g.warptile_active(wave)) { continue; }
@@ -48,9 +42,6 @@ static __global__ void _relu_bwd_kernel(const __grid_constant__ DataLayout g) {
 }
 
 void run_relu_fwd_kernel(fwd_data g) {
-
-    // printf("true g.x shape: (%d, %d, %d, %d)\n", g.x.batch(), g.x.depth(), g.x.rows(), g.x.cols());
-
     layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd, fwd_data>(g);
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
