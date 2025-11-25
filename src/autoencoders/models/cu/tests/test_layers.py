@@ -20,7 +20,7 @@ def get_random_data(batch_size: int, channels: int, height: int, width: int) -> 
     return torch.randn(batch_size, channels, height, width, device="cuda")
 
 def _plot_diff(true, cu, title="Difference for B0 C0"):
-    diff = (true - cu).abs().cpu().numpy()
+    diff = (true.detach() - cu.detach()).abs().cpu().numpy()
     plt.imshow(diff[0,0], cmap='hot')
     plt.title(title)
     plt.colorbar()
