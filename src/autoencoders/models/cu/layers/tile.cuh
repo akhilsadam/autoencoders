@@ -46,10 +46,6 @@ struct Tile {
     static constexpr int2 G = {Gx, Gy};
     static constexpr int2 B = {Bx, By};
     static constexpr int2 W = {Wx, Wy};
-    
-    // Tile hierarchy ratios
-    static constexpr uint32_t warps_x = B.x / W.x;
-    static constexpr uint32_t warps_y = B.y / W.y;
 };
 
 template<typename Layout, typename TileType>
@@ -64,32 +60,53 @@ struct TileBCHW : public TileType {
     TileBCHW(const Layout& x_) : x(x_) {}
 
     // Grid dimensions for kernel launch
-    dim3 grid()  { return dim3(tiles_x(), tiles_y(), x.batch()); }
+    dim3 grid()  { return dim3(tile_nx(), tile_ny(), x.batch()); }
     dim3 block() { return dim3(NUM_THREADS); }
     unsigned long shmem_size = 100000; // 100 KB default shared memory size
     long mem() {return shmem_size;}
 
-    // Number of block tiles in each dimension
-    __host__ __device__ int32_t tiles_x() const { return (x.cols() + TileType::B.x - 1) / TileType::B.x; }
-    __host__ __device__ int32_t tiles_y() const { return (x.rows() + TileType::B.y - 1) / TileType::B.y; }
+    // Number of block tiles in each dimension // each block handles only one tile
+    __host__ __device__ int32_t tile_nx() const { return (x.cols() + TileType::B.x - 1) / TileType::B.x; }
+    __host__ __device__ int32_t tile_ny() const { return (x.rows() + TileType::B.y - 1) / TileType::B.y; }
     __host__ __device__ int32_t channels() const { return x.depth(); }
     
     // Block-level indices
-    __device__ int32_t tile_x()  const { return blockIdx.x; }
-    __device__ int32_t tile_y()  const { return blockIdx.y; }
-    __device__ int32_t batch() const { return blockIdx.z; }
+    __device__ __forceinline__ int32_t tile_idx() const { return blockIdx.x; }
+    __device__ __forceinline__ int32_t tile_idy() const { return blockIdx.y; }
+    __device__ __forceinline__ int32_t tile_x() const { return tile_idx() * TileType::B.x; }
+    __device__ __forceinline__ int32_t tile_y() const { return tile_idy() * TileType::B.y; }
+    __device__ __forceinline__ int32_t batch() const { return blockIdx.z; }
     
     // Warp-level indices
-    __device__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
-    __device__ int32_t warp_idx() const { return warp_id() % TileType::warps_x; }
-    __device__ int32_t warp_idy() const { return warp_id() / TileType::warps_x; }
+    __device__ __forceinline__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
+    __device__ __forceinline__ int32_t warp_idx() const { return warp_id() % TileType::warps_x; }
+    __device__ __forceinline__ int32_t warp_idy() const { return warp_id() / TileType::warps_x; }
+    static constexpr int32_t warptile_nx = TileType::B.x / TileType::W.x;
+    static constexpr int32_t warptile_ny = TileType::B.y / TileType::W.y;
+    static constexpr int32_t warptiles = warptile_nx * warptile_ny;
+    static constexpr int32_t warpwaves = (warptiles + NUM_WORKERS - 1) / NUM_WORKERS;
+
+    __device__ __forceinline__ int2 warptile_ixy(int32_t wave){
+            int32_t warptile_id = wave * NUM_WORKERS + warp_id();
+            int32_t warptile_ix = warptile_id % warptile_nx;
+            int32_t warptile_iy = warptile_id / warptile_nx;
+            return make_int2(warptile_ix, warptile_iy);
+        }
     
-    // Global warp tile indices (for load/store operations)
-    __device__ int32_t warptile_idx() const { return tile_x() * TileType::warps_x + warp_idx(); }
-    __device__ int32_t warptile_idy() const { return tile_y() * TileType::warps_y + warp_idy(); }
-    __device__ int32_t warptile_gx() const { return warptile_idx() * TileType::W.x; }
-    __device__ int32_t warptile_gy() const { return warptile_idy() * TileType::W.y; }
-    
+    __device__ __forceinline__ int2 warptile_xy(int32_t wave) const {
+            int32_t warptile_id = wave * NUM_WORKERS + warp_id();
+            int32_t warptile_ix = warptile_id % warptile_nx;
+            int32_t warptile_iy = warptile_id / warptile_nx;
+            return make_int2(warptile_ix * TileType::W.x,
+                             warptile_iy * TileType::W.y);
+        }
+
+    __device__ __forceinline__ int32_t warptile_gxy(int32_t wave) const {
+            int2 xy = warptile_xy(wave);
+            xy.x = tile_x() + xy.x;
+            xy.y = tile_y() + xy.y;
+    }
+
 };
 
 // blank fwd, bwd data structures

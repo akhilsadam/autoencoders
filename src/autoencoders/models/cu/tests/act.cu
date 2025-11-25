@@ -11,10 +11,13 @@ template<typename DataLayout, typename TileType>
 static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
     reg_tile_ft<TileType> WARP_y, WARP_x; // register tiles
     
-    for(int32_t channel = 0; channel < g.channels(); channel++) {
-        load(WARP_x, g.x, {g.batch(), channel, g.warptile_gx(), g.warptile_gy()});
-        unary_map<relu_fwd>(WARP_y, WARP_x);
-        store(g.y, WARP_y, {g.batch(), channel, g.warptile_gx(), g.warptile_gy()});
+    for(int32_t chan = 0; chan < g.channels(); chan++) {
+        for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) {
+            int2 p = g.warptile_gxy(wave);
+            load(WARP_x, g.x, {g.batch(), chan, p.x, p.y});
+            unary_map<relu_fwd>(WARP_y, WARP_x);
+            store(g.y, WARP_y, {g.batch(), chan, p.x, p.y});
+        }
     }
 }
 

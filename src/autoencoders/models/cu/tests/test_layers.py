@@ -20,10 +20,24 @@ def get_random_data(batch_size: int, channels: int, height: int, width: int) -> 
     return torch.randn(batch_size, channels, height, width, device="cuda")
 
 def _plot_diff(true, cu, title="Difference for B0 C0"):
-    diff = (true.detach() - cu.detach()).abs().cpu().numpy()
-    plt.imshow(diff[0,0], cmap='hot')
-    plt.title(title)
-    plt.colorbar()
+    true = true[0,0].detach().cpu().numpy()
+    cu = cu[0,0].detach().cpu().numpy()
+    diff = (true - cu).abs()
+    fig, ax = plt.subplots(3,1, figsize=(6,12))
+    
+    im = ax[0].imshow(true, cmap='coolwarm')
+    ax[0].set_title("True")
+    plt.colorbar(im, ax=ax[0])
+    
+    im = ax[1].imshow(cu, cmap='coolwarm')
+    ax[1].set_title("CU")
+    plt.colorbar(im, ax=ax[1])
+
+    im = ax[2].imshow(diff, cmap='hot')
+    ax[2].set_title("Difference")
+    plt.colorbar(im, ax=ax[2])
+
+    plt.suptitle(title)
     plt.savefig("diff.png")
     plt.close()
     return "See diff.png for difference heatmap"
