@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 
 sizes=[
     # (16, 1, 28, 28),
+    (1, 1, 64, 64),
     (32, 3, 64, 64),
     (4, 3, 128, 128),
     (4, 3, 512, 512),
@@ -34,7 +35,7 @@ def _plot_diff(true, cu, title="Difference for B0 C0"):
     ax[1].set_title("CU")
     plt.colorbar(im, ax=ax[1])
 
-    im = ax[2].imshow(diff, cmap='hot')
+    im = ax[2].imshow(diff, cmap='coolwarm')
     ax[2].set_title("Difference")
     plt.colorbar(im, ax=ax[2])
 
