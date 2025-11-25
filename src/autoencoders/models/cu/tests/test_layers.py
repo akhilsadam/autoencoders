@@ -29,7 +29,7 @@ def _check(true_func, cu_func):
         try:
             y = true_func(x)
             y_hat = cu_func(x_2)
-            assert torch.allclose(y_hat, y, atol=0.01, rtol=0.1), f"Forward check failed for size {size}"
+            assert torch.allclose(y_hat, y), f"Forward check failed for size {size}"
             
             lz, wt = random_reduce(y)
             lz.backward()
@@ -37,7 +37,7 @@ def _check(true_func, cu_func):
             
             random_reduce(y_hat, weights=wt)[0].backward()
             x_g_hat = x_2.grad
-            assert torch.allclose(x_g, x_g_hat, atol=0.01, rtol=0.1), f"Gradient check failed for size {size}"
+            assert torch.allclose(x_g, x_g_hat), f"Gradient check failed for size {size}"
         except torch.AcceleratorError as e:
             print(f"Size {size} failed due to CUDA error: {e}")
             raise e

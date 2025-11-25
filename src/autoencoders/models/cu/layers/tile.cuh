@@ -38,7 +38,8 @@ using namespace kittens;
 #endif
 
 #ifndef dtype
-#define dtype bf16
+#define dtype float
+// #define dtype bf16
 #endif
 
 template<int Gx, int Gy, int Bx, int By, int Wx, int Wy>
