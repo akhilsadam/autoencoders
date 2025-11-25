@@ -29,7 +29,7 @@ static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
             }
             load(WARP_x, g.x, {g.batch(), chan, p.y, p.x});
             // unary_map<relu_fwd>(WARP_y, WARP_x);
-            store(g.y, WARP_y, {g.batch(), chan, p.y, p.x});
+            store(g.y, WARP_x, {g.batch(), chan, p.y, p.x});
             __syncwarp();
         }
     }
