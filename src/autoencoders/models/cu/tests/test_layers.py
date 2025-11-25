@@ -1,5 +1,6 @@
 # generate random data for testing cu layers
 import torch
+from matplotlib import pyplot as plt
 
 sizes=[
     # (16, 1, 28, 28),
@@ -18,6 +19,15 @@ def get_random_data(batch_size: int, channels: int, height: int, width: int) -> 
     torch.manual_seed(42)
     return torch.randn(batch_size, channels, height, width, device="cuda")
 
+def _plot_diff(true, cu, title="Difference for B0 C0"):
+    diff = (true - cu).abs().cpu().numpy()
+    plt.imshow(diff[0,0], cmap='hot')
+    plt.title(title)
+    plt.colorbar()
+    plt.savefig("diff.png")
+    plt.close()
+    return "See diff.png for difference heatmap"
+
 def _check(true_func, cu_func):
     for size in sizes:
         x = get_random_data(*size)
@@ -29,7 +39,7 @@ def _check(true_func, cu_func):
         try:
             y = true_func(x)
             y_hat = cu_func(x_2)
-            assert torch.allclose(y_hat, y), f"Forward check failed for size {size}"
+            assert torch.allclose(y_hat, y), f"Forward check failed for size {size} -- {_plot_diff(y, y_hat)}"
             
             lz, wt = random_reduce(y)
             lz.backward()
@@ -37,7 +47,7 @@ def _check(true_func, cu_func):
             
             random_reduce(y_hat, weights=wt)[0].backward()
             x_g_hat = x_2.grad
-            assert torch.allclose(x_g, x_g_hat), f"Gradient check failed for size {size}"
+            assert torch.allclose(x_g, x_g_hat), f"Gradient check failed for size {size} -- {_plot_diff(x_g, x_g_hat)}"
         except torch.AcceleratorError as e:
             print(f"Size {size} failed due to CUDA error: {e}")
             raise e
