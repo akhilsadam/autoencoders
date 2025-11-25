@@ -9,7 +9,7 @@ using namespace kittens;
 
 template<typename DataLayout, typename TileType>
 static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
-    reg_tile_dt<TileType> WARP_y, WARP_x; // register tiles
+    reg_tile_ft<TileType> WARP_y, WARP_x; // register tiles
     
     for(int32_t channel = 0; channel < g.channels(); channel++) {
         load(WARP_x, g.x, {g.batch(), channel, g.warptile_gx(), g.warptile_gy()});
@@ -20,7 +20,7 @@ static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
 
 template<typename DataLayout, typename TileType>
 static __global__ void _relu_bwd_kernel(const __grid_constant__ DataLayout g) {
-    reg_tile_dt<TileType> WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
+    reg_tile_ft<TileType> WARP_grad_y, WARP_y, WARP_grad_x; // register tiles
 
     for(int32_t channel = 0; channel < g.channels(); channel++) {
         load(WARP_grad_y, g.grad_y, {g.batch(), channel, g.warptile_gx(), g.warptile_gy()});
@@ -38,22 +38,22 @@ void run_relu_fwd_kernel(fwd_data g) {
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
-        printf("Layout and Tile are %s and %s\n", typeid(Layout).name(), typeid(Tile).name());
-        printf("Running ReLU forward with tile size %dx%d\n", Tile::B.x, Tile::B.y);
+        // printf("Layout and Tile are %s and %s\n", typeid(Layout).name(), typeid(Tile).name());
+        // printf("Running ReLU forward with tile size %dx%d\n", Tile::B.x, Tile::B.y);
 
-        // show what's inside layout (passes)
-        printf("Layout grid: (%d, %d, %d)\n", layout.grid().x, layout.grid().y, layout.grid().z);
-        printf("Layout block: (%d, %d, %d)\n", layout.block().x, layout.block().y, layout.block().z);
-        printf("Layout mem: %d\n", layout.mem());
+        // // show what's inside layout (passes)
+        // printf("Layout grid: (%d, %d, %d)\n", layout.grid().x, layout.grid().y, layout.grid().z);
+        // printf("Layout block: (%d, %d, %d)\n", layout.block().x, layout.block().y, layout.block().z);
+        // printf("Layout mem: %d\n", layout.mem());
 
-        // print the tensor shapes (passes)
-        printf("g.x shape: (%d, %d, %d, %d)\n", g.x.batch(), g.x.depth(), g.x.rows(), g.x.cols());
-        printf("g.y shape: (%d, %d, %d, %d)\n", g.y.batch(), g.y.depth(), g.y.rows(), g.y.cols());
+        // // print the tensor shapes (passes)
+        // printf("g.x shape: (%d, %d, %d, %d)\n", g.x.batch(), g.x.depth(), g.x.rows(), g.x.cols());
+        // printf("g.y shape: (%d, %d, %d, %d)\n", g.y.batch(), g.y.depth(), g.y.rows(), g.y.cols());
 
-        // now from layout print the tensor shapes (passes as well)
-        printf("layout.x shape: (%d, %d, %d, %d)\n", layout.x.batch(), layout.x.depth(), layout.x.rows(), layout.x.cols());
-        printf("layout.y shape: (%d, %d, %d, %d)\n", layout.y.batch(), layout.y.depth(), layout.y.rows(), layout.y.cols());
-        // printf("layout.ref() shape: (%d, %d, %d, %d)\n", layout.ref().batch(), layout.ref().depth(), layout.ref().rows(), layout.ref().cols());
+        // // now from layout print the tensor shapes (passes as well)
+        // printf("layout.x shape: (%d, %d, %d, %d)\n", layout.x.batch(), layout.x.depth(), layout.x.rows(), layout.x.cols());
+        // printf("layout.y shape: (%d, %d, %d, %d)\n", layout.y.batch(), layout.y.depth(), layout.y.rows(), layout.y.cols());
+        // // printf("layout.ref() shape: (%d, %d, %d, %d)\n", layout.ref().batch(), layout.ref().depth(), layout.ref().rows(), layout.ref().cols());
 
         auto* kernel = _relu_fwd_kernel<Layout, Tile>;
         // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());

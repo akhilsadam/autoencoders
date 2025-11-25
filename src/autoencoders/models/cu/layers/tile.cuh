@@ -38,7 +38,7 @@ using namespace kittens;
 #endif
 
 #ifndef dtype
-#define dtype float
+#define dtype bf16
 // #define dtype bf16
 #endif
 
@@ -150,7 +150,7 @@ struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
 
 // ------------------- Type aliases -------------------
 template<typename TileType>
-using tiled_layout = gl<dtype, G_BATCH, G_CHANNEL,
+using tiled_layout = gl<ftype, G_BATCH, G_CHANNEL,
  TileType::G.y, TileType::G.x,
  st_fl<TileType::B.y, TileType::B.x>>; // bchw layout
 
