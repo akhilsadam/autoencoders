@@ -14,6 +14,10 @@ static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
     for(int32_t chan = 0; chan < g.channels(); chan++) {
         for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) {
             int2 p = g.warptile_gxy(wave);
+            // print wave index
+            if (threadIdx.x == 0) {
+                printf("wave %d: p=(%d, %d)\n", wave, p.x, p.y);
+            }
             load(WARP_x, g.x, {g.batch(), chan, p.x, p.y});
             unary_map<relu_fwd>(WARP_y, WARP_x);
             store(g.y, WARP_y, {g.batch(), chan, p.x, p.y});
