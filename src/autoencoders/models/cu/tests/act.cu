@@ -11,12 +11,20 @@ template<typename DataLayout, typename TileType>
 static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
     reg_tile_ft<TileType> WARP_y, WARP_x; // register tiles
     
+    // Debug: print block info once per block
+    if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) {
+        printf("Block (%d,%d,%d), warp %d, warpwaves=%d\n", 
+               blockIdx.x, blockIdx.y, blockIdx.z, g.warp_id(), DataLayout::warpwaves);
+    }
+    
     for(int32_t chan = 0; chan < g.channels(); chan++) {
         for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) {
             int2 p = g.warptile_gxy(wave);
-            // print wave index
-            if (threadIdx.x == 0) {
-                printf("wave %d: p=(%d, %d)yx\n", wave, p.y, p.x);
+            
+            // Debug: only print for first block, first channel
+            if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0 && chan == 0) {
+                printf("  wave %d: global p=(%d, %d), tile_offset=(%d,%d)\n", 
+                       wave, p.x, p.y, g.tile_x(), g.tile_y());
             }
             load(WARP_x, g.x, {g.batch(), chan, p.y, p.x});
             unary_map<relu_fwd>(WARP_y, WARP_x);

@@ -79,8 +79,6 @@ struct TileBCHW : public TileType {
     
     // Warp-level indices
     __device__ __forceinline__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
-    __device__ __forceinline__ int32_t warp_idx() const { return warp_id() % TileType::warps_x; }
-    __device__ __forceinline__ int32_t warp_idy() const { return warp_id() / TileType::warps_x; }
     static constexpr int32_t warptile_nx = TileType::B.x / TileType::W.x;
     static constexpr int32_t warptile_ny = TileType::B.y / TileType::W.y;
     static constexpr int32_t warptiles = warptile_nx * warptile_ny;
