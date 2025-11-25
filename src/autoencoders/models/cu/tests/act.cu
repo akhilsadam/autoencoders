@@ -27,9 +27,10 @@ static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
                 printf("  wave %d: global p=(%d, %d), tile_offset=(%d,%d)\n", 
                        wave, p.x, p.y, g.tile_x(), g.tile_y());
             }
-            load(WARP_x, g.x, {g.batch(), chan, p.y, p.x});
+            coord<> idx(g.batch(), chan, p.y, p.x);
+            load(WARP_x, g.x, idx);
             // unary_map<relu_fwd>(WARP_y, WARP_x);
-            store(g.y, WARP_x, {g.batch(), chan, p.y, p.x});
+            store(g.y, WARP_x, idx);
             __syncwarp();
         }
     }
@@ -43,10 +44,11 @@ static __global__ void _relu_bwd_kernel(const __grid_constant__ DataLayout g) {
         for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) {
             // if (!g.warptile_active(wave)) { continue; }
             int2 p = g.warptile_gxy(wave);
-            load(WARP_grad_y, g.grad_y, {g.batch(), chan, p.y, p.x});
-            load(WARP_y, g.y, {g.batch(), chan, p.y, p.x});
+            coord<> idx(g.batch(), chan, p.y, p.x);
+            load(WARP_grad_y, g.grad_y, idx);
+            load(WARP_y, g.y, idx);
             bin_map<relu_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
-            store(g.grad_x, WARP_grad_x, {g.batch(), chan, p.y, p.x});
+            store(g.grad_x, WARP_grad_x, idx);
         }
     }
 }
