@@ -1,5 +1,6 @@
 # generate random data for testing cu layers
 import torch
+import numpy as np
 from matplotlib import pyplot as plt
 
 sizes=[
@@ -22,7 +23,7 @@ def get_random_data(batch_size: int, channels: int, height: int, width: int) -> 
 def _plot_diff(true, cu, title="Difference for B0 C0"):
     true = true[0,0].detach().cpu().numpy()
     cu = cu[0,0].detach().cpu().numpy()
-    diff = (true - cu).abs()
+    diff = np.abs((true - cu))
     fig, ax = plt.subplots(3,1, figsize=(6,12))
     
     im = ax[0].imshow(true, cmap='coolwarm')
