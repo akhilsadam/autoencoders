@@ -29,8 +29,8 @@ static __global__ void _relu_fwd_kernel(const __grid_constant__ DataLayout g) {
             }
             coord<> idx(g.batch(), chan, p.y, p.x);
             load(WARP_x, g.x, idx);
-            // unary_map<relu_fwd>(WARP_y, WARP_x);
-            store(g.y, WARP_x, idx);
+            unary_map<relu_fwd>(WARP_y, WARP_x);
+            store(g.y, WARP_y, idx);
             __syncwarp();
         }
     }

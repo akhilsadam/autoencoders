@@ -34,6 +34,6 @@ def _test_relu():
             return _ReLU.apply(x)
 
     from cu.tests import test_layers as tl
-    # tl._check(nn.ReLU(), ReLU())
-    tl._check(nn.Identity(), ReLU())
+    tl._check(nn.ReLU(), ReLU())
+    # tl._check(nn.Identity(), ReLU())
     
