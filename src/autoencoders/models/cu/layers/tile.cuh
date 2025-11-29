@@ -55,9 +55,9 @@ struct TileBCHW : public TileType {
     // equivalently Bzyx for threads
     // and zCyx for blocks
     // and column-major:  BC rows, cols
-    Layout x;
+    Layout x, y;
 
-    TileBCHW(const Layout& x_) : x(x_) {}
+    TileBCHW(const Layout& x_, const Layout& y_) : x(x_), y(y_) {}
 
     // Grid dimensions for kernel launch
     dim3 grid()  { return dim3(tile_nx(), tile_ny(), x.batch()); }
@@ -114,6 +114,42 @@ struct TileBCHW : public TileType {
 
 };
 
+struct CHW{
+    static constexpr int32_t C;
+    static constexpr int32_t By; 
+    static constexpr int32_t Bx;
+    static constexpr int32_t Wx; // from TileType at first
+    static constexpr int32_t Wy;
+
+    // Warp-level indices
+    __device__ __forceinline__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
+    static constexpr int32_t warptile_nx = Bx / Wx;
+    static constexpr int32_t warptile_ny = By / Wy;
+    static constexpr int32_t warptiles = warptile_nx * warptile_ny;
+    static constexpr int32_t warpwaves = (warptiles + NUM_WORKERS - 1) / NUM_WORKERS;
+
+    __device__ __forceinline__ int32_t warptile_linear_id(int32_t wave) const {
+        return wave * NUM_WORKERS + warp_id();
+    }
+
+    __device__ __forceinline__ bool warptile_active(int32_t wave) const {
+        return warptile_linear_id(wave) < warptiles;
+    }
+
+    __device__ __forceinline__ int2 warptile_ixy(int32_t wave) const {
+        int32_t warptile_id = warptile_linear_id(wave);
+        int32_t warptile_ix = warptile_id % warptile_nx; // iterate x (cols) first
+        int32_t warptile_iy = warptile_id / warptile_nx;
+        return make_int2(warptile_ix, warptile_iy);
+    }
+    
+    __device__ __forceinline__ int2 warptile_xy(int32_t wave) const {
+        int2 ij = warptile_ixy(wave);
+        return make_int2(ij.x * Wx,
+                    ij.y * Wy);
+    }
+};
+
 // blank fwd, bwd data structures
 // struct base_layout {
 //     torch::Tensor tensor;
@@ -132,10 +168,15 @@ using base_layout_ = gl<ftype, -1, -1, -1, -1, st_fl<64, 64>>;
 struct fwd_data
 {
     base_layout_ x, y;
+    uint64_t mem_ptr = 0; // optional pointer for weights
+    // if single operation, use as FWD
+    // if megakernel, use for inference
 };
 struct bwd_data
 {
     base_layout_ grad_y, y, grad_x, x;
+    uint64_t mem_ptr = 0; // optional pointer for weights
+    // if single operation, use as BWD
 };
 
 // now for backward facing stuff
@@ -154,20 +195,17 @@ __host__ L LYC(BL base) {
 
 template<typename Layout, typename TileType>
 struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
-    Layout y;
     _BCHW_fwd(const fwd_data& g):
-        TileBCHW<Layout, TileType>(LYC<Layout>(g.x)),
-        y(LYC<Layout>(g.y))
+        TileBCHW<Layout, TileType>(LYC<Layout>(g.x), LYC<Layout>(g.y)),
     {}
 };
 
 template<typename Layout, typename TileType>
 struct _BCHW_bwd : public TileBCHW<Layout, TileType> {
-    Layout grad_y, y, grad_x;
+    Layout grad_y, grad_x;
     _BCHW_bwd(const bwd_data& g):
-        TileBCHW<Layout, TileType>(LYC<Layout>(g.x)),
+        TileBCHW<Layout, TileType>(LYC<Layout>(g.x), LYC<Layout>(g.y)),
         grad_y(LYC<Layout>(g.grad_y)),
-             y(LYC<Layout>(g.y)),
         grad_x(LYC<Layout>(g.grad_x))
     {}
 };
@@ -183,6 +221,12 @@ using reg_tile_ft = rt<ftype, TileType::W.y, TileType::W.x>;
 
 template<typename TileType>
 using reg_tile_dt = rt<dtype, TileType::W.y, TileType::W.x>;
+
+template<typename CHW>
+using reg_wtile_ft = rt<ftype, CHW::Wy, CHW::Wx>;
+
+template<typename CHW>
+using reg_wtile_dt = rt<dtype, CHW::Wy, CHW::Wx>;
 
 template<typename TileType>
 using BCHW_fwd = _BCHW_fwd<tiled_layout<TileType>, TileType>;
