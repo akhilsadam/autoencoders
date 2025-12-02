@@ -21,17 +21,11 @@ struct weights
 };
 
 struct fwd_weights : fwd_data {
-    using fwd_data::x;
-    using fwd_data::y;
     A_layout A;
     b_layout b;
 };
 
 struct bwd_weights : bwd_data {
-    using bwd_data::grad_y;
-    using bwd_data::y;
-    using bwd_data::grad_x;
-    using bwd_data::x;
     A_layout A;
     b_layout b;
 };
@@ -71,7 +65,7 @@ static __global__ void _linear_bwd_kernel(const __grid_constant__ DataLayout g, 
 }
 
 void run_linear_fwd_kernel(fwd_weights g) {
-    layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd, fwd_weights>(g);
+    layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd, fwd_data>(static_cast<fwd_data>(g));
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
@@ -82,7 +76,7 @@ void run_linear_fwd_kernel(fwd_weights g) {
     }, layout);
 }
 void run_linear_bwd_kernel(bwd_weights g) {
-    layout_variant<BCHW_bwd> layout = create_layout<BCHW_bwd, bwd_weights>(g);
+    layout_variant<BCHW_bwd> layout = create_layout<BCHW_bwd, bwd_data>(static_cast<bwd_data>(g));
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
