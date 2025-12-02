@@ -30,7 +30,7 @@ static __global__ void _linear_fwd_kernel(const __grid_constant__ DataLayout g, 
             coord<> idx(g.batch(), chan, p.y, p.x);
 
             load(WARP_x, g.x, idx);
-            unary_map<linear_fwd>(WARP_y, WARP_x);
+            unary_map<relu_fwd>(WARP_y, WARP_x);
             store(g.y, WARP_y, idx);
         }
     }
@@ -47,7 +47,7 @@ static __global__ void _linear_bwd_kernel(const __grid_constant__ DataLayout g, 
 
             load(WARP_grad_y, g.grad_y, idx);
             load(WARP_y, g.y, idx);
-            bin_map<linear_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
+            bin_map<relu_bwd>(WARP_grad_x, WARP_grad_y, WARP_y);
             store(g.grad_x, WARP_grad_x, idx);
         }
     }
