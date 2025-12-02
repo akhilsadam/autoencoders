@@ -1,29 +1,28 @@
 #include "tile.cuh"
 
-
-struct train_data {
-    base_layout_ y, x;
-    uint64_t iterations = 100;
-} 
-
 template<int By, int Bx>
 using shmem = st<ftype, By, Bx>;
 
-template<CHW IN, class Transform, class Opt>
+template<HW IN, class Transform, class Opt>
 struct module {
     // BCHW 
-    static constexpr CHW OUT = Transform::apply(IN);
-    shmem<IN.By, IN.Bx> x[IN.C];
-    shmem<OUT.By, OUT.Bx> y[OUT.C];
-    shmem<OUT.By, OUT.Bx> grad_y[OUT.C];
-    shmem<IN.By, IN.Bx> grad_x[IN.C];
+    static constexpr HW OUT = Transform::apply(IN);
+    int32_t in_chan;
+    int32_t out_chan;
+    float chan_factor = 1.0f;
+    shmem<IN.By, IN.Bx>* x;
+    shmem<OUT.By, OUT.Bx>* y;
+    shmem<OUT.By, OUT.Bx>* grad_y;
+    shmem<IN.By, IN.Bx>* grad_x;
 
     // some unknown parameters in templated classes
     /// TODO fix xy pointers in list below and concurrently only allocate
     /// the intermediate xy (since y of one module is x of next)
     /// and grad_x, grad_y similarly
 
-    __device__ __forceinline__ uint64_t eval(shared_allocator al, const uint64_t x_ptr) {
+    __device__ __forceinline__ uint64_t eval(shared_allocator al, const int32_t _in_chan, const uint64_t x_ptr) {
+        in_chan = _in_chan;
+        out_chan = static_cast<int32_t>(in_chan * chan_factor + 0.1f); // round to nearest int
         // allocate
         if (x_ptr != 0) 
         {
@@ -31,23 +30,23 @@ struct module {
         }
         else
         {
-            auto* x = al.allocate<shmem<IN.By, IN.Bx>>(IN.C);
+            x = al.allocate<shmem<IN.By, IN.Bx>>(in_chan);
         }
-        auto* y = al.allocate<shmem<OUT.By, OUT.Bx>>(OUT.C);
+        y = al.allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
         return reinterpret_cast<uint64_t>(y);
     }
 
     __device__ __forceinline__ uint64_t train(shared_allocator al, const uint64_t grad_y_ptr) {
         // allocate
-        if const (grad_y_ptr != 0) 
+        if (grad_y_ptr != 0) 
         {
             grad_y = reinterpret_cast<shmem<OUT.By, OUT.Bx>*>(grad_y_ptr);
         }
         else
         {
-            auto* grad_y = al.allocate<shmem<OUT.By, OUT.Bx>>(OUT.C);
+            grad_y = al.allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
         }
-        auto* grad_x = al.allocate<shmem<IN.By, IN.Bx>>(IN.C);
+        grad_x = al.allocate<shmem<IN.By, IN.Bx>>(in_chan);
         return reinterpret_cast<uint64_t>(grad_x);
     }
     
@@ -56,7 +55,7 @@ struct module {
         // and initialize in shared memory
     }
 
-    virtual static constexpr size_t weight_bytes() {
+    virtual static size_t weight_bytes() {
         // // Example -- replace with real layer parameters
         // return OUT.C * IN.C * sizeof(ftype);
     }
@@ -69,37 +68,38 @@ struct module {
         // save weights from shared memory to global memory
     }
 
-    virtual __device__ __forceinline__ void fwd() {
+    virtual __device__ __forceinline__ void fwd(int32_t batch) {
         // run forward pass
     }
     
-    virtual __device__ __forceinline__ void bwd() {
+    virtual __device__ __forceinline__ void bwd(int32_t batch) {
         // run backward pass
     }
 
 }
 
-template <template<CHW, class> class ModuleType, class Transform, class Opt>
+template <template<HW, class> class ModuleType, class Transform>
 struct ModuleSpec {
-    template<CHW IN>
+    template<HW IN, class Opt>
     using type = ModuleType<IN, Transform, Opt>;
 };
 
-template<CHW IN, class ModuleSpec, class... Rest>
+// size, optimizer, chained modules
+template<HW IN, class Opt, class ModuleSpec, class... Rest>
 struct module_chain {
     // Instantiate the actual module using its internal transform
     // and then recursively instantiate the next module in the chain
-    using CurrentModule = typename ModuleSpec::template type<IN>;
+    using CurrentModule = typename ModuleSpec::template type<IN, Opt>;
     CurrentModule current;
     static constexpr CHW NextIN = CurrentModule::OUT;
-    module_chain<NextIN, Rest...> next;
+    module_chain<NextIN, Opt, Rest...> next;
 
     // for the first and last modules, handle input/output pointers
 
     // iterate forward through the chain for y_ptr
-    __device__ inline uint64_t eval(shared_allocator al, const uint64_t x_ptr = 0) {
-        auto* next_x_ptr = current.eval(al, x_ptr);
-        return next.eval(al, next_x_ptr);
+    __device__ inline uint64_t eval(shared_allocator al, const uint32_t in_chan, const uint64_t x_ptr = 0) {
+        auto* next_x_ptr = current.eval(al, in_chan, x_ptr);
+        return next.eval(al, current.out_chan, next_x_ptr);
     }
 
     // iterate backward through the chain for grad_x_ptr
@@ -124,18 +124,18 @@ struct module_chain {
         next._save_weights(mem_ptr + CurrentModule::weight_bytes());
     }
 
-    __device__ inline void fwd() {
-        current.fwd();
-        next.fwd();
+    __device__ inline void fwd(int32_t batch) {
+        current.fwd(batch);
+        next.fwd(batch);
     }
 
-    __device__ inline void bwd() {
-        next.bwd();
-        current.bwd();
+    __device__ inline void bwd(int32_t batch) {
+        next.bwd(batch);
+        current.bwd(batch);
     }
 
-    static constexpr size_t total_weight_bytes() {
-        if constexpr (sizeof...(Rest) == 0)
+    static size_t total_weight_bytes() {
+        if (sizeof...(Rest) == 0)
             return curr_w_bytes;
         else
             return curr_w_bytes + module_chain<NextIN, Rest...>::total_weight_bytes();

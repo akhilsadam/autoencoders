@@ -17,8 +17,9 @@ struct mse_bwd {
     }
 };
 
-template<CHW Layout>
+template<HW Layout>
 __device__ __forceinline__ void MSE(
+    int32_t channels,
     int32_t batch,
     const shmem<Layout.By, Layout.Bx>* y_hat,
     const shmem<Layout.By, Layout.Bx>* y,
@@ -28,7 +29,7 @@ __device__ __forceinline__ void MSE(
 
     reg_wtile_ft<Layout> WARP_y, WARP_y_hat, WARP_grad_y; // register tiles
     
-    for(int32_t chan = 0; chan < Layout.C; chan++) {
+    for(int32_t chan = 0; chan < channels; chan++) {
         for (int32_t wave = 0; wave < Layout.warpwaves; wave++) {
 
             int2 p = Layout.warptile_xy(wave);

@@ -114,12 +114,12 @@ struct TileBCHW : public TileType {
 
 };
 
-struct CHW{
-    static constexpr int32_t C;
-    static constexpr int32_t By; 
-    static constexpr int32_t Bx;
-    static constexpr int32_t Wx; // from TileType at first
-    static constexpr int32_t Wy;
+template<int32_t _By, int32_t _Bx, int32_t _Wy, int32_t _Wx>
+struct HW{
+    static constexpr int32_t By = _By; 
+    static constexpr int32_t Bx = _Bx;
+    static constexpr int32_t Wy = _Wy;
+    static constexpr int32_t Wx = _Wx;
 
     // Warp-level indices
     __device__ __forceinline__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
@@ -168,16 +168,17 @@ using base_layout_ = gl<ftype, -1, -1, -1, -1, st_fl<64, 64>>;
 struct fwd_data
 {
     base_layout_ x, y;
-    uint64_t mem_ptr = 0; // optional pointer for weights
-    // if single operation, use as FWD
-    // if megakernel, use for inference
 };
 struct bwd_data
 {
     base_layout_ grad_y, y, grad_x, x;
-    uint64_t mem_ptr = 0; // optional pointer for weights
-    // if single operation, use as BWD
 };
+
+struct train_data {
+    base_layout_ y, x;
+    uint64_t weight_mem_ptr = 0;
+    uint64_t iterations = 100;
+} 
 
 // now for backward facing stuff
 
@@ -197,6 +198,18 @@ template<typename Layout, typename TileType>
 struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     _BCHW_fwd(const fwd_data& g):
         TileBCHW<Layout, TileType>(LYC<Layout>(g.x), LYC<Layout>(g.y)),
+    {}
+};
+
+template<typename Layout, typename TileType>
+struct _BCHW_train : public TileBCHW<Layout, TileType> {
+    uint64_t weight_mem_ptr;
+    uint64_t iterations;
+
+    _BCHW_train(const train_data& g):
+        TileBCHW<Layout, TileType>(LYC<Layout>(g.x), LYC<Layout>(g.y)),
+        weight_mem_ptr(g.weight_mem_ptr),
+        iterations(g.iterations)
     {}
 };
 
@@ -222,17 +235,20 @@ using reg_tile_ft = rt<ftype, TileType::W.y, TileType::W.x>;
 template<typename TileType>
 using reg_tile_dt = rt<dtype, TileType::W.y, TileType::W.x>;
 
-template<typename CHW>
-using reg_wtile_ft = rt<ftype, CHW::Wy, CHW::Wx>;
+template<typename HW>
+using reg_wtile_ft = rt<ftype, HW::Wy, HW::Wx>;
 
-template<typename CHW>
-using reg_wtile_dt = rt<dtype, CHW::Wy, CHW::Wx>;
+template<typename HW>
+using reg_wtile_dt = rt<dtype, HW::Wy, HW::Wx>;
 
 template<typename TileType>
 using BCHW_fwd = _BCHW_fwd<tiled_layout<TileType>, TileType>;
 
 template<typename TileType>
 using BCHW_bwd = _BCHW_bwd<tiled_layout<TileType>, TileType>;
+
+template<typename TileType>
+using BCHW_train = _BCHW_train<tiled_layout<TileType>, TileType>;
 
 using Tile28 = Tile<-1, -1, 32, 32, 16, 16>;
 using Tile64 = Tile<-1, -1, 64, 64, 16, 16>;
@@ -252,6 +268,19 @@ using layout_variant = std::variant<
     DataLayout<Tile64>,
     DataLayout<Tile128>
 >;
+
+template<template<class> class DataLayout, typename Data>
+__host__ layout_variant<DataLayout> create_layout(Data g) {
+    auto tile_idx = TileIndex(g);
+    switch (tile_idx) {
+        case 0: return DataLayout<Tile28>(g);
+        case 1: return DataLayout<Tile64>(g);
+        case 2: return DataLayout<Tile128>(g);
+        default:
+            throw std::runtime_error("Unsupported tile size");
+    }
+}
+
 
 template<template<class> class DataLayout, typename Data>
 __host__ layout_variant<DataLayout> create_layout(Data g) {
