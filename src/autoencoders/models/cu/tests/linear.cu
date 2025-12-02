@@ -20,12 +20,14 @@ struct weights
     b_layout b;
 };
 
-struct fwd_weights : fwd_data {
+struct fwd_weights {
+    base_layout_ x, y;
     A_layout A;
     b_layout b;
 };
 
-struct bwd_weights : bwd_data {
+struct bwd_weights {
+    base_layout_ x, y, grad_x, grad_y;
     A_layout A;
     b_layout b;
 };
@@ -64,24 +66,28 @@ static __global__ void _linear_bwd_kernel(const __grid_constant__ DataLayout g, 
     }
 }
 
-void run_linear_fwd_kernel(fwd_weights g) {
-    layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd, fwd_data>(static_cast<fwd_data>(g));
+void run_linear_fwd_kernel(fwd_weights gw) {
+    fwd_data g{gw.x, gw.y};
+    weights w{gw.A, gw.b};
+
+    layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd, fwd_data>(g);
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
         auto* kernel = _linear_fwd_kernel<Layout, Tile>;
-        weights w{g.A, g.b};
         // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
         kernel<<<layout.grid(), layout.block()>>>(layout, w);
     }, layout);
 }
-void run_linear_bwd_kernel(bwd_weights g) {
-    layout_variant<BCHW_bwd> layout = create_layout<BCHW_bwd, bwd_data>(static_cast<bwd_data>(g));
+void run_linear_bwd_kernel(bwd_weights gw) {
+    bwd_data g{gw.x, gw.y, gw.grad_x, gw.grad_y};
+    weights w{gw.A, gw.b};
+
+    layout_variant<BCHW_bwd> layout = create_layout<BCHW_bwd, bwd_data>(g);
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
         auto* kernel = _linear_bwd_kernel<Layout, Tile>;
-        weights w{g.A, g.b};
         // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
         kernel<<<layout.grid(), layout.block()>>>(layout, w);
     }, layout);
