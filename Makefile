@@ -68,7 +68,7 @@ stest-cu-single:
 	source ${INSTALL}/module.sh && \
 	source "$(VENV)/bin/activate" && \
 	cd src/autoencoders/models/cu && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m pytest -s -v tests/${TEST}
+	HYDRA_FULL_ERROR=1 ../../../../$(PYTHON) -m pytest -s -v tests/${TEST}
 
 strain:
 	source ${INSTALL}/module.sh && $(MAKE) train
