@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from matplotlib import pyplot as plt
 
-sizes=[
+_sizes=[
     (1, 1, 64, 64),
     (32, 3, 64, 64),
     (4, 3, 128, 128),
@@ -44,7 +44,7 @@ def _plot_diff(true, cu, title="Difference for B0 C0"):
     plt.close()
     return "See diff.png for difference heatmap"
 
-def _check(true_func, cu_func):
+def _check(true_func, cu_func, sizes=_sizes):
     for size in sizes:
         x = get_random_data(*size)
         x.requires_grad_()
