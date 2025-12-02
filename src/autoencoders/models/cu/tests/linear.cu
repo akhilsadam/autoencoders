@@ -11,13 +11,13 @@ using namespace kittens;
 #define out_chan 32
 
 
-using A_layout = gl<ftype, 1, 1, out_chan, in_chan>;
-using b_layout = gl<ftype, 1, 1, 1, out_chan>;
+using A_layout = gl<ftype, 1, 1, out_chan, in_chan, st_fl<64, 64>>;
+using b_layout = gl<ftype, 1, 1, 1, out_chan, st_fl<64, 64>>;
 
 struct weights{
     A_layout A;
     b_layout b;
-}
+};
 
 template<typename DataLayout, typename TileType>
 static __global__ void _linear_fwd_kernel(const __grid_constant__ DataLayout g, const weights w) {
