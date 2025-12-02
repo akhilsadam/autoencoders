@@ -14,7 +14,18 @@ using namespace kittens;
 using A_layout = gl<ftype, 1, 1, out_chan, in_chan, st_fl<64, 64>>;
 using b_layout = gl<ftype, 1, 1, 1, out_chan, st_fl<64, 64>>;
 
-struct weights{
+struct weights
+{
+    A_layout A;
+    b_layout b;
+};
+
+struct fwd_weights : fwd_data {
+    A_layout A;
+    b_layout b;
+};
+
+struct bwd_weights : bwd_data {
     A_layout A;
     b_layout b;
 };
@@ -53,22 +64,24 @@ static __global__ void _linear_bwd_kernel(const __grid_constant__ DataLayout g, 
     }
 }
 
-void run_linear_fwd_kernel(fwd_data g, weights w) {
-    layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd, fwd_data>(g);
+void run_linear_fwd_kernel(fwd_weights g) {
+    layout_variant<BCHW_fwd> layout = create_layout<BCHW_fwd, fwd_weights>(g);
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
         auto* kernel = _linear_fwd_kernel<Layout, Tile>;
+        weights w{g.A, g.b};
         // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
         kernel<<<layout.grid(), layout.block()>>>(layout, w);
     }, layout);
 }
-void run_linear_bwd_kernel(bwd_data g, weights w) {
-    layout_variant<BCHW_bwd> layout = create_layout<BCHW_bwd>(g);
+void run_linear_bwd_kernel(bwd_weights g) {
+    layout_variant<BCHW_bwd> layout = create_layout<BCHW_bwd, bwd_weights>(g);
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
         auto* kernel = _linear_bwd_kernel<Layout, Tile>;
+        weights w{g.A, g.b};
         // cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
         kernel<<<layout.grid(), layout.block()>>>(layout, w);
     }, layout);
@@ -76,7 +89,7 @@ void run_linear_bwd_kernel(bwd_data g, weights w) {
 
 PYBIND11_MODULE(linear, m) {
     m.doc() = "linear functions python module";
-    py::bind_function<run_linear_fwd_kernel>(m, "linear_fwd", &fwd_data::x, &fwd_data::y, &weights::A, &weights::b);
-    py::bind_function<run_linear_bwd_kernel>(m, "linear_bwd", &bwd_data::grad_y, &bwd_data::y, &bwd_data::grad_x, &bwd_data::x, &weights::A, &weights::b);
+    py::bind_function<run_linear_fwd_kernel>(m, "linear_fwd", &fwd_weights::x, &fwd_weights::y, &fwd_weights::A, &fwd_weights::b);
+    py::bind_function<run_linear_bwd_kernel>(m, "linear_bwd", &bwd_weights::grad_y, &bwd_weights::y, &bwd_weights::grad_x, &bwd_weights::x, &bwd_weights::A, &bwd_weights::b);
     // no need for x since linear is stateless
 }
