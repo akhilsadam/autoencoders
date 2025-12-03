@@ -57,8 +57,8 @@ def _test_conv():
     test_f = Conv()
     
     tl._check(
-        lambda x: tl_f(x, W, stride=1, padding=0),
-        lambda x: test_f(x, W, stride=1, padding=0))
+        lambda x: tl_f(x, W, 1, 0),
+        lambda x: test_f(x, W, 1, 0))
     
     # tl._check(
     #     lambda x: tl_f(x, W, stride=2, padding=0),
