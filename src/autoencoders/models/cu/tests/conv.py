@@ -39,7 +39,7 @@ def _test_conv():
                 torch.nn.functional.conv2d(xs[:,i:i+1], w[None, i:i+1], bias=None, stride=stride, padding=(2,2))
                 for i in range(xs.shape[1])
                 ]
-            return torch.stack(cs, dim=1)
+            return torch.cat(cs, dim=1)
         
     from cu.tests import test_layers as tl
     
