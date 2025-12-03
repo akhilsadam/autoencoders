@@ -178,7 +178,7 @@ struct train_data {
     base_layout_ y, x;
     uint64_t weight_mem_ptr = 0;
     uint64_t iterations = 100;
-} 
+};
 
 // now for backward facing stuff
 
