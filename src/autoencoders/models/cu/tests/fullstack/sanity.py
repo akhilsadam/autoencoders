@@ -4,36 +4,23 @@ from torch import nn
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
-# from cu.compile import compile
-# activations = compile(
-#     kernel=os.path.join(os.path.dirname(__file__), "act.cu"),
-# )
-# ##
-# # compiled?
-# print("Activations compiled:", activations is not None)
+from cu.compile import compile
+nn_sanity = compile(
+    kernel=os.path.join(os.path.dirname(__file__), "sanity.cu"),
+)
+##
+# compiled?
+print("Network compiled:", nn_sanity is not None)
 
-# def _test_conv2d():
-#     class _Conv2D(torch.autograd.Function):
-#         @staticmethod
-#         def forward(ctx, x):
-#             y = torch.empty_like(x)
-#             activations.Conv2D_fwd(x, y)
-#             ctx.save_for_backward(y)
-#             return y
-
-#         @staticmethod
-#         def backward(ctx, grad_y):
-#             y, = ctx.saved_tensors
-#             grad_x = torch.empty_like(grad_y)
-#             # placeholder for x argument
-#             activations.Conv2D_bwd(grad_y, y, grad_x, y)
-#             return grad_x
+def _test_nn_sanity():
+        # return nn.train
         
-#     class Conv2D(nn.Module):
-#         def forward(self, x):
-#             return _Conv2D.apply(x)
+    x = torch.randn(10, 3, 32, 32).cuda()
+    y = x * 2.78
+        
+    nn_sanity.train(x, y)
 
-#     from cu.tests import test_layers as tl
-#     tl._check(nn.Conv2D(), Conv2D())
-#     # tl._check(nn.Identity(), Conv2D())
+    # from cu.tests import test_layers as tl
+    # tl._check(nn.nn_sanity(), nn_sanity())
+    # # tl._check(nn.Identity(), nn_sanity())
     

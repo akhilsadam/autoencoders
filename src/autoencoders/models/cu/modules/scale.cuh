@@ -22,8 +22,8 @@ struct scale_module : public module<IN, Transform, Opt> {
     void init_weights(shared_allocator al) {
         w = al.allocate<shmem<1,1>>(1);
         grad_w = al.allocate<shmem<1,1>>(1);
-        w.at(0,0) = 1.0f;  // initialize weight to 1.0
-        grad_w.at(0,0) = 0.0f;
+        w[0].at(0,0) = 1.0f;  // initialize weight to 1.0
+        grad_w[0].at(0,0) = 0.0f;
     }
 
     static constexpr size_t weight_bytes() { return sizeof(ftype); }
@@ -51,7 +51,7 @@ struct scale_module : public module<IN, Transform, Opt> {
 
                 #pragma unroll
                 for (int i = 0; i < X.num_elems; i++)
-                    Y.data[i] = X.data[i] * (*w);
+                    Y.data[i] = X.data[i] * w[0].at(0,0);
 
                 store(y, Y, idx);
             }
@@ -75,7 +75,7 @@ struct scale_module : public module<IN, Transform, Opt> {
 
                 #pragma unroll
                 for (int i=0;i<X.num_elems;i++) {
-                    GX.data[i] = GY.data[i] * (*w);
+                    GX.data[i] = GY.data[i] * w[0].at(0,0);
                     local_grad_w += GY.data[i] * X.data[i];
                 }
 
@@ -83,11 +83,14 @@ struct scale_module : public module<IN, Transform, Opt> {
             }
         }
 
-        atomicAdd(grad_w, local_grad_w);  // should do parallel scan over warps
+        atomicAdd(grad_w[0].at(0,0), local_grad_w);  // should do parallel scan over warps
 
-        // Apply SGD update
-        *w = Opt::update(*w, *grad_w);
-        *grad_w = 0.0f;
+        // Apply SGD update only if we are the first thread
+        if (threadIdx.x == 0)
+        {
+            w[0].at(0,0) = Opt::update(w[0].at(0,0), grad_w[0].at(0,0));
+            grad_w[0].at(0,0) = 0.0f;
+        }
     }
 };
 

@@ -82,8 +82,8 @@ void train_kernel(train_data g) {
 }
 
 
-PYBIND11_MODULE(act, m) {
-    m.doc() = "activation functions python module";
+PYBIND11_MODULE(sanity, m) {
+    m.doc() = "nn test python module";
     // py::bind_function<eval_kernel>(m, "eval", &fwd_data::x, &fwd_data::y, &fwd_data::mem_ptr);
     py::bind_function<train_kernel>(m, "train", &train_data::x, &train_data::y);
 }
