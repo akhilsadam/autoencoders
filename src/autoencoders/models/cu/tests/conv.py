@@ -15,18 +15,18 @@ print("Activations compiled:", activations is not None)
 def _test_conv():
     class _Conv(torch.autograd.Function):
         @staticmethod
-        def forward(ctx, x, W):
+        def forward(ctx, x, W, s, p):
             y = torch.empty_like(x)
-            activations.conv_fwd(x, y, W)
+            activations.conv_fwd(x, y, W, s, p)
             ctx.save_for_backward(y)
             return y
 
         @staticmethod
-        def backward(ctx, grad_y, W):
+        def backward(ctx, grad_y, W, s, p):
             y, = ctx.saved_tensors
             grad_x = torch.empty_like(grad_y)
             # placeholder for x argument
-            activations.conv_bwd(grad_y, y, grad_x, y, W)
+            activations.conv_bwd(grad_y, y, grad_x, y, W, s, p)
             return grad_x
         
     class Conv(nn.Module):
@@ -36,8 +36,9 @@ def _test_conv():
     class TorchConv(nn.Module):
         def forward(self, xs, w, stride, padding):
             cs = [
-                torch.nn.functional.conv2d(xs[:,i], w, bias=None, stride=stride, padding=padding)
-                for i in range(xs.shape[1])]
+                torch.nn.functional.conv2d(xs[:,i:i+1], w, bias=None, stride=stride, padding=padding)
+                for i in range(xs.shape[1])
+                ]
             return torch.stack(cs, dim=1)
         
     from cu.tests import test_layers as tl
@@ -58,6 +59,7 @@ def _test_conv():
     tl._check(
         lambda x: tl_f(x, W, stride=1, padding=0),
         lambda x: test_f(x, W, stride=1, padding=0))
+    
     # tl._check(
     #     lambda x: tl_f(x, W, stride=2, padding=0),
     #     lambda x: test_f(x, W, stride=2, padding=0))
