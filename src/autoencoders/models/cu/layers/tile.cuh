@@ -281,17 +281,3 @@ __host__ layout_variant<DataLayout> create_layout(Data g) {
     }
 }
 
-
-template<template<class> class DataLayout, typename Data>
-__host__ layout_variant<DataLayout> create_layout(Data g) {
-    auto tile_idx = TileIndex(g);
-    switch (tile_idx) {
-        case 0: return DataLayout<Tile28>(g);
-        case 1: return DataLayout<Tile64>(g);
-        case 2: return DataLayout<Tile128>(g);
-        default:
-            throw std::runtime_error("Unsupported tile size");
-    }
-}
-
-
