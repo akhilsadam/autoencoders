@@ -8,8 +8,7 @@ struct relu_fwd {
     __device__ __forceinline__ static T op(const T& x) {
         return x > T(0) ? x : T(0);
     }
-}
-
+};
 
 struct relu_bwd {
     template<typename T>
