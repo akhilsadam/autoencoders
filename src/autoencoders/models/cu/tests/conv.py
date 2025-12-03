@@ -36,7 +36,7 @@ def _test_conv():
     class TorchConv(nn.Module):
         def forward(self, xs, w, stride, padding):
             cs = [
-                torch.nn.functional.conv2d(xs[:,i:i+1], w[None, i:i+1], bias=None, stride=stride, padding='same', padding_mode='zeros')
+                torch.nn.functional.conv2d(xs[:,i:i+1], w[None, i:i+1], bias=None, stride=stride, padding=(2,2))
                 for i in range(xs.shape[1])
                 ]
             return torch.stack(cs, dim=1)
