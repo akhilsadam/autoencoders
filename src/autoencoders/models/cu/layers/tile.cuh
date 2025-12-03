@@ -197,7 +197,7 @@ __host__ L LYC(BL base) {
 template<typename Layout, typename TileType>
 struct _BCHW_fwd : public TileBCHW<Layout, TileType> {
     _BCHW_fwd(const fwd_data& g):
-        TileBCHW<Layout, TileType>(LYC<Layout>(g.x), LYC<Layout>(g.y)),
+        TileBCHW<Layout, TileType>(LYC<Layout>(g.x), LYC<Layout>(g.y))
     {}
 };
 
