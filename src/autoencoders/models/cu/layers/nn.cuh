@@ -84,7 +84,7 @@ struct module {
 
 };
 
-template <template<HW, class> class ModuleType, class Transform>
+template <template<HW, class, class> class ModuleType, class Transform>
 struct ModuleSpec {
     template<HW IN, class Opt>
     using type = ModuleType<IN, Transform, Opt>;
