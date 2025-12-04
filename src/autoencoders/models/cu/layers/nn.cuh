@@ -142,9 +142,9 @@ struct module_chain {
 
     static size_t total_weight_bytes() {
         if (sizeof...(Rest) == 0)
-            return current.weight_bytes;
+            return CurrentModule::weight_bytes;
         else
-            return current.weight_bytes + module_chain<NextIN, Rest...>::total_weight_bytes();
+            return CurrentModule::weight_bytes + module_chain<NextIN, Rest...>::total_weight_bytes();
     }
 
 };
