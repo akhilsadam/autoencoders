@@ -34,9 +34,9 @@ struct module {
         }
         else
         {
-            x = al.allocate<shmem<IN.By, IN.Bx>>(in_chan);
+            x = al.template allocate<shmem<IN.By, IN.Bx>>(in_chan);
         }
-        y = al.allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
+        y = al.template allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
         return reinterpret_cast<uint64_t>(y);
     }
 
@@ -49,14 +49,14 @@ struct module {
         }
         else
         {
-            grad_y = al.allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
+            grad_y = al.template allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
         }
-        grad_x = al.allocate<shmem<IN.By, IN.Bx>>(in_chan);
+        grad_x = al.template allocate<shmem<IN.By, IN.Bx>>(in_chan);
         return reinterpret_cast<uint64_t>(grad_x);
     }
     
     template <typename T>
-    virtual __device__ __forceinline__ void init_weights(T& al) {
+    __device__ __forceinline__ void init_weights(T& al) {
         // allocate weights if any
         // and initialize in shared memory
     }
