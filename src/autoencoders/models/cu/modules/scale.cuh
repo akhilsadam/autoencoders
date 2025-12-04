@@ -4,13 +4,13 @@ using namespace kittens;
 #include "nn.cuh"
 
 struct IdentityTransform {
-    template<CHW IN>
-    static constexpr CHW apply(IN) {
+    template<HW IN>
+    static constexpr HW apply(IN) {
         return IN;
     }
 };
 
-template<CHW IN, class Transform, class Opt>
+template<HW IN, class Transform, class Opt>
 struct scale_module : public module<IN, Transform, Opt> {
    
     // one shared weight
@@ -26,7 +26,7 @@ struct scale_module : public module<IN, Transform, Opt> {
         grad_w[0].at(0,0) = 0.0f;
     }
 
-    static constexpr size_t weight_bytes() { return sizeof(ftype); }
+    constexpr size_t weight_bytes = sizeof(ftype);
 
     virtual __device__ __forceinline__
     void load_weights(uint64_t mem_ptr) {

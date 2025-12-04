@@ -55,7 +55,7 @@ struct module {
         // and initialize in shared memory
     }
 
-    virtual static size_t weight_bytes() {
+    virtual size_t weight_bytes() {
         // // Example -- replace with real layer parameters
         // return OUT.C * IN.C * sizeof(ftype);
     }
@@ -91,7 +91,7 @@ struct module_chain {
     // and then recursively instantiate the next module in the chain
     using CurrentModule = typename ModuleSpec::template type<IN, Opt>;
     CurrentModule current;
-    static constexpr CHW NextIN = CurrentModule::OUT;
+    static constexpr HW NextIN = CurrentModule::OUT;
     module_chain<NextIN, Opt, Rest...> next;
 
     // for the first and last modules, handle input/output pointers

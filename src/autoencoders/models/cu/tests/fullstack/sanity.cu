@@ -3,67 +3,66 @@
 using namespace kittens;
 
 // from layers
-#include "tile.cuh"
 #include "nn.cuh"
-#include "loss.cuh"
-#include "opt.cuh"
+// #include "loss.cuh"
+// #include "opt.cuh"
 
-template<HW L>
-using Net = module_chain<L, SGD, ScaleModule>;
+// template<HW L>
+// using Net = module_chain<L, SGD, ScaleModule>;
 
 template<typename DataLayout, typename TileType, HW L>
 static __global__ void train_kernel(const DataLayout data)
 {
-    extern __shared__ alignment_dummy __shm[]; 
-    shared_allocator al((int*)&__shm[0]);
-    Net<L> net;
+    // extern __shared__ alignment_dummy __shm[]; 
+    // shared_allocator al((int*)&__shm[0]);
+    // Net<L> net;
 
-    // allocate memory
-    using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
-    shmem_tile* x_ptr = al.allocate<shmem_tile>(data.x.channels());
-    shmem_tile* y_ptr = al.allocate<shmem_tile>(data.x.channels());
-    shmem_tile* grad_y_ptr = al.allocate<shmem_tile>(data.x.channels());
+    // // allocate memory
+    // using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
+    // shmem_tile* x_ptr = al.allocate<shmem_tile>(data.x.channels());
+    // shmem_tile* y_ptr = al.allocate<shmem_tile>(data.x.channels());
+    // shmem_tile* grad_y_ptr = al.allocate<shmem_tile>(data.x.channels());
 
-    shmem_tile* y_hat_ptr = reinterpret_cast<shmem_tile*>
-    (
-        net.eval(al,
-            data.x.channels(),
-            reinterpret_cast<uint64_t>(x_ptr))
-    );
-    net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
+    // shmem_tile* y_hat_ptr = reinterpret_cast<shmem_tile*>
+    // (
+    //     net.eval(al,
+    //         data.x.channels(),
+    //         reinterpret_cast<uint64_t>(x_ptr))
+    // );
+    // net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
 
-    // Init weights ONCE
-    // -----------------------
-    net.init_weights(al);
-    if (data.weight_mem_ptr != 0) // optional: load weights from global memory
-        net._load_weights(data.weight_mem_ptr);
+    // // Init weights ONCE
+    // // -----------------------
+    // net.init_weights(al);
+    // if (data.weight_mem_ptr != 0) // optional: load weights from global memory
+    //     net._load_weights(data.weight_mem_ptr);
 
-    for (int iter = 0; iter < data.iterations; iter++)
-    {
-        for (int batch = 0; batch < data.batch_size; batch++)
-        {            
-            // load input data for this batch item
-            for (int c = 0; c < data.x.channels(); c++)
-            {
-                coord<> idx(batch, c, 0, 0);
-                load(x_ptr + c, data.x, idx);
-                load(y_ptr + c, data.y, idx);
-            }
-            __syncthreads();
+    // for (int iter = 0; iter < data.iterations; iter++)
+    // {
+    //     for (int batch = 0; batch < data.batch_size; batch++)
+    //     {            
+    //         // load input data for this batch item
+    //         for (int c = 0; c < data.x.channels(); c++)
+    //         {
+    //             coord<> idx(batch, c, 0, 0);
+    //             load(x_ptr + c, data.x, idx);
+    //             load(y_ptr + c, data.y, idx);
+    //         }
+    //         __syncthreads();
 
-            net.fwd();
-            MSE<L>(data.channels, batch, y_hat_ptr, y_ptr, grad_y_ptr);
-            net.bwd();
+    //         net.fwd();
+    //         MSE<L>(data.channels, batch, y_hat_ptr, y_ptr, grad_y_ptr);
+    //         net.bwd();
 
-            __syncthreads();
-        }
-    }
+    //         __syncthreads();
+    //     }
+    // }
 
-    // --------------------------------------
-    // Save weights back to global
-    // --------------------------------------
-    if (data.weight_mem_ptr != 0)
-        net._save_weights(data.weight_mem_ptr);
+    // // --------------------------------------
+    // // Save weights back to global
+    // // --------------------------------------
+    // if (data.weight_mem_ptr != 0)
+    //     net._save_weights(data.weight_mem_ptr);
 }
 
 void train_kernel(train_data g) {
