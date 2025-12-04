@@ -18,6 +18,8 @@ struct module {
     shmem<OUT.By, OUT.Bx>* grad_y;
     shmem<IN.By, IN.Bx>* grad_x;
 
+    constexpr size_t weight_bytes = 0;
+
     // some unknown parameters in templated classes
     /// TODO fix xy pointers in list below and concurrently only allocate
     /// the intermediate xy (since y of one module is x of next)
@@ -59,11 +61,6 @@ struct module {
     __device__ __forceinline__ void init_weights(T& al) {
         // allocate weights if any
         // and initialize in shared memory
-    }
-
-    virtual size_t weight_bytes() {
-        // // Example -- replace with real layer parameters
-        // return OUT.C * IN.C * sizeof(ftype);
     }
 
     virtual __device__ __forceinline__ void load_weights(const uint64_t mem_ptr) {
@@ -145,9 +142,9 @@ struct module_chain {
 
     static size_t total_weight_bytes() {
         if (sizeof...(Rest) == 0)
-            return curr_w_bytes;
+            return current.weight_bytes;
         else
-            return curr_w_bytes + module_chain<NextIN, Rest...>::total_weight_bytes();
+            return current.weight_bytes + module_chain<NextIN, Rest...>::total_weight_bytes();
     }
 
 };
