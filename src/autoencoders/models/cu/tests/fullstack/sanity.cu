@@ -4,11 +4,11 @@ using namespace kittens;
 
 // from layers
 #include "nn.cuh"
-// #include "loss.cuh"
-// #include "opt.cuh"
+#include "loss.cuh"
+#include "opt.cuh"
 
-// template<typename HW>
-// using Net = module_chain<HW, SGD, ScaleModule>;
+template<typename HW>
+using Net = module_chain<HW, SGD, ScaleModule>;
 
 template<typename DataLayout, typename TileType, typename HW>
 static __global__ void train_kernel(const DataLayout data)
