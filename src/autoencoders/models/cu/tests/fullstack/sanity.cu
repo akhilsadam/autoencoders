@@ -6,7 +6,7 @@ using namespace kittens;
 #include "nn.cuh"
 #include "loss.cuh"
 #include "opt.cuh"
-#include "scale.cuh"
+#include "modules/scale.cuh"
 
 template<HW L>
 using Net = module_chain<L, SGD, ScaleModule>;
