@@ -176,8 +176,8 @@ struct bwd_data
 
 struct train_data {
     base_layout_ y, x;
-    uint64_t weight_mem_ptr = 0;
-    uint64_t iterations = 100;
+    uint64_t weight_mem_ptr;
+    uint64_t iterations;
 };
 
 // now for backward facing stuff
