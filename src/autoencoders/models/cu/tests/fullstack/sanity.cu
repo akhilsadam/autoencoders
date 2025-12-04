@@ -65,7 +65,7 @@ static __global__ void train_kernel(const DataLayout data)
     //     net._save_weights(data.weight_mem_ptr);
 }
 
-void train_kernel(train_data g) {
+void train(train_data g) {
     layout_variant<BCHW_train> layout = create_layout<BCHW_train, train_data>(g);
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
@@ -84,5 +84,5 @@ void train_kernel(train_data g) {
 PYBIND11_MODULE(sanity, m) {
     m.doc() = "nn test python module";
     // py::bind_function<eval_kernel>(m, "eval", &fwd_data::x, &fwd_data::y, &fwd_data::mem_ptr);
-    py::bind_function<train_kernel>(m, "train", &train_data::x, &train_data::y);
+    py::bind_function<train>(m, "train", &train_data::x, &train_data::y);
 }
