@@ -6,16 +6,17 @@ using namespace kittens;
 #include "nn.cuh"
 #include "loss.cuh"
 #include "opt.cuh"
+#include "scale.cuh"
 
-template<typename HW>
-using Net = module_chain<HW, SGD, ScaleModule>;
+template<HW L>
+using Net = module_chain<L, SGD, ScaleModule>;
 
-template<typename DataLayout, typename TileType, typename HW>
+template<typename DataLayout, typename TileType, HW L>
 static __global__ void train_kernel(const DataLayout data)
 {
     extern __shared__ alignment_dummy __shm[]; 
     shared_allocator al((int*)&__shm[0]);
-    Net<HW> net;
+    Net<L> net;
 
     // // allocate memory
     // using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;

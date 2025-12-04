@@ -1,7 +1,13 @@
 #include "kittens.cuh"
 using namespace kittens;
+
+#ifndef TILE_CUH_INCLUDED
 #include "tile.cuh"
+#endif
+
+#ifndef NN_CUH_INCLUDED
 #include "nn.cuh"
+#endif
 
 struct IdentityTransform {
     template<HW IN>

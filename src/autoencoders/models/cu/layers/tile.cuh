@@ -7,6 +7,8 @@
 
 using namespace kittens;
 
+#define TILE_CUH_INCLUDED
+
 #ifndef NUM_WORKERS
 #define NUM_WORKERS (1)
 #endif
@@ -235,11 +237,11 @@ using reg_tile_ft = rt<ftype, TileType::W.y, TileType::W.x>;
 template<typename TileType>
 using reg_tile_dt = rt<dtype, TileType::W.y, TileType::W.x>;
 
-template<typename HW>
-using reg_wtile_ft = rt<ftype, HW::Wy, HW::Wx>;
+template<typename _HW>
+using reg_wtile_ft = rt<ftype, _HW::Wy, _HW::Wx>;
 
-template<typename HW>
-using reg_wtile_dt = rt<dtype, HW::Wy, HW::Wx>;
+template<typename _HW>
+using reg_wtile_dt = rt<dtype, _HW::Wy, _HW::Wx>;
 
 template<typename TileType>
 using BCHW_fwd = _BCHW_fwd<tiled_layout<TileType>, TileType>;

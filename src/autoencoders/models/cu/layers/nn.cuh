@@ -1,7 +1,11 @@
 #include "kittens.cuh"
 using namespace kittens;
 
+#ifndef TILE_CUH_INCLUDED
 #include "tile.cuh"
+#endif
+
+#define NN_CUH_INCLUDED
 
 template<int By, int Bx>
 using shmem = st<ftype, By, Bx>;
