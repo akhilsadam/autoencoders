@@ -1,3 +1,6 @@
+#include "kittens.cuh"
+using namespace kittens;
+
 #include "tile.cuh"
 
 template<int By, int Bx>
