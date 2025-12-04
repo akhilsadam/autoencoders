@@ -18,7 +18,7 @@ struct module {
     shmem<OUT.By, OUT.Bx>* grad_y;
     shmem<IN.By, IN.Bx>* grad_x;
 
-    constexpr size_t weight_bytes = 0;
+    static constexpr size_t weight_bytes = 0;
 
     // some unknown parameters in templated classes
     /// TODO fix xy pointers in list below and concurrently only allocate
