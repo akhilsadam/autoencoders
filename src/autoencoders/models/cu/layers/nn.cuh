@@ -23,7 +23,8 @@ struct module {
     /// the intermediate xy (since y of one module is x of next)
     /// and grad_x, grad_y similarly
 
-    __device__ __forceinline__ uint64_t eval(kittens::shared_allocator<int>& al, const int32_t _in_chan, const uint64_t x_ptr) {
+    template <typename _T = void>
+    __device__ __forceinline__ uint64_t eval(shared_allocator<int>& al, const int32_t _in_chan, const uint64_t x_ptr) {
         in_chan = _in_chan;
         out_chan = static_cast<int32_t>(in_chan * chan_factor + 0.1f); // round to nearest int
         // allocate
@@ -39,7 +40,8 @@ struct module {
         return reinterpret_cast<uint64_t>(y);
     }
 
-    __device__ __forceinline__ uint64_t train(kittens::shared_allocator<int>& al, const uint64_t grad_y_ptr) {
+    template <typename _T = void>
+    __device__ __forceinline__ uint64_t train(shared_allocator<int>& al, const uint64_t grad_y_ptr) {
         // allocate
         if (grad_y_ptr != 0) 
         {
@@ -53,7 +55,8 @@ struct module {
         return reinterpret_cast<uint64_t>(grad_x);
     }
     
-    virtual __device__ __forceinline__ void init_weights(kittens::shared_allocator<int>& al) {
+    template <typename _T = void>
+    virtual __device__ __forceinline__ void init_weights(shared_allocator<int>& al) {
         // allocate weights if any
         // and initialize in shared memory
     }
@@ -100,19 +103,22 @@ struct module_chain {
     // for the first and last modules, handle input/output pointers
 
     // iterate forward through the chain for y_ptr
-    __device__ inline uint64_t eval(kittens::shared_allocator<int>& al, const uint32_t in_chan, const uint64_t x_ptr = 0) {
+    template <typename _T = void>
+    __device__ inline uint64_t eval(shared_allocator<int>& al, const uint32_t in_chan, const uint64_t x_ptr = 0) {
         auto* next_x_ptr = current.eval(al, in_chan, x_ptr);
         return next.eval(al, current.out_chan, next_x_ptr);
     }
 
     // iterate backward through the chain for grad_x_ptr
-    __device__ inline uint64_t train(kittens::shared_allocator<int>& al, const uint64_t grad_y_ptr = 0) {
+    template <typename _T = void>
+    __device__ inline uint64_t train(shared_allocator<int>& al, const uint64_t grad_y_ptr = 0) {
         auto* curr_grad_y_ptr = next.train(al, grad_y_ptr);
         return current.train(al, curr_grad_y_ptr);
     }
 
     // iterate through to init weights
-    __device__ inline void init_weights(kittens::shared_allocator<int>& al) {
+    template <typename _T = void>
+    __device__ inline void init_weights(shared_allocator<int>& al) {
         current.init_weights(al);
         next.init_weights(al);
     }
