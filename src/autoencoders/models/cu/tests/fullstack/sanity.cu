@@ -23,7 +23,7 @@ void train(train_data g) {
             using Tile   = typename Layout::tile_type;
             using WarpTile = CHW<Chan::C, Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
 
-            printf("Running training with C=%d, Tile=%dx%d\n", Chan.C, Tile::B.x, Tile::B.y);
+            printf("Running training with C=%d, Tile=%dx%d\n", Chan::C, Tile::B.x, Tile::B.y);
 
             auto* kernel = train_kernel<Layout, Tile, WarpTile, Net, Loss>;
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
