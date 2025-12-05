@@ -15,9 +15,6 @@ class module {
     public:
         // BCHW 
         using OUT = Transform<IN>;
-        int32_t in_chan;
-        int32_t out_chan;
-        float chan_factor = 1.0f;
         shmem<IN::By, IN::Bx>* x;
         shmem<OUT::By, OUT::Bx>* y;
         shmem<OUT::By, OUT::Bx>* grad_y;
@@ -31,9 +28,7 @@ class module {
         /// and grad_x, grad_y similarly
 
         template <typename T>
-        __device__ __forceinline__ uint64_t eval(T& al, const int32_t _in_chan, const uint64_t x_ptr) {
-            in_chan = _in_chan;
-            out_chan = static_cast<int32_t>(in_chan * chan_factor + 0.1f); // round to nearest int
+        __device__ __forceinline__ uint64_t eval(T& al, const uint64_t x_ptr) {
             // allocate
             if (x_ptr != 0) 
             {
@@ -41,9 +36,9 @@ class module {
             }
             else
             {
-                x = al.template allocate<shmem<IN::By, IN::Bx>>(in_chan);
+                x = al.template allocate<shmem<IN::By, IN::Bx>, IN::C>();
             }
-            y = al.template allocate<shmem<OUT::By, OUT::Bx>>(out_chan);
+            y = al.template allocate<shmem<OUT::By, OUT::Bx>, OUT::C>();
             return reinterpret_cast<uint64_t>(y);
         }
 
@@ -56,9 +51,9 @@ class module {
             }
             else
             {
-                grad_y = al.template allocate<shmem<OUT::By, OUT::Bx>>(out_chan);
+                grad_y = al.template allocate<shmem<OUT::By, OUT::Bx>, OUT::C>();
             }
-            grad_x = al.template allocate<shmem<IN::By, IN::Bx>>(in_chan);
+            grad_x = al.template allocate<shmem<IN::By, IN::Bx>, IN::C>();
             return reinterpret_cast<uint64_t>(grad_x);
         }
         
@@ -107,9 +102,9 @@ struct module_chain {
 
     // iterate forward through the chain for y_ptr
     template <typename T>
-    __device__ inline uint64_t eval(T& al, const uint32_t in_chan, const uint64_t x_ptr = 0) {
-        auto* next_x_ptr = current.eval(al, in_chan, x_ptr);
-        return next.eval(al, current.out_chan, next_x_ptr);
+    __device__ inline uint64_t eval(T& al, const uint64_t x_ptr = 0) {
+        auto* next_x_ptr = current.eval(al, x_ptr);
+        return next.eval(al, next_x_ptr);
     }
 
     // iterate backward through the chain for grad_x_ptr
@@ -167,8 +162,8 @@ struct module_chain<IN, Opt, ModuleSpec> {
     CurrentModule current;
 
     template <typename T>
-    __device__ inline uint64_t eval(T& al, const uint32_t in_chan, const uint64_t x_ptr = 0) {
-        return current.eval(al, in_chan, x_ptr);
+    __device__ inline uint64_t eval(T& al, const uint64_t x_ptr = 0) {
+        return current.eval(al, x_ptr);
     }
 
     template <typename T>

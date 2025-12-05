@@ -73,9 +73,9 @@ void train(train_data g) {
     std::visit([&](auto& layout) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
-        using WarpTile = HW<Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
+        using WarpTile = CHW<3, Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
 
-        printf("channels are %d\n", g.x.depth());
+        // printf("channels are %d\n", g.x.depth());
 
 
         auto* kernel = train_kernel<Layout, Tile, WarpTile>;

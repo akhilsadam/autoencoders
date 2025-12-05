@@ -66,7 +66,7 @@ struct scale_module : public module<IN, Transform, Opt> {
 
         ftype w = weight[0];
 
-        for (int c = 0; c < this->in_chan; ++c) {
+        for (int c = 0; c < IN::C; ++c) {
             // for (int wave = 0; wave < IN::warpwaves; ++wave) {
 
             //     int2 ij = IN::warptile_xy(wave);
@@ -88,7 +88,7 @@ struct scale_module : public module<IN, Transform, Opt> {
 
         ftype local_grad_w = 0.0f;
 
-        for (int c = 0; c < this->in_chan; ++c) {
+        for (int c = 0; c < IN::C; ++c) {
             // for (int wave = 0; wave < IN::warpwaves; ++wave) {
 
                 // int2 ij = IN::warptile_xy(wave);

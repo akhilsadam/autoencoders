@@ -116,8 +116,9 @@ struct TileBCHW : public TileType {
 
 };
 
-template<int32_t _By, int32_t _Bx, int32_t _Wy, int32_t _Wx>
-struct HW{
+template<int32_t _C, int32_t _By, int32_t _Bx, int32_t _Wy, int32_t _Wx>
+struct CHW{
+    static constexpr int32_t C = _C;
     static constexpr int32_t By = _By; 
     static constexpr int32_t Bx = _Bx;
     static constexpr int32_t Wy = _Wy;
