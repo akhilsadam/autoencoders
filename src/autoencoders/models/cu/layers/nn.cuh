@@ -214,6 +214,7 @@ static __global__ void train_kernel(const DataLayout data)
         net.__load_weights__(data.weight_mem_ptr);
         __syncthreads();        
     } 
+    
     // --------------------------------------
     // training loop, one batch (across blocks)
     for (int iter = 0; iter < data.iterations; iter++)
@@ -237,4 +238,49 @@ static __global__ void train_kernel(const DataLayout data)
     // Save weights back to global
     if (data.weight_mem_ptr != 0)
         net.__save_weights__();
+}
+
+
+template<typename DataLayout, typename TileType, class L, template<class> class Net, class Loss>
+static __global__ void eval_kernel(const DataLayout data)
+{
+    extern __shared__ alignment_dummy __shm[]; 
+    shared_allocator al((int*)&__shm[0]);
+    Net<L> net;
+
+    // allocate memory
+    using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
+    shmem_tile* x_array = al.allocate<shmem_tile, L::C>();
+    shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
+    (
+        net.eval(al,
+            reinterpret_cast<uint64_t>(x_array))
+    );
+    // --------------------------------------
+    // weight initialization
+    net.__init_weights__(al);
+    __syncthreads();
+
+    if (data.weight_mem_ptr != 0)
+    {   // optional: load weights from global memory
+        net.__load_weights__(data.weight_mem_ptr);
+        __syncthreads();        
+    } 
+    // --------------------------------------  
+    // load input data for this batch item
+    for (int c = 0; c < data.x.depth(); c++)
+    {
+        coord<> idx(data.batch(), c, 0, 0);
+        load(x_array[c], data.x, idx);
+    }
+    __syncthreads();
+    net.fwd(); // does syncthreads internally
+    // --------------------------------------
+    // Save y_hat back to global
+    for (int c = 0; c < data.y.depth(); c++)
+    {
+        coord<> idx(data.batch(), c, 0, 0);
+        store(data.y, y_hat_array[c], idx);
+    };
+
 }
