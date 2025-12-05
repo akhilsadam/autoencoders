@@ -47,14 +47,14 @@ struct scale_module : public module<IN, Transform, Opt> {
 
     virtual __device__ __forceinline__
     void save_weights() {
-        store(*g_weight, *weight, {0,0,0,0});
+        store(*g_weight, *weight);
     }
 
     // ------------------ fwd() ----------------------
     __device__ __forceinline__ void fwd(int32_t batch) {
         rt<ftype, IN.Wy, IN.Wx> X, Y;
         rt<ftype,1,1> W;
-        load(W, *weight, {0,0,0,0});
+        load(W, *weight);
 
         auto w = W.tiles[0][0].data[0].x;
 
