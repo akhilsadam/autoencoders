@@ -20,15 +20,15 @@ static __global__ void train_kernel(const DataLayout data)
 
     // allocate memory
     using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
-    shmem_tile& x_ptr = al.allocate<shmem_tile, L::C>();
-    shmem_tile& y_ptr = al.allocate<shmem_tile, L::C>();
-    shmem_tile& grad_y_ptr = al.allocate<shmem_tile, L::C>();
+    shmem_tile* x_ptr = al.allocate<shmem_tile, L::C>();
+    shmem_tile* y_ptr = al.allocate<shmem_tile, L::C>();
+    shmem_tile* grad_y_ptr = al.allocate<shmem_tile, L::C>();
 
     shmem_tile* y_hat_ptr = reinterpret_cast<shmem_tile*>
     (
         net.eval(al,
             data.x.depth(),
-            reinterpret_cast<uint64_t>(&x_ptr))
+            reinterpret_cast<uint64_t>(x_ptr))
     );
     // net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
 
