@@ -53,8 +53,8 @@ static __global__ void train_kernel(const DataLayout data)
         }
         __syncthreads();
 
-        // net.fwd();
-        // MSE<L>(data.depth, batch, y_hat_array, y_array, grad_y_array);
+        net.fwd();
+        MSE<L>(y_hat_array, y_array, grad_y_array);
         // net.bwd();
 
         __syncthreads();

@@ -137,11 +137,13 @@ struct module_chain {
 
     __device__ inline void fwd(int32_t batch) {
         current.fwd(batch);
+        __syncthreads(); // since in L1
         next.fwd(batch);
     }
 
     __device__ inline void bwd(int32_t batch) {
         next.bwd(batch);
+        __syncthreads(); // since in L1
         current.bwd(batch);
     }
 
@@ -171,8 +173,8 @@ struct module_chain<IN, Opt, ModuleSpec> {
         return current.train(al, grad_y_ptr);
     }
 
-    __device__ inline void fwd(int32_t batch) { current.fwd(batch); }
-    __device__ inline void bwd(int32_t batch) { current.bwd(batch); }
+    __device__ inline void fwd(int32_t batch) { current.fwd(batch); __syncthreads(); }
+    __device__ inline void bwd(int32_t batch) { current.bwd(batch); } // no sync needed here
     
     template <typename T>
     __device__ inline void __init_weights__(T& al) { current.__init_weights__(al); }
