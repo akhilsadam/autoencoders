@@ -24,16 +24,16 @@ struct scale_module : public module<IN, Transform, Opt> {
     using wtile = shmem<1,1>;
     wgl g_weight;
     wgl g_grad_weight;
-    wtile* weight;        // lives in shared memory
-    wtile* grad_weight;   // gradient accumulator
+    wtile weight;        // lives in shared memory
+    wtile grad_weight;   // gradient accumulator
 
     size_t weight_bytes = sizeof(ftype);
 
     // ------------------ weights ----------------------
     template <typename T>
     __device__ __forceinline__ void init_weights(T& al) {
-        weight = al.allocate<shmem<1,1>>(1);
-        grad_weight = al.allocate<shmem<1,1>>(1);
+        weight = *al.allocate<shmem<1,1>>(1);
+        grad_weight = *al.allocate<shmem<1,1>>(1);
         one(weight);
         zero(grad_weight);
     }
