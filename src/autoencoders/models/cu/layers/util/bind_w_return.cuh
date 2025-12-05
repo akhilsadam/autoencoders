@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pyutils.cuh"   // we need from_object, trait, etc.
+#include "pyutils/pyutils.cuh"   // we need from_object, trait, etc.
 #include <type_traits>   // for std::is_void_v
 
 namespace kittens {
