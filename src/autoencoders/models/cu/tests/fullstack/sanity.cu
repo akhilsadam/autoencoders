@@ -38,6 +38,8 @@ uint64_t train(train_data& g) {
 
             g.weight_mem_ptr = reinterpret_cast<uint64_t>(weight_mem_ptr);
 
+            cudaDeviceSynchronize();
+
         }, layout);
     }, chan_var);
     
@@ -63,6 +65,8 @@ void eval(train_data& g) {
             auto* kernel = eval_kernel<Layout, Tile, WarpTile, Net, Loss>;
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
             kernel<<<layout.grid(), layout.block()>>>(layout);
+
+            cudaDeviceSynchronize();
 
         }, layout);
     }, chan_var);
