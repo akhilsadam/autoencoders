@@ -58,7 +58,7 @@ static __global__ void train_kernel(const DataLayout data)
 
     //         __syncthreads();
     //     }
-    }
+    // }
 
     // // --------------------------------------
     // // Save weights back to global
