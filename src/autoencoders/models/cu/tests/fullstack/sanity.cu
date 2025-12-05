@@ -30,9 +30,9 @@ static __global__ void train_kernel(const DataLayout data)
             reinterpret_cast<uint64_t>(x_ptr))
     );
     net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
-
-    // Init weights ONCE
+   
     // -----------------------
+    // Init weights ONCE
     net.__init_weights__(al);
     __syncthreads();
     if (data.weight_mem_ptr != 0)
@@ -41,33 +41,33 @@ static __global__ void train_kernel(const DataLayout data)
         __syncthreads();        
     } // optional: load weights from global memory
 
-    
-    // for (int iter = 0; iter < data.iterations; iter++)
-    // {
-    //     for (int batch = 0; batch < data.batch_size; batch++)
-    //     {            
-    //         // load input data for this batch item
-    //         for (int c = 0; c < data.x.depth(); c++)
-    //         {
-    //             coord<> idx(batch, c, 0, 0);
-    //             load(x_ptr + c, data.x, idx);
-    //             load(y_ptr + c, data.y, idx);
-    //         }
-    //         __syncthreads();
+    // -----------------------
+    // training loop
+    for (int iter = 0; iter < data.iterations; iter++)
+    {
+        for (int batch = 0; batch < data.batch_size; batch++)
+        {            
+            // load input data for this batch item
+            for (int c = 0; c < data.x.depth(); c++)
+            {
+                coord<> idx(batch, c, 0, 0);
+                load(x_ptr + c, data.x, idx);
+                load(y_ptr + c, data.y, idx);
+            }
+            __syncthreads();
 
-    //         net.fwd();
-    //         MSE<L>(data.depth, batch, y_hat_ptr, y_ptr, grad_y_ptr);
-    //         net.bwd();
+            // net.fwd();
+            // MSE<L>(data.depth, batch, y_hat_ptr, y_ptr, grad_y_ptr);
+            // net.bwd();
 
-    //         __syncthreads();
-    //     }
-    // }
+            __syncthreads();
+        }
+    }
 
-    // // --------------------------------------
-    // // Save weights back to global
-    // // --------------------------------------
-    // if (data.weight_mem_ptr != 0)
-    //     net._save_weights(data.weight_mem_ptr);
+    // --------------------------------------
+    // Save weights back to global
+    if (data.weight_mem_ptr != 0)
+        net.__save_weights__();
 }
 
 void train(train_data g) {
