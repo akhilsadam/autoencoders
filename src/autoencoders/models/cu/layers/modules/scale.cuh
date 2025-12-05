@@ -10,8 +10,8 @@ using namespace kittens;
 #endif
 
 struct IdentityTransform {
-    template<HW IN>
-    static constexpr HW apply(IN) {
+    template<_HW>
+    static constexpr _HW apply(_HW IN) {
         return IN;
     }
 };
@@ -24,6 +24,8 @@ struct scale_module : public module<IN, Transform, Opt> {
     wtile* weight;        // lives in shared memory
     wtile* grad_weight;   // gradient accumulator
 
+    size_t weight_bytes = sizeof(ftype);
+
     // ------------------ weights ----------------------
     __device__ __forceinline__
     void init_weights(shared_allocator al) {
@@ -34,7 +36,6 @@ struct scale_module : public module<IN, Transform, Opt> {
         grad_weight[_id] = 0.0f;
     }
 
-    constexpr size_t weight_bytes = sizeof(ftype);
 
     __device__ __forceinline__
     void load_weights(uint64_t mem_ptr) {

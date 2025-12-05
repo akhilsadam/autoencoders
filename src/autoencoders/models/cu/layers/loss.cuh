@@ -30,7 +30,7 @@ __device__ __forceinline__ void MSE(
 ) {
     // BCHW again, and we work on [C] arrays of type ST[H,W].
 
-    reg_wtile_ft<Layout> WARP_y, WARP_y_hat, WARP_grad_y; // register tiles
+    rt<ftype, Layout.Wy, Layout.Wx> WARP_y, WARP_y_hat, WARP_grad_y; // register tiles
     
     for(int32_t chan = 0; chan < channels; chan++) {
         for (int32_t wave = 0; wave < Layout.warpwaves; wave++) {

@@ -1,5 +1,5 @@
 struct SGD {
-    constexpr float learning_rate;
+    float learning_rate;
     
     template<typename T>
     __device__ __forceinline__ T update(T w, T grad_w) {
