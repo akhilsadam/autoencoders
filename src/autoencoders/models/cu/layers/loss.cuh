@@ -28,7 +28,7 @@ __device__ __forceinline__ void MSE(
 ) {
     // BCHW again, and we work on [C] arrays of type ST[H,W].
 
-    rt<ftype, L::Wy, L::Wx> WARP_y, WARP_y_hat, WARP_grad_y; // register tiles
+    rt<ftype, L::By, L::Bx> WARP_y, WARP_y_hat, WARP_grad_y; // register tiles
     
     for(int32_t c = 0; c < L::C; c++) {
         load(WARP_y_hat, y_hat[c]);
