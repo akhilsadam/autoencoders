@@ -39,12 +39,12 @@ uint64_t train(train_data& g) {
 
         }, layout);
     }, chan_var);
-
+    
     return g.weight_mem_ptr;
 }
 
 PYBIND11_MODULE(sanity, m) {
     m.doc() = "nn test python module";
     // py::bind_function<eval_kernel>(m, "eval", &fwd_data::x, &fwd_data::y, &fwd_data::mem_ptr);
-    py::bind_function<train>(m, "train", &train_data::x, &train_data::y, &train_data::iterations);
+    py::bind_function<train>(m, "train", &train_data::x, &train_data::y, &train_data::iterations, &train_data::weight_mem_ptr);
 }
