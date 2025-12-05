@@ -18,18 +18,18 @@ static __global__ void train_kernel(const DataLayout data)
     shared_allocator al((int*)&__shm[0]);
     Net<L> net;
 
-    // // allocate memory
-    // using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
-    // shmem_tile* x_ptr = al.allocate<shmem_tile>(data.x.channels());
-    // shmem_tile* y_ptr = al.allocate<shmem_tile>(data.x.channels());
-    // shmem_tile* grad_y_ptr = al.allocate<shmem_tile>(data.x.channels());
+    // allocate memory
+    using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
+    shmem_tile* x_ptr = al.allocate<shmem_tile>(data.x.channels());
+    shmem_tile* y_ptr = al.allocate<shmem_tile>(data.x.channels());
+    shmem_tile* grad_y_ptr = al.allocate<shmem_tile>(data.x.channels());
 
-    // shmem_tile* y_hat_ptr = reinterpret_cast<shmem_tile*>
-    // (
-    //     net.eval(al,
-    //         data.x.channels(),
-    //         reinterpret_cast<uint64_t>(x_ptr))
-    // );
+    shmem_tile* y_hat_ptr = reinterpret_cast<shmem_tile*>
+    (
+        net.eval(al,
+            data.x.channels(),
+            reinterpret_cast<uint64_t>(x_ptr))
+    );
     // net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
 
     // // Init weights ONCE
