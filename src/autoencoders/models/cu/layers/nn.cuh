@@ -147,7 +147,7 @@ struct module_chain {
         current.bwd();
     }
 
-    static constexpr size_t total_weight_bytes() {
+    static size_t total_weight_bytes() {
         if (sizeof...(Rest) == 0)
             return CurrentModule::weight_bytes;
         else
@@ -181,7 +181,7 @@ struct module_chain<IN, Opt, ModuleSpec> {
     __device__ inline void __load_weights__(uint64_t mem_ptr) { current.__load_weights__(mem_ptr); }
     __device__ inline void __save_weights__() { current.__save_weights__(); }
 
-    static constexpr size_t total_weight_bytes() { return CurrentModule::weight_bytes; }
+    static size_t total_weight_bytes() { return CurrentModule::weight_bytes; }
 };
 
 
