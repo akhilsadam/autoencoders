@@ -20,7 +20,7 @@ template<HW IN, class Transform, class Opt>
 struct scale_module : public module<IN, Transform, Opt> {
    
     // one shared weight
-    using wgl = gl<1,1,1,1>;
+    using wgl = gl<ftype,1,1,1,1>;
     using wtile = shmem<1,1>;
     wgl g_weight;
     wgl g_grad_weight;
@@ -32,8 +32,8 @@ struct scale_module : public module<IN, Transform, Opt> {
     // ------------------ weights ----------------------
     template <typename T>
     __device__ __forceinline__ void init_weights(T& al) {
-        weight = *al.allocate<shmem<1,1>>(1);
-        grad_weight = *al.allocate<shmem<1,1>>(1);
+        &weight = al.template allocate<shmem<1,1>, 1>();
+        &grad_weight = al.template allocate<shmem<1,1>, 1>();
         one(weight);
         zero(grad_weight);
     }
