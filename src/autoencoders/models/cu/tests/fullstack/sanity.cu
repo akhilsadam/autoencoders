@@ -7,6 +7,7 @@ using namespace kittens;
 #include "loss.cuh"
 #include "opt.cuh"
 #include "modules/scale.cuh"
+#include "bind_w_return.cuh"
 
 template<class L>
 using network = module_chain<L, SGD, ScaleModule>;
@@ -46,5 +47,5 @@ uint64_t train(train_data& g) {
 PYBIND11_MODULE(sanity, m) {
     m.doc() = "nn test python module";
     // py::bind_function<eval_kernel>(m, "eval", &fwd_data::x, &fwd_data::y, &fwd_data::mem_ptr);
-    py::bind_function<train>(m, "train", &train_data::x, &train_data::y, &train_data::iterations, &train_data::weight_mem_ptr);
+    py::bind_function_with_return<train>(m, "train", &train_data::x, &train_data::y, &train_data::iterations, &train_data::weight_mem_ptr);
 }
