@@ -7,7 +7,7 @@ using namespace kittens;
 #include "loss.cuh"
 #include "opt.cuh"
 #include "modules/scale.cuh"
-#include "bind_w_return.cuh"
+#include "util/bind_w_return.cuh"
 
 template<class L>
 using network = module_chain<L, SGD, ScaleModule>;
