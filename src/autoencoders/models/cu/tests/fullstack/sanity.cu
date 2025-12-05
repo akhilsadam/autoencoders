@@ -11,7 +11,7 @@ using namespace kittens;
 template<HW L>
 using Net = module_chain<L, SGD, ScaleModule>;
 
-template<typename DataLayout, typename TileType, HW L>
+template<typename DataLayout, typename TileType, typename L>
 static __global__ void train_kernel(const DataLayout data)
 {
     extern __shared__ alignment_dummy __shm[]; 
