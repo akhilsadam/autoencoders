@@ -14,7 +14,7 @@ template<class IN, class Transform, class Opt>
 class module {
     public:
         // BCHW 
-        static constexpr auto OUT = Transform::template type<IN>;
+        using OUT = Transform::template type<IN>;
         int32_t in_chan;
         int32_t out_chan;
         float chan_factor = 1.0f;
