@@ -37,13 +37,13 @@ class module {
             // allocate
             if (x_ptr != 0) 
             {
-                x = reinterpret_cast<shmem<IN.By, IN.Bx>*>(x_ptr);
+                x = reinterpret_cast<shmem<IN.By, IN.Bx/2>*>(x_ptr);
             }
             else
             {
-                x = al.template allocate<shmem<IN.By, IN.Bx>>(in_chan);
+                x = al.template allocate<shmem<IN.By, IN.Bx/2>>(in_chan);
             }
-            y = al.template allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
+            y = al.template allocate<shmem<OUT.By, OUT.Bx/2>>(out_chan);
             return reinterpret_cast<uint64_t>(y);
         }
 
@@ -52,13 +52,13 @@ class module {
             // allocate
             if (grad_y_ptr != 0) 
             {
-                grad_y = reinterpret_cast<shmem<OUT.By, OUT.Bx>*>(grad_y_ptr);
+                grad_y = reinterpret_cast<shmem<OUT.By, OUT.Bx/2>*>(grad_y_ptr);
             }
             else
             {
-                grad_y = al.template allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
+                grad_y = al.template allocate<shmem<OUT.By, OUT.Bx/2>>(out_chan);
             }
-            grad_x = al.template allocate<shmem<IN.By, IN.Bx>>(in_chan);
+            grad_x = al.template allocate<shmem<IN.By, IN.Bx/2>>(in_chan);
             return reinterpret_cast<uint64_t>(grad_x);
         }
         
