@@ -71,11 +71,11 @@ class module {
             // save weights from shared memory to global memory
         }
 
-        virtual __device__ __forceinline__ void fwd(int32_t batch) {
+        virtual __device__ __forceinline__ void fwd() {
             // run forward pass
         }
         
-        virtual __device__ __forceinline__ void bwd(int32_t batch) {
+        virtual __device__ __forceinline__ void bwd() {
             // run backward pass
         }
 
@@ -135,16 +135,16 @@ struct module_chain {
         next.__save_weights__();
     }
 
-    __device__ inline void fwd(int32_t batch) {
-        current.fwd(batch);
+    __device__ inline void fwd() {
+        current.fwd();
         __syncthreads(); // since in L1
-        next.fwd(batch);
+        next.fwd();
     }
 
-    __device__ inline void bwd(int32_t batch) {
-        next.bwd(batch);
+    __device__ inline void bwd() {
+        next.bwd();
         __syncthreads(); // since in L1
-        current.bwd(batch);
+        current.bwd();
     }
 
     static size_t total_weight_bytes() {

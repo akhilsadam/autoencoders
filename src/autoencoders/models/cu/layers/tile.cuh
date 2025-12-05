@@ -123,6 +123,7 @@ struct CHW{
     static constexpr int32_t Bx = _Bx;
     static constexpr int32_t Wy = _Wy;
     static constexpr int32_t Wx = _Wx;
+    static constexpr int32_t N = _C * _By * _Bx;
 
     // Warp-level indices
     static __device__ __forceinline__ int32_t warp_id() { return threadIdx.x / kittens::WARP_THREADS; }
