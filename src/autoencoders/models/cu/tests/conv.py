@@ -4,15 +4,17 @@ from torch import nn
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
-from cu.compile import compile
-activations = compile(
-    kernel=os.path.join(os.path.dirname(__file__), "conv.cu"),
-)
-##
-# compiled?
-print("Activations compiled:", activations is not None)
 
 def _test_conv():
+    
+    from cu.compile import compile
+    activations = compile(
+        kernel=os.path.join(os.path.dirname(__file__), "conv.cu"),
+    )
+    ##
+    # compiled?
+    print("Activations compiled:", activations is not None)
+    
     class _Conv(torch.autograd.Function):
         @staticmethod
         def forward(ctx, x, W, s, p):

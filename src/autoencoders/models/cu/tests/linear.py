@@ -4,15 +4,16 @@ from torch import nn
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
-from cu.compile import compile
-activations = compile(
-    kernel=os.path.join(os.path.dirname(__file__), "linear.cu"),
-)
-##
-# compiled?
-print("Activations compiled:", activations is not None)
-
 def _test_linear():
+
+    from cu.compile import compile
+    activations = compile(
+        kernel=os.path.join(os.path.dirname(__file__), "linear.cu"),
+    )
+    ##
+    # compiled?
+    print("Activations compiled:", activations is not None)
+    
     class _Linear(torch.autograd.Function):
         @staticmethod
         def forward(ctx, x, W, b):
