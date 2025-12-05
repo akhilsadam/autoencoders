@@ -76,9 +76,9 @@ void train(train_data g) {
         using WarpTile = HW<Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
 
 
-        auto* kernel = train_kernel<Layout, Tile, WarpTile>;
-        cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
-        kernel<<<layout.grid(), layout.block()>>>(layout);
+        // auto* kernel = train_kernel<Layout, Tile, WarpTile>;
+        cudaFuncSetAttribute(train_kernel<Layout, Tile, WarpTile>, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
+        train_kernel<Layout, Tile, WarpTile><<<layout.grid(), layout.block()>>>(layout);
 
     }, layout);
 }
