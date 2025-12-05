@@ -108,12 +108,12 @@ struct scale_module : public module<IN, Transform, Opt> {
         }
 
         // atomicAdd(grad_weight[0].at(0,0), local_grad_w);  // should do parallel scan over warps
-        // // Apply SGD update only if we are the first thread
-        // if (threadIdx.x == 0)
-        // {
-        //     w[0].at(0,0) = Opt::update(w[0].at(0,0), grad_w[0].at(0,0));
-        //     grad_w[0].at(0,0) = 0.0f;
-        // }
+        // Apply SGD update only if we are the first thread
+        if (threadIdx.x == 0)
+        {
+            weight[0] = Opt::update(weight[0], grad_weight[0]);
+            grad_weight[0] = 0.0f;
+        }
     }
 };
 
