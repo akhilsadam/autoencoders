@@ -12,7 +12,7 @@ template<class L>
 using network = module_chain<L, SGD, ScaleModule>;
 using Loss = MSELoss;
 
-void train(train_data g) {
+void train(train_data& g) {
     channel_variant chan_var = channel_var(g);
     std::visit([&](auto& chan_var) {
         using Chan = std::decay_t<decltype(chan_var)>;
