@@ -51,7 +51,7 @@ struct scale_module : public module<IN, Transform, Opt> {
     // ------------------ fwd() ----------------------
     __device__ __forceinline__ void fwd(int32_t batch) {
         reg_wtile_ft<IN> X, Y;
-        rt_ft<1,1> W;
+        rt<ftype,1,1> W;
         load(W, weight, {0,0,0,0});
 
         auto w = W.tiles[0][0].data[0].x;
