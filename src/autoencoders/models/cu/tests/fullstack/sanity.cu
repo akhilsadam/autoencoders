@@ -33,11 +33,11 @@ static __global__ void train_kernel(const DataLayout data)
 
     // Init weights ONCE
     // -----------------------
-    net.init_weights(al);
+    net.__init_weights__(al);
     __syncthreads();
     if (data.weight_mem_ptr != 0)
     {
-        net._load_weights(data.weight_mem_ptr);
+        net.__load_weights__(data.weight_mem_ptr);
         __syncthreads();        
     } // optional: load weights from global memory
 

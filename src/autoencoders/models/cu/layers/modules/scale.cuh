@@ -27,7 +27,7 @@ struct scale_module : public module<IN, Transform, Opt> {
 
     // ------------------ weights ----------------------
     template <typename T>
-    __device__ __forceinline__ void init_weights(T& al) {
+    __device__ __forceinline__ void __init_weights__(T& al) {
         // weight = al.template allocate<wtile, 1>();
         // grad_weight = al.template allocate<wtile, 1>();
         // one(*weight);
@@ -45,7 +45,7 @@ struct scale_module : public module<IN, Transform, Opt> {
 
 
     __device__ __forceinline__
-    void load_weights(uint64_t mem_ptr) {
+    void __load_weights__(uint64_t mem_ptr) {
         // g_weight = reinterpret_cast<wgl*>(mem_ptr);
         // load(*weight, *g_weight, {0,0,0,0});
         g_weight = reinterpret_cast<wgl*>(mem_ptr);
@@ -53,7 +53,7 @@ struct scale_module : public module<IN, Transform, Opt> {
     }
 
     virtual __device__ __forceinline__
-    void save_weights() {
+    void __save_weights__() {
         *g_weight = weight[0];
     }
 

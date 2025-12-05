@@ -58,16 +58,16 @@ class module {
         }
         
         template <typename T>
-        __device__ __forceinline__ void init_weights(T& al) {
+        __device__ __forceinline__ void __init_weights__(T& al) {
             // allocate weights if any
             // and initialize in shared memory
         }
 
-        virtual __device__ __forceinline__ void load_weights(const uint64_t mem_ptr) {
+        virtual __device__ __forceinline__ void __load_weights__(const uint64_t mem_ptr) {
             // load weights from global memory to shared memory
         }
 
-        virtual __device__ __forceinline__ void save_weights() {
+        virtual __device__ __forceinline__ void __save_weights__() {
             // save weights from shared memory to global memory
         }
 
@@ -121,18 +121,18 @@ struct module_chain {
         next.init_weights(al);
     }
 
-    __device__ inline void _load_weights(const uint64_t mem_ptr) {
-        current._load_weights(mem_ptr);
-        next._load_weights(mem_ptr + CurrentModule::weight_bytes());
+    __device__ inline void __load_weights__(const uint64_t mem_ptr) {
+        current.__load_weights__(mem_ptr);
+        next.__load_weights__(mem_ptr + CurrentModule::weight_bytes());
     }
 
     // __device__ inline void _save_weights(uint64_t mem_ptr) {
     //     current._save_weights(mem_ptr);
     //     next._save_weights(mem_ptr + CurrentModule::weight_bytes());
     // }
-    __device__ inline void _save_weights() {
-        current._save_weights();
-        next._save_weights();
+    __device__ inline void __save_weights__() {
+        current.__save_weights__();
+        next.__save_weights__();
     }
 
     __device__ inline void fwd(int32_t batch) {
