@@ -43,7 +43,7 @@ using namespace kittens;
 #define dtype bf16
 #endif
 
-template<int Gx, int Gy, int Bx, int By, int Wx, int Wy>
+template<int Gy, int Gx, int By, int Bx, int Wy, int Wx>
 struct Tile {
     static constexpr int2 G = {Gx, Gy};
     static constexpr int2 B = {Bx, By};
