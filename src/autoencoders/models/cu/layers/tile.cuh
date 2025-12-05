@@ -258,6 +258,29 @@ using Tile28 = Tile<-1, -1, 32, 16, 16, 16>;
 using Tile64 = Tile<-1, -1, 64, 32, 16, 16>; /// second is 1/2 since packed
 using Tile128 = Tile<-1, -1, 128, 64, 16, 16>;
 
+// channels
+template<int _C>
+struct __CHAN__{
+    int32_t C=_C;
+};
+
+using C1 = __CHAN__<1>;
+using C3 = __CHAN__<3>;
+using channel_variant = std::variant<C1, C3>;
+
+// select channel based on depth
+template<typename BaseData>
+__host__ channel_variant channel_var(const BaseData& g) {
+    int C = g.x.depth();
+    size_t idx = (C == 1) ? 0 : 1;
+    switch (idx) {
+        case 0: return C1{};
+        case 1: return C3{};
+        default:
+            throw std::runtime_error("Unsupported channel size");
+    }
+}
+
 // select tile based on width
 template<typename BaseData>
 __host__ size_t TileIndex(const BaseData& g) {

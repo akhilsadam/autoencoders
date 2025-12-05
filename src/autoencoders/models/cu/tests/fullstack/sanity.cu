@@ -13,17 +13,24 @@ using Net = module_chain<L, SGD, ScaleModule>;
 using Loss = MSELoss;
 
 void train(train_data g) {
-    layout_variant<BCHW_train> layout = create_layout<BCHW_train, train_data>(g);
-    std::visit([&](auto& layout) {
-        using Layout = std::decay_t<decltype(layout)>;
-        using Tile   = typename Layout::tile_type;
-        using WarpTile = CHW<3, Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
+    channel_variant cvar = channel_var(g);
+    std::visit([&](auto& cvar) {
+        using Chan = std::decay_t<decltype(cvar)>;
+    
+        layout_variant<BCHW_train> layout = create_layout<BCHW_train, train_data>(g);
+        std::visit([&](auto& layout) {
+            using Layout = std::decay_t<decltype(layout)>;
+            using Tile   = typename Layout::tile_type;
+            using WarpTile = CHW<Chan.C, Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
 
-        auto* kernel = train_kernel<Layout, Tile, WarpTile, Net, Loss>;
-        cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
-        kernel<<<layout.grid(), layout.block()>>>(layout);
+            printf("Running training with C=%d, Tile=%dx%d\n", Chan.C, Tile::B.x, Tile::B.y);
 
-    }, layout);
+            auto* kernel = train_kernel<Layout, Tile, WarpTile, Net, Loss>;
+            cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
+            kernel<<<layout.grid(), layout.block()>>>(layout);
+
+        }, layout);
+    }, cvar);
 }
 
 
