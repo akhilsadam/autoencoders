@@ -17,11 +17,11 @@ def _test_nn_sanity():
         
     x = torch.randn(10, 3, 32, 32).cuda()
     y = x * 2.78
+    yhat = torch.zeros_like(y)
         
     mem_pointer = nn_sanity.train(x, y, 100, 0)
     print("Mem pointer after training:", mem_pointer)
 
-    yhat = torch.zeros_like(y)
     nn_sanity.eval(x, yhat, mem_pointer)
     print("Output after eval:", yhat)
     error = torch.mean((y - yhat) ** 2).item()
