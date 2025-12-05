@@ -80,7 +80,7 @@ struct TileBCHW : public TileType {
     __device__ __forceinline__ int32_t batch() const { return blockIdx.z; }
     
     // Warp-level indices
-    static __device__ __forceinline__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
+    __device__ __forceinline__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
     static constexpr int32_t warptile_nx = TileType::B.x / TileType::W.x;
     static constexpr int32_t warptile_ny = TileType::B.y / TileType::W.y;
     static constexpr int32_t warptiles = warptile_nx * warptile_ny;
@@ -124,28 +124,28 @@ struct HW{
     static constexpr int32_t Wx = _Wx;
 
     // Warp-level indices
-    __device__ __forceinline__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
+    static __device__ __forceinline__ int32_t warp_id() { return threadIdx.x / kittens::WARP_THREADS; }
     static constexpr int32_t warptile_nx = Bx / Wx;
     static constexpr int32_t warptile_ny = By / Wy;
     static constexpr int32_t warptiles = warptile_nx * warptile_ny;
     static constexpr int32_t warpwaves = (warptiles + NUM_WORKERS - 1) / NUM_WORKERS;
 
-    static __device__ __forceinline__ int32_t warptile_linear_id(int32_t wave) const {
+    static __device__ __forceinline__ int32_t warptile_linear_id(int32_t wave) {
         return wave * NUM_WORKERS + warp_id();
     }
 
-    static __device__ __forceinline__ bool warptile_active(int32_t wave) const {
+    static __device__ __forceinline__ bool warptile_active(int32_t wave) {
         return warptile_linear_id(wave) < warptiles;
     }
 
-    static __device__ __forceinline__ int2 warptile_ixy(int32_t wave) const {
+    static __device__ __forceinline__ int2 warptile_ixy(int32_t wave) {
         int32_t warptile_id = warptile_linear_id(wave);
         int32_t warptile_ix = warptile_id % warptile_nx; // iterate x (cols) first
         int32_t warptile_iy = warptile_id / warptile_nx;
         return make_int2(warptile_ix, warptile_iy);
     }
     
-    static __device__ __forceinline__ int2 warptile_xy(int32_t wave) const {
+    static __device__ __forceinline__ int2 warptile_xy(int32_t wave) {
         int2 ij = warptile_ixy(wave);
         return make_int2(ij.x * Wx,
                     ij.y * Wy);
