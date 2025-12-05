@@ -23,7 +23,7 @@ struct scale_module : public module<IN, Transform, Opt> {
     wtile* weight;        // lives in shared memory
     wtile* grad_weight;   // gradient accumulator
 
-    static size_t weight_bytes = sizeof(ftype);
+    static constexpr size_t weight_bytes = sizeof(ftype);
 
     // ------------------ weights ----------------------
     template <typename T>
