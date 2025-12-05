@@ -22,39 +22,39 @@ struct scale_module : public module<IN, Transform, Opt> {
     // one shared weight
     using wgl = gl<ftype,1,1,1,1>;
     using wtile = shmem<1,1>;
-    wgl g_weight;
-    wgl g_grad_weight;
-    wtile& weight;        // lives in shared memory
-    wtile& grad_weight;   // gradient accumulator
+    wgl* g_weight;
+    wgl* g_grad_weight;
+    wtile* weight;        // lives in shared memory
+    wtile* grad_weight;   // gradient accumulator
 
     size_t weight_bytes = sizeof(ftype);
 
     // ------------------ weights ----------------------
     template <typename T>
     __device__ __forceinline__ void init_weights(T& al) {
-        &weight = al.template allocate<shmem<1,1>, 1>();
-        &grad_weight = al.template allocate<shmem<1,1>, 1>();
-        one(weight);
-        zero(grad_weight);
+        weight = al.template allocate<shmem<1,1>, 1>();
+        grad_weight = al.template allocate<shmem<1,1>, 1>();
+        one(*weight);
+        zero(*grad_weight);
     }
 
 
     __device__ __forceinline__
     void load_weights(uint64_t mem_ptr) {
-        &g_weight = *reinterpret_cast<wgl*>(mem_ptr);
-        load(weight, g_weight, {0,0,0,0});
+        g_weight = reinterpret_cast<wgl*>(mem_ptr);
+        load(*weight, *g_weight, {0,0,0,0});
     }
 
     virtual __device__ __forceinline__
     void save_weights() {
-        store(g_weight, weight, {0,0,0,0});
+        store(*g_weight, *weight, {0,0,0,0});
     }
 
     // ------------------ fwd() ----------------------
     __device__ __forceinline__ void fwd(int32_t batch) {
         rt<ftype, IN.Wy, IN.Wx> X, Y;
         rt<ftype,1,1> W;
-        load(W, weight, {0,0,0,0});
+        load(W, *weight, {0,0,0,0});
 
         auto w = W.tiles[0][0].data[0].x;
 
