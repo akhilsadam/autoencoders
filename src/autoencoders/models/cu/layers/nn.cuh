@@ -72,7 +72,7 @@ class module {
             // load weights from global memory to shared memory
         }
 
-        virtual __device__ __forceinline__ void save_weights(uint64_t mem_ptr) {
+        virtual __device__ __forceinline__ void save_weights() {
             // save weights from shared memory to global memory
         }
 
@@ -130,9 +130,13 @@ struct module_chain {
         next._load_weights(mem_ptr + CurrentModule::weight_bytes());
     }
 
-    __device__ inline void _save_weights(uint64_t mem_ptr) {
-        current._save_weights(mem_ptr);
-        next._save_weights(mem_ptr + CurrentModule::weight_bytes());
+    // __device__ inline void _save_weights(uint64_t mem_ptr) {
+    //     current._save_weights(mem_ptr);
+    //     next._save_weights(mem_ptr + CurrentModule::weight_bytes());
+    // }
+    __device__ inline void _save_weights() {
+        current._save_weights();
+        next._save_weights();
     }
 
     __device__ inline void fwd(int32_t batch) {

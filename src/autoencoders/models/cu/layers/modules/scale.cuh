@@ -10,7 +10,7 @@ using namespace kittens;
 #endif
 
 struct IdentityTransform {
-    template<_HW>
+    template<typename _HW>
     static constexpr _HW apply(_HW IN) {
         return IN;
     }
@@ -20,33 +20,34 @@ template<HW IN, class Transform, class Opt>
 struct scale_module : public module<IN, Transform, Opt> {
    
     // one shared weight
+    using wgl = gl<1,1,1,1>;
     using wtile = shmem<1,1>;
+    wgl g_weight;
+    wgl g_grad_weight;
     wtile* weight;        // lives in shared memory
     wtile* grad_weight;   // gradient accumulator
 
     size_t weight_bytes = sizeof(ftype);
 
     // ------------------ weights ----------------------
-    __device__ __forceinline__
-    void init_weights(shared_allocator al) {
-        coord<> _id(0,0,0,0);
+    template <typename T>
+    __device__ __forceinline__ void init_weights(T& al) {
         weight = al.allocate<shmem<1,1>>(1);
         grad_weight = al.allocate<shmem<1,1>>(1);
-        weight[_id] = 1.0f;
-        grad_weight[_id] = 0.0f;
+        one(weight);
+        zero(grad_weight);
     }
 
 
     __device__ __forceinline__
     void load_weights(uint64_t mem_ptr) {
-        coord<> _id(0,0,0,0);
-        weight[_id] = *reinterpret_cast<ftype*>(mem_ptr);
+        &g_weight = *reinterpret_cast<wgl*>(mem_ptr);
+        load(weight, g_weight, {0,0,0,0});
     }
 
     virtual __device__ __forceinline__
-    void save_weights(uint64_t mem_ptr) {
-        coord<> _id(0,0,0,0);
-        *reinterpret_cast<ftype*>(mem_ptr) = weight[_id];
+    void save_weights() {
+        store(g_weight, weight, {0,0,0,0});
     }
 
     // ------------------ fwd() ----------------------
