@@ -31,11 +31,11 @@ static __global__ void train_kernel(const DataLayout data)
     );
     net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
 
-    // // Init weights ONCE
-    // // -----------------------
-    // net.init_weights(al);
-    // __syncthreads();
-    // if (data.weight_mem_ptr != 0) // optional: load weights from global memory
+    // Init weights ONCE
+    // -----------------------
+    net.init_weights(al);
+    __syncthreads();
+    if (data.weight_mem_ptr != 0) // optional: load weights from global memory
     //     net._load_weights(data.weight_mem_ptr);
     //     __syncthreads();
     
@@ -58,7 +58,7 @@ static __global__ void train_kernel(const DataLayout data)
 
     //         __syncthreads();
     //     }
-    // }
+    }
 
     // // --------------------------------------
     // // Save weights back to global
