@@ -67,17 +67,17 @@ struct scale_module : public module<IN, Transform, Opt> {
         ftype w = weight[0];
 
         for (int c = 0; c < this->in_chan; ++c) {
-            for (int wave = 0; wave < IN::warpwaves; ++wave) {
+            // for (int wave = 0; wave < IN::warpwaves; ++wave) {
 
-                int2 ij = IN::warptile_xy(wave);
-                coord<> idx(batch, c, ij.y, ij.x);
-                load(X, *(this->x), idx);
+            //     int2 ij = IN::warptile_xy(wave);
+            //     coord<> idx(batch, c, ij.y, ij.x);
+                load(X, *(this->x));
 
                 // #pragma unroll
                 // for (int i = 0; i < X.num_elems; i++)
                 //     Y.data[i] = X.data[i] * w;
 
-                store(*(this->y), X, idx);
+                store(*(this->y), X);
             }
         }
     }
@@ -89,13 +89,13 @@ struct scale_module : public module<IN, Transform, Opt> {
         ftype local_grad_w = 0.0f;
 
         for (int c = 0; c < this->in_chan; ++c) {
-            for (int wave = 0; wave < IN::warpwaves; ++wave) {
+            // for (int wave = 0; wave < IN::warpwaves; ++wave) {
 
-                int2 ij = IN::warptile_xy(wave);
-                coord<> idx(batch, c, ij.y, ij.x);
+                // int2 ij = IN::warptile_xy(wave);
+                // coord<> idx(batch, c, ij.y, ij.x);
 
-                load(X, *(this->x), idx);
-                load(GY, *(this->grad_y), idx);
+                load(X, *(this->x));
+                load(GY, *(this->grad_y));
 
                 // #pragma unroll
                 // for (int i=0;i<X.num_elems;i++) {
@@ -103,7 +103,7 @@ struct scale_module : public module<IN, Transform, Opt> {
                 //     local_grad_w += GY.data[i] * X.data[i];
                 // }
 
-                store(*(this->grad_x), GY, idx);
+                store(*(this->grad_x), GY);
             }
         }
 
