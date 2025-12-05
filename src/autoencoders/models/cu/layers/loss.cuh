@@ -22,7 +22,7 @@ struct mse_bwd {
 
 struct MSELoss{
     template<class L>
-    __device__ __forceinline__ void op(
+    static __device__ __forceinline__ void op(
         const shmem<L::By, L::Bx>* y_hat,
         const shmem<L::By, L::Bx>* y,
         shmem<L::By, L::Bx>* grad_y
