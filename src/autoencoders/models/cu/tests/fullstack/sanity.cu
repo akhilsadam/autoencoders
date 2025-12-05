@@ -33,7 +33,6 @@ void train(train_data g) {
     }, chan_var);
 }
 
-
 PYBIND11_MODULE(sanity, m) {
     m.doc() = "nn test python module";
     // py::bind_function<eval_kernel>(m, "eval", &fwd_data::x, &fwd_data::y, &fwd_data::mem_ptr);

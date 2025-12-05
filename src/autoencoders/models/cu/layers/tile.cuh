@@ -261,7 +261,7 @@ using Tile128 = Tile<-1, -1, 128, 64, 16, 16>;
 // channels
 template<int _C>
 struct __CHAN__{
-    int32_t C=_C;
+    static constexpr int32_t C=_C;
 };
 
 using C1 = __CHAN__<1>;
