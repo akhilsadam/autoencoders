@@ -8,7 +8,7 @@ using namespace kittens;
 #define NN_CUH_INCLUDED
 
 template<int By, int Bx>
-using shmem = st<ftype, By, Bx>;
+using shmem = st<ftype, By, Bx/2>;
 
 template<HW IN, class Transform, class Opt>
 class module {
@@ -18,10 +18,10 @@ class module {
         int32_t in_chan;
         int32_t out_chan;
         float chan_factor = 1.0f;
-        shmem<IN.By, IN.Bx/2>* x;
-        shmem<OUT.By, OUT.Bx/2>* y;
-        shmem<OUT.By, OUT.Bx/2>* grad_y;
-        shmem<IN.By, IN.Bx/2>* grad_x;
+        shmem<IN.By, IN.Bx>* x;
+        shmem<OUT.By, OUT.Bx>* y;
+        shmem<OUT.By, OUT.Bx>* grad_y;
+        shmem<IN.By, IN.Bx>* grad_x;
 
         static constexpr size_t weight_bytes = 0;
 
@@ -37,13 +37,13 @@ class module {
             // allocate
             if (x_ptr != 0) 
             {
-                x = reinterpret_cast<shmem<IN.By, IN.Bx/2>*>(x_ptr);
+                x = reinterpret_cast<shmem<IN.By, IN.Bx>*>(x_ptr);
             }
             else
             {
-                x = al.template allocate<shmem<IN.By, IN.Bx/2>>(in_chan);
+                x = al.template allocate<shmem<IN.By, IN.Bx>>(in_chan);
             }
-            y = al.template allocate<shmem<OUT.By, OUT.Bx/2>>(out_chan);
+            y = al.template allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
             return reinterpret_cast<uint64_t>(y);
         }
 
@@ -52,13 +52,13 @@ class module {
             // allocate
             if (grad_y_ptr != 0) 
             {
-                grad_y = reinterpret_cast<shmem<OUT.By, OUT.Bx/2>*>(grad_y_ptr);
+                grad_y = reinterpret_cast<shmem<OUT.By, OUT.Bx>*>(grad_y_ptr);
             }
             else
             {
-                grad_y = al.template allocate<shmem<OUT.By, OUT.Bx/2>>(out_chan);
+                grad_y = al.template allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
             }
-            grad_x = al.template allocate<shmem<IN.By, IN.Bx/2>>(in_chan);
+            grad_x = al.template allocate<shmem<IN.By, IN.Bx>>(in_chan);
             return reinterpret_cast<uint64_t>(grad_x);
         }
         
