@@ -50,7 +50,7 @@ struct scale_module : public module<IN, Transform, Opt> {
 
     // ------------------ fwd() ----------------------
     __device__ __forceinline__ void fwd(int32_t batch) {
-        reg_wtile_ft<IN> X, Y;
+        rt<ftype, IN.Wy, IN.Wx> X, Y;
         rt<ftype,1,1> W;
         load(W, weight, {0,0,0,0});
 
@@ -74,7 +74,7 @@ struct scale_module : public module<IN, Transform, Opt> {
 
     // ------------------ bwd() ----------------------
     __device__ __forceinline__ void bwd(int32_t batch) {
-        reg_wtile_ft<IN> GX, GY, X;
+        rt<ftype, IN.Wy, IN.Wx> GX, GY, X;
 
         ftype local_grad_w = 0.0f;
 
