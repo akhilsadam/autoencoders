@@ -20,16 +20,16 @@ static __global__ void train_kernel(const DataLayout data)
 
     // allocate memory
     using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
-    // shmem_tile& x_ptr = al.allocate<shmem_tile>(data.x.depth());
-    // shmem_tile& y_ptr = al.allocate<shmem_tile>(data.x.depth());
-    // shmem_tile& grad_y_ptr = al.allocate<shmem_tile>(data.x.depth());
+    shmem_tile& x_ptr = al.allocate<shmem_tile, L::C>();
+    shmem_tile& y_ptr = al.allocate<shmem_tile, L::C>();
+    shmem_tile& grad_y_ptr = al.allocate<shmem_tile, L::C>();
 
-    // shmem_tile* y_hat_ptr = reinterpret_cast<shmem_tile*>
-    // (
-    //     net.eval(al,
-    //         data.x.depth(),
-    //         reinterpret_cast<uint64_t>(x_ptr))
-    // );
+    shmem_tile* y_hat_ptr = reinterpret_cast<shmem_tile*>
+    (
+        net.eval(al,
+            data.x.depth(),
+            reinterpret_cast<uint64_t>(x_ptr))
+    );
     // net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
 
     // // Init weights ONCE
@@ -74,9 +74,6 @@ void train(train_data g) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
         using WarpTile = CHW<3, Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
-
-        // printf("channels are %d\n", g.x.depth());
-
 
         auto* kernel = train_kernel<Layout, Tile, WarpTile>;
         cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
