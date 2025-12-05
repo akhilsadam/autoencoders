@@ -29,7 +29,7 @@ static __global__ void train_kernel(const DataLayout data)
         net.eval(al,
             reinterpret_cast<uint64_t>(x_ptr))
     );
-    // net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
+    net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
 
     // // Init weights ONCE
     // // -----------------------
