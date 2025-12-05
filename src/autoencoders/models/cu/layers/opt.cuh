@@ -5,7 +5,7 @@
 
 class SGD {
     public:
-        static const float learning_rate = LEARNING_RATE;
+        static constexpr float learning_rate = LEARNING_RATE;
         
         template<typename T>
         static __device__ __forceinline__ T update(T w, T grad_w) {
