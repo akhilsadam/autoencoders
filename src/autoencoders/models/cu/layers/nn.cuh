@@ -147,7 +147,7 @@ struct module_chain {
         current.bwd();
     }
 
-    static size_t total_weight_bytes() {
+    static constexprsize_t total_weight_bytes() {
         if (sizeof...(Rest) == 0)
             return CurrentModule::weight_bytes;
         else
