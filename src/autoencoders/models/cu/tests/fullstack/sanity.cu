@@ -27,7 +27,6 @@ static __global__ void train_kernel(const DataLayout data)
     shmem_tile* y_hat_ptr = reinterpret_cast<shmem_tile*>
     (
         net.eval(al,
-            data.x.depth(),
             reinterpret_cast<uint64_t>(x_ptr))
     );
     // net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
