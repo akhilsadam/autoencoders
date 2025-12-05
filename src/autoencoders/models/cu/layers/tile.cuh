@@ -80,7 +80,7 @@ struct TileBCHW : public TileType {
     __device__ __forceinline__ int32_t batch() const { return blockIdx.z; }
     
     // Warp-level indices
-    __device__ __forceinline__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
+    static __device__ __forceinline__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
     static constexpr int32_t warptile_nx = TileType::B.x / TileType::W.x;
     static constexpr int32_t warptile_ny = TileType::B.y / TileType::W.y;
     static constexpr int32_t warptiles = warptile_nx * warptile_ny;
