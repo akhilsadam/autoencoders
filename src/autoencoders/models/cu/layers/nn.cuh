@@ -171,15 +171,13 @@ struct module_chain<IN, Opt, ModuleSpec> {
         return current.train(al, grad_y_ptr);
     }
 
-    template <typename T>
-    __device__ inline void init_weights(T& al) {
-        current.init_weights(al);
-    }
-
     __device__ inline void fwd(int32_t batch) { current.fwd(batch); }
     __device__ inline void bwd(int32_t batch) { current.bwd(batch); }
-    __device__ inline void _load_weights(uint64_t mem_ptr) { current._load_weights(mem_ptr); }
-    __device__ inline void _save_weights() { current._save_weights(); }
+    
+    template <typename T>
+    __device__ inline void __init_weights__(T& al) { current.__init_weights__(al); }
+    __device__ inline void __load_weights__(uint64_t mem_ptr) { current.__load_weights__(mem_ptr); }
+    __device__ inline void __save_weights__() { current.__save_weights__(); }
 
     static size_t total_weight_bytes() { return CurrentModule::weight_bytes; }
 };
