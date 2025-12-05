@@ -11,77 +11,78 @@ template<int By, int Bx>
 using shmem = st<ftype, By, Bx>;
 
 template<HW IN, class Transform, class Opt>
-struct module {
-    // BCHW 
-    static constexpr HW OUT = Transform::apply(IN);
-    int32_t in_chan;
-    int32_t out_chan;
-    float chan_factor = 1.0f;
-    shmem<IN.By, IN.Bx>* x;
-    shmem<OUT.By, OUT.Bx>* y;
-    shmem<OUT.By, OUT.Bx>* grad_y;
-    shmem<IN.By, IN.Bx>* grad_x;
+class module {
+    public:
+        // BCHW 
+        static constexpr HW OUT = Transform::apply(IN);
+        int32_t in_chan;
+        int32_t out_chan;
+        float chan_factor = 1.0f;
+        shmem<IN.By, IN.Bx/2>* x;
+        shmem<OUT.By, OUT.Bx/2>* y;
+        shmem<OUT.By, OUT.Bx/2>* grad_y;
+        shmem<IN.By, IN.Bx/2>* grad_x;
 
-    static constexpr size_t weight_bytes = 0;
+        static constexpr size_t weight_bytes = 0;
 
-    // some unknown parameters in templated classes
-    /// TODO fix xy pointers in list below and concurrently only allocate
-    /// the intermediate xy (since y of one module is x of next)
-    /// and grad_x, grad_y similarly
+        // some unknown parameters in templated classes
+        /// TODO fix xy pointers in list below and concurrently only allocate
+        /// the intermediate xy (since y of one module is x of next)
+        /// and grad_x, grad_y similarly
 
-    template <typename T>
-    __device__ __forceinline__ uint64_t eval(T& al, const int32_t _in_chan, const uint64_t x_ptr) {
-        in_chan = _in_chan;
-        out_chan = static_cast<int32_t>(in_chan * chan_factor + 0.1f); // round to nearest int
-        // allocate
-        if (x_ptr != 0) 
-        {
-            x = reinterpret_cast<shmem<IN.By, IN.Bx>*>(x_ptr);
+        template <typename T>
+        __device__ __forceinline__ uint64_t eval(T& al, const int32_t _in_chan, const uint64_t x_ptr) {
+            in_chan = _in_chan;
+            out_chan = static_cast<int32_t>(in_chan * chan_factor + 0.1f); // round to nearest int
+            // allocate
+            if (x_ptr != 0) 
+            {
+                x = reinterpret_cast<shmem<IN.By, IN.Bx>*>(x_ptr);
+            }
+            else
+            {
+                x = al.template allocate<shmem<IN.By, IN.Bx>>(in_chan);
+            }
+            y = al.template allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
+            return reinterpret_cast<uint64_t>(y);
         }
-        else
-        {
-            x = al.template allocate<shmem<IN.By, IN.Bx>>(in_chan);
+
+        template <typename T>
+        __device__ __forceinline__ uint64_t train(T& al, const uint64_t grad_y_ptr) {
+            // allocate
+            if (grad_y_ptr != 0) 
+            {
+                grad_y = reinterpret_cast<shmem<OUT.By, OUT.Bx>*>(grad_y_ptr);
+            }
+            else
+            {
+                grad_y = al.template allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
+            }
+            grad_x = al.template allocate<shmem<IN.By, IN.Bx>>(in_chan);
+            return reinterpret_cast<uint64_t>(grad_x);
         }
-        y = al.template allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
-        return reinterpret_cast<uint64_t>(y);
-    }
-
-    template <typename T>
-    __device__ __forceinline__ uint64_t train(T& al, const uint64_t grad_y_ptr) {
-        // allocate
-        if (grad_y_ptr != 0) 
-        {
-            grad_y = reinterpret_cast<shmem<OUT.By, OUT.Bx>*>(grad_y_ptr);
+        
+        template <typename T>
+        __device__ __forceinline__ void init_weights(T& al) {
+            // allocate weights if any
+            // and initialize in shared memory
         }
-        else
-        {
-            grad_y = al.template allocate<shmem<OUT.By, OUT.Bx>>(out_chan);
+
+        virtual __device__ __forceinline__ void load_weights(const uint64_t mem_ptr) {
+            // load weights from global memory to shared memory
         }
-        grad_x = al.template allocate<shmem<IN.By, IN.Bx>>(in_chan);
-        return reinterpret_cast<uint64_t>(grad_x);
-    }
-    
-    template <typename T>
-    __device__ __forceinline__ void init_weights(T& al) {
-        // allocate weights if any
-        // and initialize in shared memory
-    }
 
-    virtual __device__ __forceinline__ void load_weights(const uint64_t mem_ptr) {
-        // load weights from global memory to shared memory
-    }
+        virtual __device__ __forceinline__ void save_weights(uint64_t mem_ptr) {
+            // save weights from shared memory to global memory
+        }
 
-    virtual __device__ __forceinline__ void save_weights(uint64_t mem_ptr) {
-        // save weights from shared memory to global memory
-    }
-
-    virtual __device__ __forceinline__ void fwd(int32_t batch) {
-        // run forward pass
-    }
-    
-    virtual __device__ __forceinline__ void bwd(int32_t batch) {
-        // run backward pass
-    }
+        virtual __device__ __forceinline__ void fwd(int32_t batch) {
+            // run forward pass
+        }
+        
+        virtual __device__ __forceinline__ void bwd(int32_t batch) {
+            // run backward pass
+        }
 
 };
 

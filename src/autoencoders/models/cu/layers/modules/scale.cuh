@@ -20,33 +20,41 @@ template<HW IN, class Transform, class Opt>
 struct scale_module : public module<IN, Transform, Opt> {
    
     // one shared weight
-    shmem<1,1>* w;        // lives in shared memory
-    shmem<1,1>* grad_w;   // gradient accumulator
+    using wtile = shmem<1,1>;
+    wtile* weight;        // lives in shared memory
+    wtile* grad_weight;   // gradient accumulator
 
     // ------------------ weights ----------------------
-    virtual __device__ __forceinline__
+    __device__ __forceinline__
     void init_weights(shared_allocator al) {
-        w = al.allocate<shmem<1,1>>(1);
-        grad_w = al.allocate<shmem<1,1>>(1);
-        w[0].at(0,0) = 1.0f;  // initialize weight to 1.0
-        grad_w[0].at(0,0) = 0.0f;
+        coord<> _id(0,0,0,0);
+        weight = al.allocate<shmem<1,1>>(1);
+        grad_weight = al.allocate<shmem<1,1>>(1);
+        weight[_id] = 1.0f;
+        grad_weight[_id] = 0.0f;
     }
 
     constexpr size_t weight_bytes = sizeof(ftype);
 
-    virtual __device__ __forceinline__
+    __device__ __forceinline__
     void load_weights(uint64_t mem_ptr) {
-        *w = *reinterpret_cast<ftype*>(mem_ptr);
+        coord<> _id(0,0,0,0);
+        weight[_id] = *reinterpret_cast<ftype*>(mem_ptr);
     }
 
     virtual __device__ __forceinline__
     void save_weights(uint64_t mem_ptr) {
-        *reinterpret_cast<ftype*>(mem_ptr) = *w;
+        coord<> _id(0,0,0,0);
+        *reinterpret_cast<ftype*>(mem_ptr) = weight[_id];
     }
 
     // ------------------ fwd() ----------------------
     __device__ __forceinline__ void fwd(int32_t batch) {
         reg_wtile_ft<IN> X, Y;
+        reg_wtile_ft<1,1> W;
+        load(W, weight, {0,0,0,0});
+
+        auto w = W.tiles[0][0].data[0].x;
 
         for (int c = 0; c < IN.C; ++c) {
             for (int wave = 0; wave < IN.warpwaves; ++wave) {
@@ -55,11 +63,11 @@ struct scale_module : public module<IN, Transform, Opt> {
                 coord<> idx(batch, c, ij.y, ij.x);
                 load(X, x, idx);
 
-                #pragma unroll
-                for (int i = 0; i < X.num_elems; i++)
-                    Y.data[i] = X.data[i] * w[0].at(0,0);
+                // #pragma unroll
+                // for (int i = 0; i < X.num_elems; i++)
+                //     Y.data[i] = X.data[i] * w;
 
-                store(y, Y, idx);
+                store(y, X, idx);
             }
         }
     }
@@ -79,18 +87,17 @@ struct scale_module : public module<IN, Transform, Opt> {
                 load(X, x, idx);
                 load(GY, grad_y, idx);
 
-                #pragma unroll
-                for (int i=0;i<X.num_elems;i++) {
-                    GX.data[i] = GY.data[i] * w[0].at(0,0);
-                    local_grad_w += GY.data[i] * X.data[i];
-                }
+                // #pragma unroll
+                // for (int i=0;i<X.num_elems;i++) {
+                //     GX.data[i] = GY.data[i] * w[0].at(0,0);
+                //     local_grad_w += GY.data[i] * X.data[i];
+                // }
 
-                store(grad_x, GX, idx);
+                store(grad_x, GY, idx);
             }
         }
 
-        atomicAdd(grad_w[0].at(0,0), local_grad_w);  // should do parallel scan over warps
-
+        atomicAdd(grad_weight[0].at(0,0), local_grad_w);  // should do parallel scan over warps
         // Apply SGD update only if we are the first thread
         if (threadIdx.x == 0)
         {
