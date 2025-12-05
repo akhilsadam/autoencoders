@@ -10,11 +10,11 @@ using namespace kittens;
 template<int By, int Bx>
 using shmem = st<ftype, By, Bx/2>;
 
-template<HW IN, class Transform, class Opt>
+template<class IN, class Transform, class Opt>
 class module {
     public:
         // BCHW 
-        static constexpr HW OUT = Transform::apply(IN);
+        static constexpr auto OUT = Transform::template type<IN>;
         int32_t in_chan;
         int32_t out_chan;
         float chan_factor = 1.0f;
@@ -86,21 +86,22 @@ class module {
 
 };
 
-template <template<HW, class, class> class ModuleType, class Transform>
+template <template<class, class, class> class ModuleType, class Transform>
 struct ModuleSpec {
-    template<HW IN, class Opt>
+    template<class IN, class Opt>
     using type = ModuleType<IN, Transform, Opt>;
 };
 
 // size, optimizer, chained modules
-template<HW IN, class Opt, class ModuleSpec, class... Rest>
+template<class IN, class Opt, class ModuleSpec, class... Rest>
 struct module_chain {
     // Instantiate the actual module using its internal transform
     // and then recursively instantiate the next module in the chain
     using CurrentModule = typename ModuleSpec::template type<IN, Opt>;
-    CurrentModule current;
-    static constexpr HW NextIN = CurrentModule::OUT;
+    using NextIN = CurrentModule::OUT;
     module_chain<NextIN, Opt, Rest...> next;
+
+    CurrentModule current;
 
     // for the first and last modules, handle input/output pointers
 

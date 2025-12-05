@@ -10,13 +10,12 @@ using namespace kittens;
 #endif
 
 struct IdentityTransform {
-    template<typename _HW>
-    static constexpr _HW apply(_HW IN) {
-        return IN;
+    template<class IN>
+        using type = IN;
     }
 };
 
-template<HW IN, class Transform, class Opt>
+template<class IN, class Transform, class Opt>
 struct scale_module : public module<IN, Transform, Opt> {
    
     // one shared weight

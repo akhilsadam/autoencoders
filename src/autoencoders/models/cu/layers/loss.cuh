@@ -20,7 +20,7 @@ struct mse_bwd {
     }
 };
 
-template<HW Layout>
+template<class Layout>
 __device__ __forceinline__ void MSE(
     int32_t channels,
     int32_t batch,

@@ -8,10 +8,10 @@ using namespace kittens;
 #include "opt.cuh"
 #include "modules/scale.cuh"
 
-template<HW L>
+template<class L>
 using Net = module_chain<L, SGD, ScaleModule>;
 
-template<typename DataLayout, typename TileType, typename L>
+template<typename DataLayout, typename TileType, class L>
 static __global__ void train_kernel(const DataLayout data)
 {
     extern __shared__ alignment_dummy __shm[]; 
