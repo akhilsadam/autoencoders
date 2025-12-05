@@ -9,7 +9,7 @@ using namespace kittens;
 #include "modules/scale.cuh"
 
 template<class L>
-using Net = module_chain<L, SGD, ScaleModule>;
+using network = module_chain<L, SGD, ScaleModule>;
 using Loss = MSELoss;
 
 void train(train_data g) {
@@ -22,8 +22,11 @@ void train(train_data g) {
             using Layout = std::decay_t<decltype(layout)>;
             using Tile   = typename Layout::tile_type;
             using WarpTile = CHW<Chan::C, Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
+            using Net = network<WarpTile>;
 
-            printf("Train @ C=%d, Tile=%dx%d\n", Chan::C, Tile::B.x, Tile::B.y);
+            size_t total_weights = Net::total_weight_bytes();
+
+            printf("Train @ C=%d, Tile=%dx%d, with weight bytes %zu\n", Chan::C, Tile::B.x, Tile::B.y, total_weights);
 
             auto* kernel = train_kernel<Layout, Tile, WarpTile, Net, Loss>;
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
@@ -36,5 +39,5 @@ void train(train_data g) {
 PYBIND11_MODULE(sanity, m) {
     m.doc() = "nn test python module";
     // py::bind_function<eval_kernel>(m, "eval", &fwd_data::x, &fwd_data::y, &fwd_data::mem_ptr);
-    py::bind_function<train>(m, "train", &train_data::x, &train_data::y);
+    py::bind_function<train>(m, "train", &train_data::x, &train_data::y, &train_data::iterations, &train_data::weight_mem_ptr);
 }

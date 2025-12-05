@@ -185,12 +185,12 @@ struct module_chain<IN, Opt, ModuleSpec> {
 };
 
 
-template<typename DataLayout, typename TileType, class L, template<class> class Net, class Loss>
+template<typename DataLayout, typename TileType, class L, class Net, class Loss>
 static __global__ void train_kernel(const DataLayout data)
 {
     extern __shared__ alignment_dummy __shm[]; 
     shared_allocator al((int*)&__shm[0]);
-    Net<L> net;
+    Net net;
 
     // allocate memory
     using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
@@ -241,12 +241,12 @@ static __global__ void train_kernel(const DataLayout data)
 }
 
 
-template<typename DataLayout, typename TileType, class L, template<class> class Net, class Loss>
+template<typename DataLayout, typename TileType, class L, class Net, class Loss>
 static __global__ void eval_kernel(const DataLayout data)
 {
     extern __shared__ alignment_dummy __shm[]; 
     shared_allocator al((int*)&__shm[0]);
-    Net<L> net;
+    Net net;
 
     // allocate memory
     using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
