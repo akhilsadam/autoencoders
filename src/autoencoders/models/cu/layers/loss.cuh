@@ -20,20 +20,22 @@ struct mse_bwd {
     }
 };
 
-template<class L>
-__device__ __forceinline__ void MSE(
-    const shmem<L::By, L::Bx>* y_hat,
-    const shmem<L::By, L::Bx>* y,
-    shmem<L::By, L::Bx>* grad_y
-) {
-    // BCHW again, and we work on [C] arrays of type ST[H,W].
+struct MSELoss{
+    template<class L>
+    __device__ __forceinline__ void op(
+        const shmem<L::By, L::Bx>* y_hat,
+        const shmem<L::By, L::Bx>* y,
+        shmem<L::By, L::Bx>* grad_y
+    ) {
+        // BCHW again, and we work on [C] arrays of type ST[H,W].
 
-    rt<ftype, L::By, L::Bx> WARP_y, WARP_y_hat, WARP_grad_y; // register tiles
-    
-    for(int32_t c = 0; c < L::C; c++) {
-        load(WARP_y_hat, y_hat[c]);
-        load(WARP_y, y[c]);
-        bin_map<mse_bwd<L::N>>(WARP_grad_y, WARP_y_hat, WARP_y);
-        store(grad_y[c], WARP_grad_y);
+        rt<ftype, L::By, L::Bx> WARP_y, WARP_y_hat, WARP_grad_y; // register tiles
+        
+        for(int32_t c = 0; c < L::C; c++) {
+            load(WARP_y_hat, y_hat[c]);
+            load(WARP_y, y[c]); // TODO make it additive for multiple losses
+            bin_map<mse_bwd<L::N>>(WARP_grad_y, WARP_y_hat, WARP_y);
+            store(grad_y[c], WARP_grad_y);
+        }
     }
-}
+};
