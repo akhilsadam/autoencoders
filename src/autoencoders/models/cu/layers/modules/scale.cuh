@@ -24,8 +24,8 @@ struct scale_module : public module<IN, Transform, Opt> {
     using wtile = shmem<1,1>;
     wgl g_weight;
     wgl g_grad_weight;
-    wtile weight;        // lives in shared memory
-    wtile grad_weight;   // gradient accumulator
+    wtile& weight;        // lives in shared memory
+    wtile& grad_weight;   // gradient accumulator
 
     size_t weight_bytes = sizeof(ftype);
 
