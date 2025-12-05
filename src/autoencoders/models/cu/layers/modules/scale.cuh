@@ -66,9 +66,9 @@ struct scale_module : public module<IN, Transform, Opt> {
         rt<ftype, IN.Wy, IN.Wx> X, Y;
         // rt<ftype,1,1> W;
         // load(W, *weight);
-        ftype W = weight[0];
+        // auto w = W.tiles[0][0].data[0].x;
 
-        auto w = W.tiles[0][0].data[0].x;
+        ftype w = weight[0];
 
         for (int c = 0; c < IN.C; ++c) {
             for (int wave = 0; wave < IN.warpwaves; ++wave) {
