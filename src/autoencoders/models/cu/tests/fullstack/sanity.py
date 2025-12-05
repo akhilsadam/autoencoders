@@ -18,7 +18,9 @@ def _test_nn_sanity():
     x = torch.randn(10, 3, 32, 32).cuda()
     y = x * 2.78
         
-    nn_sanity.train(x, y)
+    mem_pointer = 0
+    nn_sanity.train(x, y, 100, mem_pointer)
+    print("Mem pointer after training:", mem_pointer)
 
     # from cu.tests import test_layers as tl
     # tl._check(nn.nn_sanity(), nn_sanity())
