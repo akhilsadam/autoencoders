@@ -20,14 +20,14 @@ static __global__ void train_kernel(const DataLayout data)
 
     // allocate memory
     using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
-    shmem_tile& x_ptr = al.allocate<shmem_tile>(data.x.channels());
-    shmem_tile& y_ptr = al.allocate<shmem_tile>(data.x.channels());
-    shmem_tile& grad_y_ptr = al.allocate<shmem_tile>(data.x.channels());
+    shmem_tile& x_ptr = al.allocate<shmem_tile>(data.x.depth());
+    shmem_tile& y_ptr = al.allocate<shmem_tile>(data.x.depth());
+    shmem_tile& grad_y_ptr = al.allocate<shmem_tile>(data.x.depth());
 
     // shmem_tile* y_hat_ptr = reinterpret_cast<shmem_tile*>
     // (
     //     net.eval(al,
-    //         data.x.channels(),
+    //         data.x.depth(),
     //         reinterpret_cast<uint64_t>(x_ptr))
     // );
     // net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
@@ -45,7 +45,7 @@ static __global__ void train_kernel(const DataLayout data)
     //     for (int batch = 0; batch < data.batch_size; batch++)
     //     {            
     //         // load input data for this batch item
-    //         for (int c = 0; c < data.x.channels(); c++)
+    //         for (int c = 0; c < data.x.depth(); c++)
     //         {
     //             coord<> idx(batch, c, 0, 0);
     //             load(x_ptr + c, data.x, idx);
@@ -54,7 +54,7 @@ static __global__ void train_kernel(const DataLayout data)
     //         __syncthreads();
 
     //         net.fwd();
-    //         MSE<L>(data.channels, batch, y_hat_ptr, y_ptr, grad_y_ptr);
+    //         MSE<L>(data.depth, batch, y_hat_ptr, y_ptr, grad_y_ptr);
     //         net.bwd();
 
     //         __syncthreads();
