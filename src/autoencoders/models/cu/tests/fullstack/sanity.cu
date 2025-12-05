@@ -20,44 +20,44 @@ static __global__ void train_kernel(const DataLayout data)
 
     // allocate memory
     using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
-    shmem_tile* x_ptr = al.allocate<shmem_tile, L::C>();
-    shmem_tile* y_ptr = al.allocate<shmem_tile, L::C>();
-    shmem_tile* grad_y_ptr = al.allocate<shmem_tile, L::C>();
+    shmem_tile* x_array = al.allocate<shmem_tile, L::C>();
+    shmem_tile* y_array = al.allocate<shmem_tile, L::C>();
+    shmem_tile* grad_y_array = al.allocate<shmem_tile, L::C>();
 
-    shmem_tile* y_hat_ptr = reinterpret_cast<shmem_tile*>
+    shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
     (
         net.eval(al,
-            reinterpret_cast<uint64_t>(x_ptr))
+            reinterpret_cast<uint64_t>(x_array))
     );
-    net.train(al, reinterpret_cast<uint64_t>(grad_y_ptr));
+    net.train(al, reinterpret_cast<uint64_t>(grad_y_array));
    
     // -----------------------
     // Init weights ONCE
     net.__init_weights__(al);
     __syncthreads();
-    if (data.weight_mem_ptr != 0)
+    if (data.weight_mem_array != 0)
     {
-        net.__load_weights__(data.weight_mem_ptr);
+        net.__load_weights__(data.weight_mem_array);
         __syncthreads();        
     } // optional: load weights from global memory
 
     // -----------------------
     // training loop
-    for (int iter = 0; iter < data.iterations; iter++)
+    for (int batch = 0; batch < data.batch_size; batch++)
     {
-        for (int batch = 0; batch < data.batch_size; batch++)
+        for (int iter = 0; iter < data.iterations; iter++)
         {            
             // load input data for this batch item
             for (int c = 0; c < data.x.depth(); c++)
             {
                 coord<> idx(batch, c, 0, 0);
-                load(x_ptr + c, data.x, idx);
-                load(y_ptr + c, data.y, idx);
+                load(x_array[c], data.x, idx);
+                load(y_array[c], data.y, idx);
             }
             __syncthreads();
 
             // net.fwd();
-            // MSE<L>(data.depth, batch, y_hat_ptr, y_ptr, grad_y_ptr);
+            // MSE<L>(data.depth, batch, y_hat_array, y_array, grad_y_array);
             // net.bwd();
 
             __syncthreads();
@@ -66,7 +66,7 @@ static __global__ void train_kernel(const DataLayout data)
 
     // --------------------------------------
     // Save weights back to global
-    if (data.weight_mem_ptr != 0)
+    if (data.weight_mem_array != 0)
         net.__save_weights__();
 }
 
@@ -87,6 +87,6 @@ void train(train_data g) {
 
 PYBIND11_MODULE(sanity, m) {
     m.doc() = "nn test python module";
-    // py::bind_function<eval_kernel>(m, "eval", &fwd_data::x, &fwd_data::y, &fwd_data::mem_ptr);
+    // py::bind_function<eval_kernel>(m, "eval", &fwd_data::x, &fwd_data::y, &fwd_data::mem_array);
     py::bind_function<train>(m, "train", &train_data::x, &train_data::y);
 }
