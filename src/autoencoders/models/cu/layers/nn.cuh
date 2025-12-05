@@ -158,3 +158,33 @@ struct module_chain {
     }
 
 };
+
+
+// base case
+template<class IN, class Opt, class ModuleSpec>
+struct module_chain<IN, Opt, ModuleSpec> {
+    using CurrentModule = typename ModuleSpec::template type<IN, Opt>;
+    CurrentModule current;
+
+    template <typename T>
+    __device__ inline uint64_t eval(T& al, const uint32_t in_chan, const uint64_t x_ptr = 0) {
+        return current.eval(al, in_chan, x_ptr);
+    }
+
+    template <typename T>
+    __device__ inline uint64_t train(T& al, const uint64_t grad_y_ptr = 0) {
+        return current.train(al, grad_y_ptr);
+    }
+
+    template <typename T>
+    __device__ inline void init_weights(T& al) {
+        current.init_weights(al);
+    }
+
+    __device__ inline void fwd(int32_t batch) { current.fwd(batch); }
+    __device__ inline void bwd(int32_t batch) { current.bwd(batch); }
+    __device__ inline void _load_weights(uint64_t mem_ptr) { current._load_weights(mem_ptr); }
+    __device__ inline void _save_weights() { current._save_weights(); }
+
+    static size_t total_weight_bytes() { return CurrentModule::weight_bytes; }
+};
