@@ -75,7 +75,7 @@ void train(train_data g) {
         using Tile   = typename Layout::tile_type;
         using WarpTile = HW<Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
 
-        printf("channels are %d\n", g.x.channels());
+        printf("channels are %d\n", g.x.depth());
 
 
         auto* kernel = train_kernel<Layout, Tile, WarpTile>;
