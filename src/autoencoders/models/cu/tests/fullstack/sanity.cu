@@ -30,40 +30,35 @@ static __global__ void train_kernel(const DataLayout data)
             reinterpret_cast<uint64_t>(x_array))
     );
     net.train(al, reinterpret_cast<uint64_t>(grad_y_array));
-   
-    // -----------------------
-    // Init weights ONCE
+    // --------------------------------------
+    // weight initialization
     net.__init_weights__(al);
     __syncthreads();
+
     if (data.weight_mem_ptr != 0)
-    {
+    {   // optional: load weights from global memory
         net.__load_weights__(data.weight_mem_ptr);
         __syncthreads();        
-    } // optional: load weights from global memory
-
-    // -----------------------
-    // training loop
-    for (int batch = 0; batch < data.batch_size; batch++)
-    {
-        for (int iter = 0; iter < data.iterations; iter++)
-        {            
-            // load input data for this batch item
-            for (int c = 0; c < data.x.depth(); c++)
-            {
-                coord<> idx(batch, c, 0, 0);
-                load(x_array[c], data.x, idx);
-                load(y_array[c], data.y, idx);
-            }
-            __syncthreads();
-
-            // net.fwd();
-            // MSE<L>(data.depth, batch, y_hat_array, y_array, grad_y_array);
-            // net.bwd();
-
-            __syncthreads();
+    } 
+    // --------------------------------------
+    // training loop, one batch (across blocks)
+    for (int iter = 0; iter < data.iterations; iter++)
+    {            
+        // load input data for this batch item
+        for (int c = 0; c < data.x.depth(); c++)
+        {
+            coord<> idx(data.batch(), c, 0, 0);
+            load(x_array[c], data.x, idx);
+            load(y_array[c], data.y, idx);
         }
-    }
+        __syncthreads();
 
+        // net.fwd();
+        // MSE<L>(data.depth, batch, y_hat_array, y_array, grad_y_array);
+        // net.bwd();
+
+        __syncthreads();
+    }
     // --------------------------------------
     // Save weights back to global
     if (data.weight_mem_ptr != 0)
