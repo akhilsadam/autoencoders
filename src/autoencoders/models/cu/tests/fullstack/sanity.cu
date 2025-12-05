@@ -35,9 +35,9 @@ static __global__ void train_kernel(const DataLayout data)
     // Init weights ONCE
     net.__init_weights__(al);
     __syncthreads();
-    if (data.weight_mem_array != 0)
+    if (data.weight_mem_ptr != 0)
     {
-        net.__load_weights__(data.weight_mem_array);
+        net.__load_weights__(data.weight_mem_ptr);
         __syncthreads();        
     } // optional: load weights from global memory
 
@@ -66,7 +66,7 @@ static __global__ void train_kernel(const DataLayout data)
 
     // --------------------------------------
     // Save weights back to global
-    if (data.weight_mem_array != 0)
+    if (data.weight_mem_ptr != 0)
         net.__save_weights__();
 }
 
@@ -87,6 +87,6 @@ void train(train_data g) {
 
 PYBIND11_MODULE(sanity, m) {
     m.doc() = "nn test python module";
-    // py::bind_function<eval_kernel>(m, "eval", &fwd_data::x, &fwd_data::y, &fwd_data::mem_array);
+    // py::bind_function<eval_kernel>(m, "eval", &fwd_data::x, &fwd_data::y, &fwd_data::mem_ptr);
     py::bind_function<train>(m, "train", &train_data::x, &train_data::y);
 }
