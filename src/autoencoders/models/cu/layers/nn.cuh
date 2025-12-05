@@ -10,11 +10,11 @@ using namespace kittens;
 template<int By, int Bx>
 using shmem = st<ftype, By, Bx/2>;
 
-template<class IN, class Transform, class Opt>
+template<class IN, template<class> class Transform, class Opt>
 class module {
     public:
         // BCHW 
-        using OUT = Transform::template type<IN>;
+        using OUT = Transform<IN>;
         int32_t in_chan;
         int32_t out_chan;
         float chan_factor = 1.0f;
@@ -86,7 +86,7 @@ class module {
 
 };
 
-template <template<class, class, class> class ModuleType, class Transform>
+template <template<class, template<class> class, class> class ModuleType, template<class> class Transform>
 struct ModuleSpec {
     template<class IN, class Opt>
     using type = ModuleType<IN, Transform, Opt>;

@@ -9,12 +9,10 @@ using namespace kittens;
 #include "nn.cuh"
 #endif
 
-struct IdentityTransform {
-    template<class IN>
-    using type = IN;
-};
+template<class IN>
+using IdentityTransform = IN;
 
-template<class IN, class Transform, class Opt>
+template<class IN, template<class> class Transform, class Opt>
 struct scale_module : public module<IN, Transform, Opt> {
    
     // one shared weight
