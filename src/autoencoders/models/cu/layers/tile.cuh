@@ -237,10 +237,10 @@ using reg_tile_ft = rt<ftype, TileType::W.y, TileType::W.x>;
 template<typename TileType>
 using reg_tile_dt = rt<dtype, TileType::W.y, TileType::W.x>;
 
-template<typename _HW>
+template<HW _HW>
 using reg_wtile_ft = rt<ftype, _HW::Wy, _HW::Wx>;
 
-template<typename _HW>
+template<HW _HW>
 using reg_wtile_dt = rt<dtype, _HW::Wy, _HW::Wx>;
 
 template<typename TileType>
