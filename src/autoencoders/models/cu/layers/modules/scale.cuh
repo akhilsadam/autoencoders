@@ -62,17 +62,17 @@ struct scale_module : public module<IN, Transform, Opt> {
 
     // ------------------ fwd() ----------------------
     __device__ __forceinline__ void fwd(int32_t batch) {
-        rt<ftype, IN.Wy, IN.Wx> X, Y;
+        rt<ftype, IN::Wy, IN::Wx> X, Y;
         // rt<ftype,1,1> W;
         // load(W, *weight);
         // auto w = W.tiles[0][0].data[0].x;
 
         ftype w = weight[0];
 
-        for (int c = 0; c < IN.C; ++c) {
-            for (int wave = 0; wave < IN.warpwaves; ++wave) {
+        for (int c = 0; c < this->in_chan; ++c) {
+            for (int wave = 0; wave < IN::warpwaves; ++wave) {
 
-                int2 ij = IN.warptile_xy(wave);
+                int2 ij = IN::warptile_xy(wave);
                 coord<> idx(batch, c, ij.y, ij.x);
                 load(X, this->x, idx);
 
@@ -91,10 +91,10 @@ struct scale_module : public module<IN, Transform, Opt> {
 
         ftype local_grad_w = 0.0f;
 
-        for (int c = 0; c < IN.C; ++c) {
-            for (int wave = 0; wave < IN.warpwaves; ++wave) {
+        for (int c = 0; c < this->in_chan; ++c) {
+            for (int wave = 0; wave < IN::warpwaves; ++wave) {
 
-                int2 ij = IN.warptile_xy(wave);
+                int2 ij = IN::warptile_xy(wave);
                 coord<> idx(batch, c, ij.y, ij.x);
 
                 load(X, this->x, idx);
