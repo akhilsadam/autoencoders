@@ -78,7 +78,7 @@ struct scale_module : public module<IN, Transform, Opt> {
                 //     Y.data[i] = X.data[i] * w;
 
                 store(*(this->y), X);
-            }
+            // }
         }
     }
 
@@ -104,7 +104,7 @@ struct scale_module : public module<IN, Transform, Opt> {
                 // }
 
                 store(*(this->grad_x), GY);
-            }
+            // }
         }
 
         // atomicAdd(grad_weight[0].at(0,0), local_grad_w);  // should do parallel scan over warps
