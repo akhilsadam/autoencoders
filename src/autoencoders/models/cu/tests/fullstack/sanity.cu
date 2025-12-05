@@ -20,9 +20,9 @@ static __global__ void train_kernel(const DataLayout data)
 
     // allocate memory
     using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
-    shmem_tile& x_ptr = al.allocate<shmem_tile>(data.x.depth());
-    shmem_tile& y_ptr = al.allocate<shmem_tile>(data.x.depth());
-    shmem_tile& grad_y_ptr = al.allocate<shmem_tile>(data.x.depth());
+    // shmem_tile& x_ptr = al.allocate<shmem_tile>(data.x.depth());
+    // shmem_tile& y_ptr = al.allocate<shmem_tile>(data.x.depth());
+    // shmem_tile& grad_y_ptr = al.allocate<shmem_tile>(data.x.depth());
 
     // shmem_tile* y_hat_ptr = reinterpret_cast<shmem_tile*>
     // (
@@ -74,6 +74,8 @@ void train(train_data g) {
         using Layout = std::decay_t<decltype(layout)>;
         using Tile   = typename Layout::tile_type;
         using WarpTile = HW<Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
+
+        printf("channels are %d\n", g.x.channels());
 
 
         auto* kernel = train_kernel<Layout, Tile, WarpTile>;
