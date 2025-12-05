@@ -11,8 +11,7 @@ using namespace kittens;
 
 struct IdentityTransform {
     template<class IN>
-        using type = IN;
-    }
+    using type = IN;
 };
 
 template<class IN, class Transform, class Opt>
@@ -87,7 +86,7 @@ struct scale_module : public module<IN, Transform, Opt> {
 
     // ------------------ bwd() ----------------------
     __device__ __forceinline__ void bwd(int32_t batch) {
-        rt<ftype, IN.Wy, IN.Wx> GX, GY, X;
+        rt<ftype, IN::y, IN::Wx> GX, GY, X;
 
         ftype local_grad_w = 0.0f;
 
