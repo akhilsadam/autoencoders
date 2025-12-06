@@ -38,8 +38,6 @@ uint64_t train(train_data& g) {
 
             g.weight_mem_ptr = reinterpret_cast<uint64_t>(weight_mem_ptr);
 
-            cudaDeviceSynchronize();
-
         }, layout);
     }, chan_var);
     
@@ -59,14 +57,14 @@ void eval(train_data& g) {
             using Net = network<WarpTile>;
 
             size_t total_weights = Net::total_weight_bytes();
+            void* weight_ptr = reinterpret_cast<void*>(g.weight_mem_ptr);
 
-            printf("Eval @ C=%d, Tile=%dx%d, with weight bytes %zu @ %p\n", Chan::C, Tile::B.x, Tile::B.y, total_weights, g.weight_mem_ptr);
+            printf("Eval @ C=%d, Tile=%dx%d, with weight bytes %zu @ %p\n", Chan::C, Tile::B.x, Tile::B.y, total_weights, weight_ptr);
 
             auto* kernel = eval_kernel<Layout, Tile, WarpTile, Net, Loss>;
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
             kernel<<<layout.grid(), layout.block()>>>(layout);
 
-            cudaDeviceSynchronize();
 
         }, layout);
     }, chan_var);
