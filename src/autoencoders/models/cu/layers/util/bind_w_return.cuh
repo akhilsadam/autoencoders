@@ -27,6 +27,22 @@ inline void bind_function_with_return(auto m, auto name, auto TGlobal::*... memb
     );
 }
 
+template<auto function, typename TGlobal>
+inline void bind_function_args(py::module_ &m, const char* name, auto TGlobal::*... member_ptrs) {
+    m.def(name,
+        [=](auto... args) {
+            // Construct the struct from Python arguments
+            TGlobal __g__ {
+                static_cast<typename kittens::py::trait<decltype(member_ptrs)>::member_type>(
+                    pybind11::cast<typename kittens::py::trait<decltype(member_ptrs)>::member_type>(args)
+                )...
+            };
+
+            function(__g__);
+        }
+    );
+}
+
 
 } // namespace py
 } // namespace kittens
