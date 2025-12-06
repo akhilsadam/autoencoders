@@ -125,8 +125,8 @@ template<int32_t _C, typename TileType>
 struct CHW{
     static constexpr int32_t C = _C;
 
-    static constexpr int32_t pack_factor = 2;
-    static constexpr int2 Wp = {TileType::W.x / pack_factor, TileType::W.y}; // packed warp
+    // static constexpr int32_t pack_factor = 2;
+    static constexpr int2 Wp = {TileType::W.x, TileType::W.y}; // packed warp
 
     static constexpr int2 B = TileType::B;
     static constexpr int2 W = TileType::W;
@@ -282,9 +282,9 @@ using BCHW_train = _BCHW_train<tiled_layout<TileType>, TileType>;
 
 // image HW, max block HW, reg-tile / single-warp HW
 // always stores block HW shmem per block
-using Tile28 = Tile<-1, -1, 2, 2, 16, 32>;
-using Tile64 = Tile<-1, -1, 4, 4, 16, 32>;
-using Tile128 = Tile<-1, -1, 8, 8, 16, 32>;
+using Tile28 = Tile<-1, -1, 1, 1, 16, 16>;
+using Tile64 = Tile<-1, -1, 4, 4, 16, 16>;
+using Tile128 = Tile<-1, -1, 8, 8, 16, 16>;
 
 // channels
 template<int _C>
