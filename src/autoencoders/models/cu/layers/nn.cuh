@@ -8,7 +8,7 @@ using namespace kittens;
 #define NN_CUH_INCLUDED
 
 template<int By, int Bx>
-using shmem = st<ftype, By, Bx>;
+using shmem = st<ftype, By, Bx/2>;
 
 template<class IN, template<class> class Transform, class Opt>
 class module {
