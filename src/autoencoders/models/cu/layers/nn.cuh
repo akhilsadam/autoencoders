@@ -217,7 +217,8 @@ static __global__ void train_kernel(const DataLayout data)
     
     --------------------------------------
     // training loop, one batch (across blocks)
-    // for (int iter = 0; iter < data.iterations; iter++)
+    //data.iterations
+    for (int iter = 0; iter < 1; iter++)
     {            
         // load input data for this batch item
         // for (int c = 0; c < data.x.depth(); c++)
