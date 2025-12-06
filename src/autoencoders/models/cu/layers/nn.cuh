@@ -200,7 +200,7 @@ static __global__ void train_kernel(const DataLayout data)
     using IN = Net::IN;
     using OUT = Net::OUT;
 
-    IN::shmem_wp* x_array = IN::template salloc(al);
+    typename IN::shmem_wp* x_array = IN::template salloc(al);
     OUT::shmem_wp* y_array = OUT::template salloc(al);
     OUT::shmem_wp* grad_y_array = OUT::template salloc(al);
 
