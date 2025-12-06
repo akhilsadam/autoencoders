@@ -28,7 +28,7 @@ inline void bind_function_with_return(auto m, auto name, auto TGlobal::*... memb
 }
 
 template<auto function, typename TGlobal>
-inline void bind_function_args(py::module_ &m, const char* name, auto TGlobal::*... member_ptrs) {
+inline void bind_function_args(auto m, auto name, auto TGlobal::*... member_ptrs) {
     m.def(name,
         [=](auto... args) {
             // Construct the struct from Python arguments
