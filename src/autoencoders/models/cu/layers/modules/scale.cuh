@@ -48,8 +48,8 @@ struct scale_module : public module<IN, Transform, Opt> {
     void __load_weights__(uint64_t mem_ptr) {
         // g_weight = reinterpret_cast<wgl*>(mem_ptr);
         // load(*weight, *g_weight, {0,0,0,0});
-        g_weight = reinterpret_cast<wgl*>(mem_ptr);
-        weight[0] = *g_weight;
+        // g_weight = reinterpret_cast<wgl*>(mem_ptr);
+        // weight[0] = *g_weight;
     }
 
     virtual __device__ __forceinline__
