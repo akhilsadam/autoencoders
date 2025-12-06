@@ -179,7 +179,7 @@ struct bwd_data
 };
 
 struct train_data {
-    base_layout_ y, x;
+    base_layout_ x, y;
     uint64_t weight_mem_ptr;
     uint64_t iterations;
 };
