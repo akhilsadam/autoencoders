@@ -13,10 +13,10 @@ class module {
         // BCHW 
         using IN = _IN;
         using OUT = Transform<IN>;
-        IN::shmem_wp* x;
-        OUT::shmem_wp* y;
-        OUT::shmem_wp* grad_y;
-        IN::shmem_wp* grad_x;
+        IN::shmem_array* x;
+        OUT::shmem_array* y;
+        OUT::shmem_array* grad_y;
+        IN::shmem_array* grad_x;
 
         static constexpr size_t weight_bytes = 0;
 
@@ -30,7 +30,7 @@ class module {
             // allocate
             if (x_ptr != 0) 
             {
-                x = reinterpret_cast<IN::shmem_wp*>(x_ptr);
+                x = reinterpret_cast<IN::shmem_array*>(x_ptr);
             }
             else
             {
@@ -45,7 +45,7 @@ class module {
             // allocate
             if (grad_y_ptr != 0) 
             {
-                grad_y = reinterpret_cast<OUT::shmem_wp*>(grad_y_ptr);
+                grad_y = reinterpret_cast<OUT::shmem_array*>(grad_y_ptr);
             }
             else
             {

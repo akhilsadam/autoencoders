@@ -131,15 +131,17 @@ struct CHW{
     using shmem_wp = st<ftype, Wp.y, Wp.x>;
     using reg_wp = rt<ftype, Wp.y, Wp.x>;
 
+    using shmem_array = shmem_wp[WT.y][WT.x][C];
+
     // allocator
      template <typename T>
-    static __device__ __forceinline__ void salloc(T& al, shmem_wp*& x) {
+    static __device__ __forceinline__ void salloc(T& al, shmem_array*& x) {
         // allocate
         x = al.template allocate<shmem_wp, WT.y, WT.x, C>();
     }
 
     template <typename T>
-    static __device__ __forceinline__ shmem_wp* salloc(T& al) {
+    static __device__ __forceinline__ shmem_array* salloc(T& al) {
         // allocate
         return al.template allocate<shmem_wp, WT.y, WT.x, C>();
     }
