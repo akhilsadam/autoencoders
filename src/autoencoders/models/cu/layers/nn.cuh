@@ -237,16 +237,16 @@ static __global__ void train_kernel(const DataLayout data)
             for (int c = 0; c < data.x.depth(); c++)
             {
                 coord<> idx(data.batch(), c, p.y, p.x);
-                load((*x_array)[wt.y][wt.x][c], data.x, idx);
-                load((*y_array)[wt.y][wt.x][c], data.y, idx);
+                load(x_array[wt.y][wt.x][c], data.x, idx);
+                // load((*y_array)[wt.y][wt.x][c], data.y, idx);
 
             }
         }
         __syncthreads();
 
-        net.fwd();
-        Loss::template op<OUT>(y_hat_array, y_array, grad_y_array);
-        net.bwd();
+        // net.fwd();
+        // Loss::template op<OUT>(y_hat_array, y_array, grad_y_array);
+        // net.bwd();
 
         __syncthreads();
     }
@@ -297,7 +297,7 @@ static __global__ void eval_kernel(const DataLayout data)
         for (int c = 0; c < data.x.depth(); c++)
         {
             coord<> idx(data.batch(), c, p.y, p.x);
-            load((*x_array)[wt.y][wt.x][c], data.x, idx);
+            // load((*x_array)[wt.y][wt.x][c], data.x, idx);
         }
     }
     __syncthreads();
@@ -311,7 +311,7 @@ static __global__ void eval_kernel(const DataLayout data)
         for (int c = 0; c < data.y.depth(); c++)
         {
             coord<> idx(data.batch(), c, p.y, p.x);
-            store(data.y, (*y_hat_array)[wt.y][wt.x][c], idx);
+            // store(data.y, (*y_hat_array)[wt.y][wt.x][c], idx);
         }
     }
 
