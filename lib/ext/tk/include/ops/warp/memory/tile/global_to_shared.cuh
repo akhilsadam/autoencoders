@@ -39,12 +39,13 @@ __device__ static inline void load(ST &dst, const GL &src, const COORD &idx) {
     typename GL::dtype *src_ptr = (typename GL::dtype*)&src[unit_coord];
     uint32_t dst_ptr = static_cast<uint32_t>(__cvta_generic_to_shared(&dst.data[0]));
     int laneid = threadIdx.x % N_THREADS;
+    if (threadIdx.x == 0) {
+        printf("Total calls: %d, Total rows: %d\n", total_calls, total_rows);
+        printf("Unit coord: (%d, %d, %d)\n", unit_coord.dim<0>(), unit_coord.dim<1>(), unit_coord.dim<2>());
+        printf("memcpy per row: %d, elem per memcpy: %d\n", memcpy_per_row, elem_per_memcpy);
+        printf("assume_aligned: %d\n", assume_aligned);
+}
 
-    printf("Total calls: %d, Total rows: %d\n", total_calls, total_rows);
-    printf("Unit coord: (%d, %d, %d)\n", unit_coord.dim<0>(), unit_coord.dim<1>(), unit_coord.dim<2>());
-    printf("memcpy per row: %d, elem per memcpy: %d\n", memcpy_per_row, elem_per_memcpy);
-    printf("assume_aligned: %d\n", assume_aligned);
-    
     #pragma unroll
     for(int i = 0; i < total_calls; i++) {
 
