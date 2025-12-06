@@ -10,6 +10,36 @@
 #include "../../../../common/common.cuh"
 #include "../../../../types/types.cuh"
 
+
+// Source - https://stackoverflow.com/a
+// Posted by tera, modified by community. See post 'Timeline' for change history
+// Retrieved 2025-12-06, License - CC BY-SA 4.0
+
+// First, a pointer-size-related definition, in case
+// this code is being compiled in 32-bit rather than 
+// 64-bit mode; if you know the code is always 64-bit
+// you can just use the "l"
+
+#if defined(_WIN64) || defined(__LP64__)
+# define PTR_CONSTRAINT "l"
+#else
+# define PTR_CONSTRAINT "r"
+#endif
+
+__device__ int isShared(void *ptr)
+{
+    int res;
+    asm("{"
+        ".reg .pred p;\n\t"
+        "isspacep.shared p, %1;\n\t"
+        "selp.b32 %0, 1, 0, p;\n\t"
+        "}" :
+        "=r"(res): PTR_CONSTRAINT(ptr));
+    return res;
+}
+/////////////////////////////////////////////////////
+
+
 namespace kittens {
 
 /**
@@ -65,7 +95,7 @@ __device__ static inline void load(ST &dst, const GL &src, const COORD &idx) {
                 move<float4>::ldg(tmp, (float4*)&src_ptr[row*row_stride + col]);
                 // move<float4>::sts(dst.idx(dst_ptr, {row, col}), tmp);
                 if (threadIdx.x == 0) {
-                    printf("dst ptr: %p\n", dst_ptr);
+                    printf("dst ptr: %p, isShared: %d\n", dst_ptr, isShared((void*) dst_ptr));
                 }
                 printf("destination loc: %u for row %d, col %d by thread %d\n", dst.idx(dst_ptr, {row, col}), row, col, threadIdx.x);
                 // if (threadIdx.x == 0)
