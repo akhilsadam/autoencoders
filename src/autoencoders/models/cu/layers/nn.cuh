@@ -204,8 +204,8 @@ static __global__ void train_kernel(const DataLayout data)
             reinterpret_cast<uint64_t>(x_array))
     );
     net.train(al, reinterpret_cast<uint64_t>(grad_y_array));
-    --------------------------------------
-    // weight initialization
+    // --------------------------------------
+    // // weight initialization
     net.__init_weights__(al);
     __syncthreads();
 
@@ -215,13 +215,12 @@ static __global__ void train_kernel(const DataLayout data)
         __syncthreads();        
     } 
     
-    --------------------------------------
+    // --------------------------------------
     // training loop, one batch (across blocks)
-    //data.iterations
-    for (int iter = 0; iter < 1; iter++)
+    // for (int iter = 0; iter < data.iterations; iter++)
     {            
         // load input data for this batch item
-        // for (int c = 0; c < data.x.depth(); c++)
+        for (int c = 0; c < data.x.depth(); c++)
         {
             // coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
             coord<> idx(0, 0, 0, 0);
