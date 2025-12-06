@@ -24,6 +24,7 @@ template<ducks::sv::all SV, ducks::gl::all GL, ducks::coord::vec COORD=coord<SV>
 __device__ static inline void load(SV &dst, const GL &src, const COORD &idx) {
 
     printf("Global to Shared load called\n");
+    asm("trap;");
     constexpr int elem_per_transfer = sizeof(float4) / sizeof(typename SV::dtype);
     constexpr int total_calls = (SV::length + WARP_THREADS*elem_per_transfer - 1) / (WARP_THREADS*elem_per_transfer); // round up
     typename GL::dtype *src_ptr = (typename GL::dtype*)&src[(idx.template unit_coord<-1, 3>())];
