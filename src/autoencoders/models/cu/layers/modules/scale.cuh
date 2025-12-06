@@ -97,7 +97,7 @@ struct scale_module : public module<_IN, Transform, Opt> {
                     // Debug: verify register tile corners
                     if (threadIdx.x == 0 && c == 0) {
                         printf("tid=%d: X.at(0,0)=%f X.at(15,15)=%f\n", 
-                               threadIdx.x, X[0][0].x, X[X.rows-1][X.cols-1].y);
+                               threadIdx.x, X[0][0].x, X[15][15].y);
                     }
                     __syncwarp();
 
