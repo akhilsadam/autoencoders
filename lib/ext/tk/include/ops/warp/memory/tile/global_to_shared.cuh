@@ -95,7 +95,7 @@ __device__ static inline void load(ST &dst, const GL &src, const COORD &idx) {
                 move<float4>::ldg(tmp, (float4*)&src_ptr[row*row_stride + col]);
                 // move<float4>::sts(dst.idx(dst_ptr, {row, col}), tmp);
                 if (threadIdx.x == 0) {
-                    printf("dst ptr: %p, isShared: %d\n", dst_ptr, isShared((void*) dst_ptr));
+                    printf("dst: %p, dst ptr: %p, isShared: %d\n", dst, dst_ptr, isShared((void*) dst_ptr));
                 }
                 printf("destination loc: %u for row %d, col %d by thread %d\n", dst.idx(dst_ptr, {row, col}), row, col, threadIdx.x);
                 // if (threadIdx.x == 0)
