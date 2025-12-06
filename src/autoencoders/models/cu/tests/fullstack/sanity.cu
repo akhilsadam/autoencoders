@@ -44,7 +44,8 @@ uint64_t train(train_data& g) {
     return g.weight_mem_ptr;
 }
 
-void eval(train_data& g) {
+void eval(train_data g) {
+    
     channel_variant chan_var = channel_var(g);
     std::visit([&](auto& chan_var) {
         using Chan = std::decay_t<decltype(chan_var)>;
