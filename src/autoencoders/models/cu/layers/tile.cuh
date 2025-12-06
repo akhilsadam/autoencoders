@@ -285,7 +285,7 @@ __host__ channel_variant channel_var(const BaseData& g) {
 template<typename BaseData>
 __host__ size_t TileIndex(const BaseData& g) {
     int W = g.x.cols();
-    size_t idx = (W == 28) ? 0 : (W == 64) ? 1 : 2;
+    size_t idx = (W <= 32) ? 0 : (W <= 64) ? 1 : 2;
     return idx;
 }
 
