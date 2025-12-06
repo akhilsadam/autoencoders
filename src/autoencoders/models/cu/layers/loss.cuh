@@ -36,11 +36,11 @@ struct MSELoss{
             int2 ij = L::warptile_ixy(wave);
             for (int c = 0; c < L::C; ++c) {
 
-                load(WARP_y_hat, this->y_hat[0][ij.y][ij.x][c]);
-                load(WARP_y, this->y[0][ij.y][ij.x][c]); 
+                load(WARP_y_hat, y_hat[0][ij.y][ij.x][c]);
+                load(WARP_y, y[0][ij.y][ij.x][c]); 
                 // TODO make it additive for multiple losses
                 bin_map<mse_bwd<L::N>>(WARP_grad_y, WARP_y_hat, WARP_y);
-                store(this->grad_y[0][ij.y][ij.x][c], WARP_grad_y);
+                store(grad_y[0][ij.y][ij.x][c], WARP_grad_y);
 
                 __syncwarp();
             }
