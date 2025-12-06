@@ -70,22 +70,25 @@ struct scale_module : public module<_IN, Transform, Opt> {
 
         ftype w = weight[0];
 
-        
-        for (int wave = 0; wave < IN::warpwaves; ++wave) 
-        {
-            int2 ij = IN::warptile_ixy(wave);
-            for (int c = 0; c < IN::C; ++c) {
-                
-                printf("tid and yxc: %d %d %d %d\n", threadIdx.x, ij.y, ij.x, c);
+        if (blockIdx.x == 0 && blockIdx.y == 0)
+        {    
+            for (int wave = 0; wave < IN::warpwaves; ++wave) 
+            {
+                int2 ij = IN::warptile_ixy(wave);
+                for (int c = 0; c < IN::C; ++c) 
+                {
+                    
+                    printf("tid and yxc: %d %d %d %d\n", threadIdx.x, ij.y, ij.x, c);
 
-                load(X, this->x[0][ij.y][ij.x][c]);
+                    load(X, this->x[0][ij.y][ij.x][c]);
 
-                // #pragma unroll
-                // for (int i = 0; i < X.num_elems; i++)
-                //     Y.data[i] = X.data[i] * w;
+                    // #pragma unroll
+                    // for (int i = 0; i < X.num_elems; i++)
+                    //     Y.data[i] = X.data[i] * w;
 
-                store(this->y[0][ij.y][ij.x][c], X);
-                __syncwarp();
+                    store(this->y[0][ij.y][ij.x][c], X);
+                    __syncwarp();
+                }
             }
         }
     }
