@@ -224,7 +224,7 @@ static __global__ void train_kernel(const DataLayout data)
         {
             coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
             load(x_array[c], data.x, idx);
-            load(y_array[c], data.y, idx);
+            // load(y_array[c], data.y, idx);
         }
         __syncthreads();
 
