@@ -112,6 +112,13 @@ struct TileBCHW : public TileType {
         return xy;
     }
 
+    __device__ __forceinline__ int2 warptile_ixy_to_gxy(int2 ij) const {
+        int2 xy;
+        xy.x = tile_x() + ij.x * TileType::W.x;
+        xy.y = tile_y() + ij.y * TileType::W.y;
+        return xy;
+    }
+
 };
 
 template<int32_t _C, typename TileType>

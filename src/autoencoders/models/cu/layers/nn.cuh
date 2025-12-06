@@ -232,12 +232,13 @@ static __global__ void train_kernel(const DataLayout data)
         // load input data for this batch item
         for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) 
         {
-            int2 p = data.warptile_gxy(wave);
+            int2 wt = data.warptile_ixy(wave);
+            int2 p = data.warptile_ixy_to_gxy(wt);
             for (int c = 0; c < data.x.depth(); c++)
             {
                 coord<> idx(data.batch(), c, p.y, p.x);
-                load(x_array[c], data.x, idx);
-                load(y_array[c], data.y, idx);
+                load(x_array[wt.y, wt.x, c], data.x, idx);
+                load(y_array[wt.y, wt.x, c], data.y, idx);
 
             }
         }
@@ -291,11 +292,12 @@ static __global__ void eval_kernel(const DataLayout data)
     // load input data for this batch item
     for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) 
     {
-        int2 p = data.warptile_gxy(wave);
+        int2 wt = data.warptile_ixy(wave);
+        int2 p = data.warptile_ixy_to_gxy(wt);
         for (int c = 0; c < data.x.depth(); c++)
         {
             coord<> idx(data.batch(), c, p.y, p.x);
-            load(x_array[c], data.x, idx);
+            load(x_array[wt.y, wt.x, c], data.x, idx);
         }
     }
     __syncthreads();
