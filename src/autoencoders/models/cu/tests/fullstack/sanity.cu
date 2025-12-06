@@ -29,6 +29,7 @@ uint64_t train(train_data& g) {
             // malloc weights
             if (g.weight_mem_ptr == 0)
             {
+                printf("Allocating weight memory of size %zu\n", total_weights);
                 void* weight_mem_ptr;
                 cudaMalloc(&weight_mem_ptr, total_weights);
                 g.weight_mem_ptr = reinterpret_cast<uint64_t>(weight_mem_ptr);
