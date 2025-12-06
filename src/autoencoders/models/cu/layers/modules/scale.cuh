@@ -75,13 +75,13 @@ struct scale_module : public module<_IN, Transform, Opt> {
             for (int c = 0; c < IN::C; ++c) {
 
                 int2 ij = IN::warptile_ixy(wave);
-                load(X, this->x[ij.y, ij.x, c]);
+                load(X, this->x[0][ij.y][ij.x][c]);
 
                 // #pragma unroll
                 // for (int i = 0; i < X.num_elems; i++)
                 //     Y.data[i] = X.data[i] * w;
 
-                store(this->y[ij.y, ij.x, c], X);
+                store(this->y[0][ij.y][ij.x][c], X);
                 __syncwarp();
             }
         }
@@ -99,8 +99,8 @@ struct scale_module : public module<_IN, Transform, Opt> {
 
                 int2 ij = IN::warptile_ixy(wave);
 
-                load(X, this->x[ij.y, ij.x, c]);
-                load(GY, this->grad_y[ij.y, ij.x, c]);
+                load(X, this->x[0][ij.y][ij.x][c]);
+                load(GY, this->grad_y[0][ij.y][ij.x][c]);
 
                 // #pragma unroll
                 // for (int i=0;i<X.num_elems;i++) {
@@ -108,7 +108,7 @@ struct scale_module : public module<_IN, Transform, Opt> {
                 //     local_grad_w += GY.data[i] * X.data[i];
                 // }
 
-                store(this->grad_x[ij.y, ij.x, c], GY);
+                store(this->grad_x[0][ij.y][ij.x][c], GY);
 
                 __syncwarp();
             }
