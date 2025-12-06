@@ -215,25 +215,25 @@ static __global__ void train_kernel(const DataLayout data)
         __syncthreads();        
     } 
     
-    // // --------------------------------------
-    // // training loop, one batch (across blocks)
-    // for (int iter = 0; iter < data.iterations; iter++)
-    // {            
-    //     // load input data for this batch item
-    //     for (int c = 0; c < data.x.depth(); c++)
-    //     {
-    //         coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
-    //         load(x_array[c], data.x, idx);
-    //         load(y_array[c], data.y, idx);
-    //     }
-    //     __syncthreads();
+    // --------------------------------------
+    // training loop, one batch (across blocks)
+    for (int iter = 0; iter < data.iterations; iter++)
+    {            
+        // load input data for this batch item
+        for (int c = 0; c < data.x.depth(); c++)
+        {
+            coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
+            load(x_array[c], data.x, idx);
+            load(y_array[c], data.y, idx);
+        }
+        __syncthreads();
 
-    //     net.fwd();
-    //     Loss::template op<L>(y_hat_array, y_array, grad_y_array);
-    //     net.bwd();
+        net.fwd();
+        Loss::template op<L>(y_hat_array, y_array, grad_y_array);
+        net.bwd();
 
-    //     __syncthreads();
-    // }
+        __syncthreads();
+    }
     // // --------------------------------------
     // // Save weights back to global
     // if (data.weight_mem_ptr != 0)
