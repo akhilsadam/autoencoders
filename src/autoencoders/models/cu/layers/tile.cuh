@@ -138,6 +138,12 @@ struct CHW{
         x = al.template allocate<shmem_wp, WT.y, WT.x, C>();
     }
 
+    template <typename T>
+    __device__ __forceinline__ shmem_wp* salloc(T& al) {
+        // allocate
+        return al.template allocate<shmem_wp, WT.y, WT.x, C>();
+    }
+
     // Warp-level indices
     static __device__ __forceinline__ int32_t warp_id() { return threadIdx.x / kittens::WARP_THREADS; }
     static constexpr int32_t warpwaves = (TileType::WTs + NUM_WORKERS - 1) / NUM_WORKERS;
