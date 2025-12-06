@@ -87,13 +87,13 @@ struct scale_module : public module<_IN, Transform, Opt> {
                     
                     load(X, this->x[0][ij.y][ij.x][c]);
 
-                    // Debug: print first few elements of the loaded register tile
-                    if (threadIdx.x == 0 && c == 0) {
-                        printf("Loaded rt elements (first 8): ");
-                        for (int i = 0; i < 8 && i < X.num_elems; i++)
-                            printf("%f ", X.data[i]);
-                        printf("\n");
-                    }
+                    // // Debug: print first few elements of the loaded register tile
+                    // if (threadIdx.x == 0 && c == 0) {
+                    //     printf("Loaded rt elements (first 8): ");
+                    //     for (int i = 0; i < 8 && i < X.num_elems; i++)
+                    //         printf("%f ", X.data[i]);
+                    //     printf("\n");
+                    // }
 
                     store(this->y[0][ij.y][ij.x][c], X);
                     __syncwarp();
