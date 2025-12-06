@@ -21,13 +21,16 @@ def _test_nn_sanity():
         
     mem_pointer = nn_sanity.train(x, y, 0, 100)
     print("Mem pointer after training:", mem_pointer)
+    
+    mem_pointer = nn_sanity.train(x, y, mem_pointer, 100)
+    print("Mem pointer after training:", mem_pointer)
 
-    nn_sanity.eval(x, yhat, mem_pointer, 0)
-    print("Output after eval:", yhat)
-    error = torch.mean((y - yhat) ** 2).item()
-    signal = torch.mean((yhat - x) ** 2).item()
-    print("MSE after eval:", error)
-    print("Signal after eval:", signal)
+    # nn_sanity.eval(x, yhat, mem_pointer, 0)
+    # print("Output after eval:", yhat)
+    # error = torch.mean((y - yhat) ** 2).item()
+    # signal = torch.mean((yhat - x) ** 2).item()
+    # print("MSE after eval:", error)
+    # print("Signal after eval:", signal)
 
     # from cu.tests import test_layers as tl
     # tl._check(nn.nn_sanity(), nn_sanity())
