@@ -201,11 +201,11 @@ static __global__ void train_kernel(const DataLayout data)
     using IN = Net::IN;
     using OUT = Net::OUT;
 
-    typename IN::shmem_wp* x_array = IN::template salloc(al);
-    typename OUT::shmem_wp* y_array = OUT::template salloc(al);
-    typename OUT::shmem_wp* grad_y_array = OUT::template salloc(al);
+    IN::shmem_wp* x_array = IN::template salloc(al);
+    OUT::shmem_wp* y_array = OUT::template salloc(al);
+    OUT::shmem_wp* grad_y_array = OUT::template salloc(al);
 
-    typename OUT::shmem_wp* y_hat_array = reinterpret_cast<OUT::shmem_wp*>
+    OUT::shmem_wp* y_hat_array = reinterpret_cast<OUT::shmem_wp*>
     (
         net.eval(al,
             reinterpret_cast<uint64_t>(x_array))
@@ -271,8 +271,8 @@ static __global__ void eval_kernel(const DataLayout data)
     using OUT = Net::OUT;
 
     // allocate memory
-    typename IN::shmem_wp* x_array = IN::template salloc(al);
-    typename OUT::shmem_wp* y_hat_array = reinterpret_cast<OUT::shmem_wp*>
+    IN::shmem_wp* x_array = IN::template salloc(al);
+    OUT::shmem_wp* y_hat_array = reinterpret_cast<OUT::shmem_wp*>
     (
         net.eval(al,
             reinterpret_cast<uint64_t>(x_array))
