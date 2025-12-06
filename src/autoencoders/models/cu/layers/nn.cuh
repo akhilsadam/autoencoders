@@ -89,11 +89,12 @@ template<class _IN, class Opt, class ModuleSpec, class... Rest>
 struct module_chain {
     // Instantiate the actual module using its internal transform
     // and then recursively instantiate the next module in the chain
+    using IN = _IN;
+
     using CurrentModule = typename ModuleSpec::template type<IN, Opt>;
     using NextIN = CurrentModule::OUT;
     using NextModule = module_chain<NextIN, Opt, Rest...>;
 
-    using IN = _IN;
     using OUT = NextModule::OUT;
 
     CurrentModule current;
