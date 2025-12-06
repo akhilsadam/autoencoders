@@ -66,6 +66,11 @@ void eval(train_data& g) {
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
             kernel<<<layout.grid(), layout.block()>>>(layout);
 
+            cudaError_t err = cudaGetLastError();
+            if (err != cudaSuccess) {
+                printf("CUDA ERROR after eval kernel: %s\n", cudaGetErrorString(err));
+            }
+            cudaDeviceSynchronize();
 
         }, layout);
     }, chan_var);
@@ -75,4 +80,5 @@ PYBIND11_MODULE(sanity, m) {
     m.doc() = "nn test python module";
     py::bind_function<eval>(m, "eval", &train_data::x, &train_data::y, &train_data::weight_mem_ptr, &train_data::iterations);
     py::bind_function_with_return<train>(m, "train", &train_data::x, &train_data::y, &train_data::weight_mem_ptr, &train_data::iterations);
+    // order matters! this needs to match the train_data struct layout as well, for some reason
 }
