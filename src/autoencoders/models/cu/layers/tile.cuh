@@ -254,9 +254,9 @@ using BCHW_bwd = _BCHW_bwd<tiled_layout<TileType>, TileType>;
 template<typename TileType>
 using BCHW_train = _BCHW_train<tiled_layout<TileType>, TileType>;
 
-using Tile28 = Tile<-1, -1, 32, 16, 16, 16>;
-using Tile64 = Tile<-1, -1, 64, 32, 16, 16>; /// second is 1/2 since packed
-using Tile128 = Tile<-1, -1, 128, 64, 16, 16>;
+using Tile28 = Tile<-1, -1, 32, 16, 32, 16>;
+using Tile64 = Tile<-1, -1, 64, 32, 32, 16>; /// second is 1/2 since packed
+using Tile128 = Tile<-1, -1, 128, 64, 32, 16>;
 
 // channels
 template<int _C>
