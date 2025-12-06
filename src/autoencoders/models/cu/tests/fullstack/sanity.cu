@@ -37,7 +37,7 @@ uint64_t train(train_data& g) {
 
             printf("Train @ C=%d, Tile=%dx%d, with weight bytes %zu @ %p\n", Chan::C, Tile::B.x, Tile::B.y, total_weights, g.weight_mem_ptr);
 
-            auto* kernel = train_kernel<Layout, Tile, WarpTile, Net, Loss>;
+            auto* kernel = train_kernel<Layout, Tile, Net, Loss>;
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
             kernel<<<layout.grid(), layout.block(), layout.mem()>>>(layout);
 
@@ -66,7 +66,7 @@ void eval(train_data& g) {
 
             printf("Eval @ C=%d, Tile=%dx%d, with weight bytes %zu\n", Chan::C, Tile::B.x, Tile::B.y, total_weights);
 
-            auto* kernel = eval_kernel<Layout, Tile, WarpTile, Net, Loss>;
+            auto* kernel = eval_kernel<Layout, Tile, Net, Loss>;
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
             kernel<<<layout.grid(), layout.block(), layout.mem()>>>(layout);
 

@@ -7,18 +7,15 @@ using namespace kittens;
 
 #define NN_CUH_INCLUDED
 
-template<int By, int Bx>
-using shmem = st<ftype, By, Bx>;
-
 template<class IN, template<class> class Transform, class Opt>
 class module {
     public:
         // BCHW 
         using OUT = Transform<IN>;
-        shmem<IN::B.y, IN::B.x>* x;
-        shmem<OUT::B.y, OUT::B.x>* y;
-        shmem<OUT::B.y, OUT::B.x>* grad_y;
-        shmem<IN::B.y, IN::B.x>* grad_x;
+        IN::shmem_wp* x;
+        OUT::shmem_wp* y;
+        OUT::shmem_wp* grad_y;
+        IN::shmem_wp* grad_x;
 
         static constexpr size_t weight_bytes = 0;
 
@@ -32,13 +29,13 @@ class module {
             // allocate
             if (x_ptr != 0) 
             {
-                x = reinterpret_cast<shmem<IN::B.y, IN::B.x>*>(x_ptr);
+                x = reinterpret_cast<IN::shmem_wp*>(x_ptr);
             }
             else
             {
-                x = al.template allocate<shmem<IN::B.y, IN::B.x>, IN::C>();
+                IN::salloc(al, x);
             }
-            y = al.template allocate<shmem<OUT::B.y, OUT::B.x>, OUT::C>();
+            OUT::salloc(al, y);
             return reinterpret_cast<uint64_t>(y);
         }
 
@@ -47,13 +44,13 @@ class module {
             // allocate
             if (grad_y_ptr != 0) 
             {
-                grad_y = reinterpret_cast<shmem<OUT::B.y, OUT::B.x>*>(grad_y_ptr);
+                grad_y = reinterpret_cast<OUT::shmem_wp*>(grad_y_ptr);
             }
             else
             {
-                grad_y = al.template allocate<shmem<OUT::B.y, OUT::B.x>, OUT::C>();
+                OUT::salloc(al, grad_y);
             }
-            grad_x = al.template allocate<shmem<IN::B.y, IN::B.x>, IN::C>();
+            IN::salloc(al, grad_x);
             return reinterpret_cast<uint64_t>(grad_x);
         }
         
@@ -88,15 +85,19 @@ struct ModuleSpec {
 };
 
 // size, optimizer, chained modules
-template<class IN, class Opt, class ModuleSpec, class... Rest>
+template<class _IN, class Opt, class ModuleSpec, class... Rest>
 struct module_chain {
     // Instantiate the actual module using its internal transform
     // and then recursively instantiate the next module in the chain
     using CurrentModule = typename ModuleSpec::template type<IN, Opt>;
     using NextIN = CurrentModule::OUT;
-    module_chain<NextIN, Opt, Rest...> next;
+    using NextModule = module_chain<NextIN, Opt, Rest...>;
+
+    using IN = _IN;
+    using OUT = NextModule::OUT;
 
     CurrentModule current;
+    NextModule next;
 
     // for the first and last modules, handle input/output pointers
 
@@ -163,6 +164,8 @@ struct module_chain<IN, Opt, ModuleSpec> {
     using CurrentModule = typename ModuleSpec::template type<IN, Opt>;
     CurrentModule current;
 
+    using OUT = CurrentModule::OUT;
+
     template <typename T>
     __device__ inline uint64_t eval(T& al, const uint64_t x_ptr = 0) {
         return current.eval(al, x_ptr);
@@ -185,7 +188,7 @@ struct module_chain<IN, Opt, ModuleSpec> {
 };
 
 
-template<typename DataLayout, typename TileType, class L, class Net, class Loss>
+template<typename DataLayout, typename TileType, class Net, class Loss>
 static __global__ void train_kernel(const DataLayout data)
 {
     extern __shared__ alignment_dummy __shm[]; 
@@ -193,12 +196,18 @@ static __global__ void train_kernel(const DataLayout data)
     Net net;
 
     // allocate memory
-    using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
-    shmem_tile* x_array = al.allocate<shmem_tile, L::C>();
-    shmem_tile* y_array = al.allocate<shmem_tile, L::C>();
-    shmem_tile* grad_y_array = al.allocate<shmem_tile, L::C>();
+    using IN = Net::IN;
+    using OUT = Net::OUT;
 
-    shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
+    IN::shmem_wp* x_array;
+    OUT::shmem_wp* y_array;
+    OUT::shmem_wp* grad_y_array;
+
+    IN::salloc(al, x_array);
+    OUT::salloc(al, y_array);
+    OUT::salloc(al, grad_y_array);
+
+    OUT::shmem_wp* y_hat_array = reinterpret_cast<OUT::shmem_wp*>
     (
         net.eval(al,
             reinterpret_cast<uint64_t>(x_array))
@@ -239,7 +248,7 @@ static __global__ void train_kernel(const DataLayout data)
         __syncthreads();
 
         net.fwd();
-        Loss::template op<L>(y_hat_array, y_array, grad_y_array);
+        Loss::template op<OUT>(y_hat_array, y_array, grad_y_array);
         net.bwd();
 
         __syncthreads();
@@ -253,17 +262,22 @@ static __global__ void train_kernel(const DataLayout data)
 }
 
 
-template<typename DataLayout, typename TileType, class L, class Net, class Loss>
+template<typename DataLayout, typename TileType, class Net, class Loss>
 static __global__ void eval_kernel(const DataLayout data)
 {
     extern __shared__ alignment_dummy __shm[]; 
     shared_allocator al((int*)&__shm[0]);
     Net net;
 
+    using IN = Net::IN;
+    using OUT = Net::OUT;
+
     // allocate memory
-    using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
-    shmem_tile* x_array = al.allocate<shmem_tile, L::C>();
-    shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
+    IN::shmem_wp* x_array;
+    OUT::shmem_wp* y_hat_array;
+    IN::salloc(al, x_array);
+
+    y_hat_array = reinterpret_cast<OUT::shmem_wp*>
     (
         net.eval(al,
             reinterpret_cast<uint64_t>(x_array))

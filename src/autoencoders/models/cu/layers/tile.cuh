@@ -118,11 +118,25 @@ template<int32_t _C, typename TileType>
 struct CHW{
     static constexpr int32_t C = _C;
 
+    static constexpr int32_t pack_factor = 2;
+    static constexpr int2 Wp = make_int2(TileType::W.x / pack_factor, TileType::W.y); // packed warp
+
     static constexpr int2 B = TileType::B;
     static constexpr int2 W = TileType::W;
     static constexpr int2 WT = TileType::WT;
 
     static constexpr int32_t N = _C * TileType::B.y * TileType::B.x;
+
+    // shared memory and reg type
+    using shmem_wp = st<ftype, Wp.y, Wp.x>;
+    using reg_wp = rt<ftype, Wp.y, Wp.x>;
+
+    // allocator
+     template <typename T>
+    __device__ __forceinline__ void salloc(T& al, shmem_wp*& x) {
+        // allocate
+        x = al.template allocate<shmem_wp, WT.y, WT.x, C>();
+    }
 
     // Warp-level indices
     static __device__ __forceinline__ int32_t warp_id() { return threadIdx.x / kittens::WARP_THREADS; }

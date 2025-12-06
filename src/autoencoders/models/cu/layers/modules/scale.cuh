@@ -59,43 +59,45 @@ struct scale_module : public module<IN, Transform, Opt> {
 
     // ------------------ fwd() ----------------------
     __device__ __forceinline__ void fwd() {
-        rt<ftype, IN::B.y, IN::B.x> X, Y;
+        IN::reg_wp X;
+        OUT::reg_wp Y;
         // rt<ftype,1,1> W;
         // load(W, *weight);
         // auto w = W.tiles[0][0].data[0].x;
 
         ftype w = weight[0];
 
-        for (int c = 0; c < IN::C; ++c) {
-            // for (int wave = 0; wave < IN::warpwaves; ++wave) {
+        
+        for (int wave = 0; wave < IN::warpwaves; ++wave) {
+            for (int c = 0; c < IN::C; ++c) {
 
-            //     int2 ij = IN::warptile_xy(wave);
-            //     coord<> idx(batch, c, ij.y, ij.x);
-                load(X, this->x[c]);
+                int2 ij = IN::warptile_ixy(wave);
+                load(X, this->x[ij.y, ij.x, c]);
 
                 // #pragma unroll
                 // for (int i = 0; i < X.num_elems; i++)
                 //     Y.data[i] = X.data[i] * w;
 
-                store(this->y[c], X);
-            // }
+                store(this->y[ij.y, ij.x, c], X);
+                __syncwarp();
+            }
         }
     }
 
     // ------------------ bwd() ----------------------
     __device__ __forceinline__ void bwd() {
-        rt<ftype, IN::B.y, IN::B.x> GX, GY, X;
+        IN::reg_wp GX, X;
+        OUT::reg_wp GY;
 
         ftype local_grad_w = 0.0f;
 
-        for (int c = 0; c < IN::C; ++c) {
-            // for (int wave = 0; wave < IN::warpwaves; ++wave) {
+        for (int wave = 0; wave < IN::warpwaves; ++wave) {
+            for (int c = 0; c < IN::C; ++c) {
 
-                // int2 ij = IN::warptile_xy(wave);
-                // coord<> idx(batch, c, ij.y, ij.x);
+                int2 ij = IN::warptile_ixy(wave);
 
-                load(X, this->x[c]);
-                load(GY, this->grad_y[c]);
+                load(X, this->x[ij.y, ij.x, c]);
+                load(GY, this->grad_y[ij.y, ij.x, c]);
 
                 // #pragma unroll
                 // for (int i=0;i<X.num_elems;i++) {
@@ -103,8 +105,10 @@ struct scale_module : public module<IN, Transform, Opt> {
                 //     local_grad_w += GY.data[i] * X.data[i];
                 // }
 
-                store(this->grad_x[c], GY);
-            // }
+                store(this->grad_x[ij.y, ij.x, c], GY);
+                
+                __syncwarp();
+            }
         }
 
         // atomicAdd(grad_weight[0].at(0,0), local_grad_w);  // should do parallel scan over warps
