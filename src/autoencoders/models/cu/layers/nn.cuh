@@ -198,24 +198,24 @@ static __global__ void train_kernel(const DataLayout data)
     shmem_tile* y_array = al.allocate<shmem_tile, L::C>();
     shmem_tile* grad_y_array = al.allocate<shmem_tile, L::C>();
 
-    // shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
-    // (
-    //     net.eval(al,
-    //         reinterpret_cast<uint64_t>(x_array))
-    // );
-    // net.train(al, reinterpret_cast<uint64_t>(grad_y_array));
-    // --------------------------------------
-    // // weight initialization
-    // net.__init_weights__(al);
-    // __syncthreads();
+    shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
+    (
+        net.eval(al,
+            reinterpret_cast<uint64_t>(x_array))
+    );
+    net.train(al, reinterpret_cast<uint64_t>(grad_y_array));
+    --------------------------------------
+    // weight initialization
+    net.__init_weights__(al);
+    __syncthreads();
 
-    // if (data.weight_mem_ptr != 0)
-    // {   // optional: load weights from global memory
-    //     net.__load_weights__(data.weight_mem_ptr);
-    //     __syncthreads();        
-    // } 
+    if (data.weight_mem_ptr != 0)
+    {   // optional: load weights from global memory
+        net.__load_weights__(data.weight_mem_ptr);
+        __syncthreads();        
+    } 
     
-    // --------------------------------------
+    --------------------------------------
     // training loop, one batch (across blocks)
     // for (int iter = 0; iter < data.iterations; iter++)
     {            
@@ -226,14 +226,14 @@ static __global__ void train_kernel(const DataLayout data)
             coord<> idx(0, 0, 0, 0);
         
             // printf("Loading x at idx (%d,%d,%d,%d)\n", data.batch(), c, data.tile_y(), data.tile_x());
-            // load(x_array[c], data.x, idx);
-            // load(y_array[c], data.y, idx);
+            load(x_array[c], data.x, idx);
+            load(y_array[c], data.y, idx);
 
             // if(threadIdx.x==0){
             //     printf("Load pointer for x: %p, %p\n", x_array, data.x);
             // }
 
-            load(x_array[0], data.x, idx);
+            // load(x_array[0], data.x, idx);
 
         }
         __syncthreads();
@@ -245,9 +245,9 @@ static __global__ void train_kernel(const DataLayout data)
         __syncthreads();
     }
     // // --------------------------------------
-    // // Save weights back to global
-    // if (data.weight_mem_ptr != 0)
-    //     net.__save_weights__();
+    // Save weights back to global
+    if (data.weight_mem_ptr != 0)
+        net.__save_weights__();
 
     printf("Training done.\n");
 }

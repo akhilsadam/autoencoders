@@ -11,33 +11,33 @@
 #include "../../../../types/types.cuh"
 
 
-// Source - https://stackoverflow.com/a
-// Posted by tera, modified by community. See post 'Timeline' for change history
-// Retrieved 2025-12-06, License - CC BY-SA 4.0
+// // Source - https://stackoverflow.com/a
+// // Posted by tera, modified by community. See post 'Timeline' for change history
+// // Retrieved 2025-12-06, License - CC BY-SA 4.0
 
-// First, a pointer-size-related definition, in case
-// this code is being compiled in 32-bit rather than 
-// 64-bit mode; if you know the code is always 64-bit
-// you can just use the "l"
+// // First, a pointer-size-related definition, in case
+// // this code is being compiled in 32-bit rather than 
+// // 64-bit mode; if you know the code is always 64-bit
+// // you can just use the "l"
 
-#if defined(_WIN64) || defined(__LP64__)
-# define PTR_CONSTRAINT "l"
-#else
-# define PTR_CONSTRAINT "r"
-#endif
+// #if defined(_WIN64) || defined(__LP64__)
+// # define PTR_CONSTRAINT "l"
+// #else
+// # define PTR_CONSTRAINT "r"
+// #endif
 
-__device__ int isShared(void *ptr)
-{
-    int res;
-    asm("{"
-        ".reg .pred p;\n\t"
-        "isspacep.shared p, %1;\n\t"
-        "selp.b32 %0, 1, 0, p;\n\t"
-        "}" :
-        "=r"(res): PTR_CONSTRAINT(ptr));
-    return res;
-}
-/////////////////////////////////////////////////////
+// __device__ int isShared(void *ptr)
+// {
+//     int res;
+//     asm("{"
+//         ".reg .pred p;\n\t"
+//         "isspacep.shared p, %1;\n\t"
+//         "selp.b32 %0, 1, 0, p;\n\t"
+//         "}" :
+//         "=r"(res): PTR_CONSTRAINT(ptr));
+//     return res;
+// }
+// /////////////////////////////////////////////////////
 
 
 namespace kittens {
@@ -69,12 +69,12 @@ __device__ static inline void load(ST &dst, const GL &src, const COORD &idx) {
     typename GL::dtype *src_ptr = (typename GL::dtype*)&src[unit_coord];
     uint32_t dst_ptr = static_cast<uint32_t>(__cvta_generic_to_shared(&dst.data[0]));
     int laneid = threadIdx.x % N_THREADS;
-    if (threadIdx.x == 0) {
-        printf("Total calls: %d, Total rows: %d\n", total_calls, total_rows);
-        printf("Unit coord: (%d, %d, %d)\n", unit_coord.dim<0>(), unit_coord.dim<1>(), unit_coord.dim<2>());
-        printf("memcpy per row: %d, elem per memcpy: %d\n", memcpy_per_row, elem_per_memcpy);
-        printf("assume_aligned: %d\n", assume_aligned);
-}
+//     if (threadIdx.x == 0) {
+//         printf("Total calls: %d, Total rows: %d\n", total_calls, total_rows);
+//         printf("Unit coord: (%d, %d, %d)\n", unit_coord.dim<0>(), unit_coord.dim<1>(), unit_coord.dim<2>());
+//         printf("memcpy per row: %d, elem per memcpy: %d\n", memcpy_per_row, elem_per_memcpy);
+//         printf("assume_aligned: %d\n", assume_aligned);
+// }
 
     #pragma unroll
     for(int i = 0; i < total_calls; i++) {
