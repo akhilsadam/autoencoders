@@ -103,7 +103,7 @@ __device__ static inline void load(ST &dst, const GL &src, const COORD &idx) {
             }
             else {
                 float4 zeros = {0.f,0.f,0.f,0.f};
-                // move<float4>::sts(dst.idx(dst_ptr, {row, col}), zeros); // use the default value
+                move<float4>::sts(dst.idx(dst_ptr, {row, col}), zeros); // use the default value
             }
         }
     }
