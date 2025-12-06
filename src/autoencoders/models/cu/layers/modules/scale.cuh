@@ -84,16 +84,22 @@ struct scale_module : public module<_IN, Transform, Opt> {
                 int2 ij = IN::warptile_ixy(wave);
                 for (int c = 0; c < IN::C; ++c) 
                 {
+                    // Debug: print shared tile corner values before load
+                    if (threadIdx.x == 0 && c == 0) {
+                        auto& st = this->x[0][ij.y][ij.x][c];
+                        printf("Shared tile[0,0]=%f [15,15]=%f\n", 
+                               st[0][0].x, st[st.rows-1][st.cols-1].y);
+                    }
+                    __syncwarp();
                     
                     load(X, this->x[0][ij.y][ij.x][c]);
 
-                    // // Debug: print first few elements of the loaded register tile
-                    // if (threadIdx.x == 0 && c == 0) {
-                    //     printf("Loaded rt elements (first 8): ");
-                    //     for (int i = 0; i < 8 && i < X.num_elems; i++)
-                    //         printf("%f ", X.data[i]);
-                    //     printf("\n");
-                    // }
+                    // Debug: verify register tile corners
+                    if (threadIdx.x == 0 && c == 0) {
+                        printf("tid=%d: X.at(0,0)=%f X.at(15,15)=%f\n", 
+                               threadIdx.x, X[0][0].x, X[X.rows-1][X.cols-1].y);
+                    }
+                    __syncwarp();
 
                     store(this->y[0][ij.y][ij.x][c], X);
                     __syncwarp();
