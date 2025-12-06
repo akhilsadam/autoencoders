@@ -222,8 +222,8 @@ static __global__ void train_kernel(const DataLayout data)
         // load input data for this batch item
         for (int c = 0; c < data.x.depth(); c++)
         {
-            // coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
-            coord<> idx(0, 0, 0, 0);
+            coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
+            // coord<> idx(0, 0, 0, 0);
         
             // printf("Loading x at idx (%d,%d,%d,%d)\n", data.batch(), c, data.tile_y(), data.tile_x());
             load(x_array[c], data.x, idx);
@@ -238,13 +238,13 @@ static __global__ void train_kernel(const DataLayout data)
         }
         __syncthreads();
 
-        // net.fwd();
-        // Loss::template op<L>(y_hat_array, y_array, grad_y_array);
-        // net.bwd();
+        net.fwd();
+        Loss::template op<L>(y_hat_array, y_array, grad_y_array);
+        net.bwd();
 
         __syncthreads();
     }
-    // // --------------------------------------
+    // --------------------------------------
     // Save weights back to global
     if (data.weight_mem_ptr != 0)
         net.__save_weights__();
