@@ -73,9 +73,9 @@ struct scale_module : public module<_IN, Transform, Opt> {
         if (blockIdx.x == 0 && blockIdx.y == 0)
         {    
             if (threadIdx.x == 0) {
-                printf("shmem tile dims: rows=%d cols=%d, reg tile dims: rows=%d cols=%d, elems=%d\n",
+                printf("shmem tile dims: rows=%d cols=%d, reg tile dims: rows=%d cols=%d\n",
                        this->x[0][0][0][0].rows, this->x[0][0][0][0].cols,
-                       X.rows, X.cols, X.num_elems);
+                       X.rows, X.cols);
             }
             __syncwarp();
             
