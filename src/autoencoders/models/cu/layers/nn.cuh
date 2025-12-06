@@ -229,9 +229,9 @@ static __global__ void train_kernel(const DataLayout data)
             // load(x_array[c], data.x, idx);
             // load(y_array[c], data.y, idx);
 
-            if(threadIdx.x==0){
-                printf("Load pointer for x: %p, %p\n", x_array, data.x);
-            }
+            // if(threadIdx.x==0){
+            //     printf("Load pointer for x: %p, %p\n", x_array, data.x);
+            // }
 
             load(x_array[0], data.x, idx);
 
