@@ -73,6 +73,6 @@ void eval(train_data& g) {
 
 PYBIND11_MODULE(sanity, m) {
     m.doc() = "nn test python module";
-    py::bind_function_with_args<eval>(m, "eval", &train_data::x, &train_data::y, &train_data::iterations, &train_data::weight_mem_ptr);
+    py::bind_function_with_return<eval>(m, "eval", &train_data::x, &train_data::y, &train_data::iterations, &train_data::weight_mem_ptr);
     py::bind_function_with_return<train>(m, "train", &train_data::x, &train_data::y, &train_data::iterations, &train_data::weight_mem_ptr);
 }
