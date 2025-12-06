@@ -238,7 +238,7 @@ static __global__ void train_kernel(const DataLayout data)
             {
                 coord<> idx(data.batch(), c, p.y, p.x);
                 load(x_array[0][wt.y][wt.x][c], data.x, idx);
-                // load((*y_array)[wt.y][wt.x][c], data.y, idx);
+                load(y_array[0][wt.y][wt.x][c], data.y, idx);
 
             }
         }
@@ -297,7 +297,7 @@ static __global__ void eval_kernel(const DataLayout data)
         for (int c = 0; c < data.x.depth(); c++)
         {
             coord<> idx(data.batch(), c, p.y, p.x);
-            // load((*x_array)[wt.y][wt.x][c], data.x, idx);
+            load(x_array[0][wt.y][wt.x][c], data.x, idx);
         }
     }
     __syncthreads();
@@ -311,7 +311,7 @@ static __global__ void eval_kernel(const DataLayout data)
         for (int c = 0; c < data.y.depth(); c++)
         {
             coord<> idx(data.batch(), c, p.y, p.x);
-            // store(data.y, (*y_hat_array)[wt.y][wt.x][c], idx);
+            store(data.y, y_hat_array[0][wt.y][wt.x][c], idx);
         }
     }
 
