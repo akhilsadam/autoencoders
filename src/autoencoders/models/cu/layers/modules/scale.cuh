@@ -54,7 +54,7 @@ struct scale_module : public module<IN, Transform, Opt> {
 
     virtual __device__ __forceinline__
     void __save_weights__() {
-        *g_weight = weight[0];
+        // *g_weight = weight[0];
     }
 
     // ------------------ fwd() ----------------------
