@@ -144,13 +144,13 @@ struct CHW{
      template <typename T>
     static __device__ __forceinline__ void salloc(T& al, shmem_array*& x) {
         // allocate
-        x = al.template allocate<shmem_wp, WT.y, WT.x, C>();
+        x = &al.template allocate<shmem_wp, WT.y, WT.x, C>();
     }
 
     template <typename T>
     static __device__ __forceinline__ shmem_array* salloc(T& al) {
         // allocate
-        return al.template allocate<shmem_wp, WT.y, WT.x, C>();
+        return &al.template allocate<shmem_wp, WT.y, WT.x, C>();
     }
 
     // Warp-level indices
