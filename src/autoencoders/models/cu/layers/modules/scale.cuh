@@ -48,13 +48,13 @@ struct scale_module : public module<IN, Transform, Opt> {
     void __load_weights__(uint64_t mem_ptr) {
         // g_weight = reinterpret_cast<wgl*>(mem_ptr);
         // load(*weight, *g_weight, {0,0,0,0});
-        // g_weight = reinterpret_cast<wgl*>(mem_ptr);
-        // weight[0] = *g_weight;
+        g_weight = reinterpret_cast<wgl*>(mem_ptr);
+        weight[0] = *g_weight;
     }
 
     __device__ __forceinline__
     void __save_weights__() {
-        // *g_weight = weight[0];
+        *g_weight = weight[0];
     }
 
     // ------------------ fwd() ----------------------
@@ -71,13 +71,13 @@ struct scale_module : public module<IN, Transform, Opt> {
 
             //     int2 ij = IN::warptile_xy(wave);
             //     coord<> idx(batch, c, ij.y, ij.x);
-                // load(X, this->x[c]);
+                load(X, this->x[c]);
 
                 // #pragma unroll
                 // for (int i = 0; i < X.num_elems; i++)
                 //     Y.data[i] = X.data[i] * w;
 
-                // store(this->y[c], X);
+                store(this->y[c], X);
             // }
         }
     }
@@ -94,8 +94,8 @@ struct scale_module : public module<IN, Transform, Opt> {
                 // int2 ij = IN::warptile_xy(wave);
                 // coord<> idx(batch, c, ij.y, ij.x);
 
-                // load(X, this->x[c]);
-                // load(GY, this->grad_y[c]);
+                load(X, this->x[c]);
+                load(GY, this->grad_y[c]);
 
                 // #pragma unroll
                 // for (int i=0;i<X.num_elems;i++) {
@@ -103,17 +103,17 @@ struct scale_module : public module<IN, Transform, Opt> {
                 //     local_grad_w += GY.data[i] * X.data[i];
                 // }
 
-                // store(this->grad_x[c], GY);
+                store(this->grad_x[c], GY);
             // }
         }
 
         // atomicAdd(grad_weight[0].at(0,0), local_grad_w);  // should do parallel scan over warps
         // Apply SGD update only if we are the first thread
-        // if (threadIdx.x == 0)
-        // {
-        //     weight[0] = Opt::update(weight[0], grad_weight[0]);
-        //     grad_weight[0] = 0.0f;
-        // }
+        if (threadIdx.x == 0)
+        {
+            weight[0] = Opt::update(weight[0], grad_weight[0]);
+            grad_weight[0] = 0.0f;
+        }
     }
 };
 

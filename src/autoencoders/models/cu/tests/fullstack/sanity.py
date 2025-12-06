@@ -25,6 +25,7 @@ def _test_nn_sanity():
     mem_pointer = nn_sanity.train(x, y, mem_pointer, 100)
     print("Mem pointer after training:", mem_pointer)
     
+    print(y.shape)
     print(y[0,0, :5, :5])
 
     # nn_sanity.eval(x, yhat, mem_pointer, 0)
