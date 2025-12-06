@@ -230,21 +230,16 @@ static __global__ void train_kernel(const DataLayout data)
     for (int iter = 0; iter < data.iterations; iter++)
     {            
         // load input data for this batch item
-        for (int c = 0; c < data.x.depth(); c++)
+        for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) 
         {
-            coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
-            // coord<> idx(0, 0, 0, 0);
-        
-            // printf("Loading x at idx (%d,%d,%d,%d)\n", data.batch(), c, data.tile_y(), data.tile_x());
-            load(x_array[c], data.x, idx);
-            load(y_array[c], data.y, idx);
+            int2 p = data.warptile_gxy(wave);
+            for (int c = 0; c < data.x.depth(); c++)
+            {
+                coord<> idx(data.batch(), c, p.y, p.x);
+                load(x_array[c], data.x, idx);
+                load(y_array[c], data.y, idx);
 
-            // if(threadIdx.x==0){
-            //     printf("Load pointer for x: %p, %p\n", x_array, data.x);
-            // }
-
-            // load(x_array[0], data.x, idx);
-
+            }
         }
         __syncthreads();
 
@@ -294,10 +289,14 @@ static __global__ void eval_kernel(const DataLayout data)
     } 
     // --------------------------------------  
     // load input data for this batch item
-    for (int c = 0; c < data.x.depth(); c++)
+    for (int32_t wave = 0; wave < DataLayout::warpwaves; wave++) 
     {
-        coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
-        load(x_array[c], data.x, idx);
+        int2 p = data.warptile_gxy(wave);
+        for (int c = 0; c < data.x.depth(); c++)
+        {
+            coord<> idx(data.batch(), c, p.y, p.x);
+            load(x_array[c], data.x, idx);
+        }
     }
     __syncthreads();
     net.fwd(); // does syncthreads internally
