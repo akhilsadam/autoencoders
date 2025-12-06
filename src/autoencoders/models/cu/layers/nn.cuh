@@ -162,7 +162,8 @@ struct module_chain {
 
 // base case
 template<class IN, class Opt, class ModuleSpec>
-struct module_chain<IN, Opt, ModuleSpec> {
+struct module_chain<IN, Opt, ModuleSpec> 
+{
     using CurrentModule = typename ModuleSpec::template type<IN, Opt>;
     CurrentModule current;
 
@@ -201,11 +202,11 @@ static __global__ void train_kernel(const DataLayout data)
     using IN = Net::IN;
     using OUT = Net::OUT;
 
-    IN::shmem_wp* x_array = IN::template salloc(al);
-    OUT::shmem_wp* y_array = OUT::template salloc(al);
-    OUT::shmem_wp* grad_y_array = OUT::template salloc(al);
+    auto* x_array = IN::template salloc(al);
+    auto* y_array = OUT::template salloc(al);
+    auto* grad_y_array = OUT::template salloc(al);
 
-    OUT::shmem_wp* y_hat_array = reinterpret_cast<OUT::shmem_wp*>
+    auto* y_hat_array = reinterpret_cast<OUT::shmem_wp*>
     (
         net.eval(al,
             reinterpret_cast<uint64_t>(x_array))
@@ -254,7 +255,9 @@ static __global__ void train_kernel(const DataLayout data)
     // --------------------------------------
     // Save weights back to global
     if (data.weight_mem_ptr != 0)
+    {
         net.__save_weights__();
+    }
 
     // printf("Training done.\n");
 }
@@ -271,8 +274,8 @@ static __global__ void eval_kernel(const DataLayout data)
     using OUT = Net::OUT;
 
     // allocate memory
-    IN::shmem_wp* x_array = IN::template salloc(al);
-    OUT::shmem_wp* y_hat_array = reinterpret_cast<OUT::shmem_wp*>
+    auto* x_array = IN::template salloc(al);
+    auto* y_hat_array = reinterpret_cast<OUT::shmem_wp*>
     (
         net.eval(al,
             reinterpret_cast<uint64_t>(x_array))
