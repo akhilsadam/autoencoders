@@ -270,7 +270,8 @@ static __global__ void eval_kernel(const DataLayout data)
     // load input data for this batch item
     for (int c = 0; c < data.x.depth(); c++)
     {
-        load(x_array[c], data.x, {data.batch(), c, blockIdx.y, blockIdx.x});
+        coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
+        load(x_array[c], data.x, idx);
     }
     __syncthreads();
     net.fwd(); // does syncthreads internally
@@ -278,7 +279,8 @@ static __global__ void eval_kernel(const DataLayout data)
     // Save y_hat back to global
     for (int c = 0; c < data.y.depth(); c++)
     {
-        store(data.y, y_hat_array[c], {data.batch(), c, blockIdx.y, blockIdx.x});
+        coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
+        store(data.y, y_hat_array[c], idx);
     };
 
 }
