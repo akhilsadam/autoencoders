@@ -68,7 +68,7 @@ void eval(train_data& g) {
 
             auto* kernel = eval_kernel<Layout, Tile, WarpTile, Net, Loss>;
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
-            kernel<<<layout.grid(), layout.block()>>>(layout);
+            kernel<<<layout.grid(), layout.block(), layout.mem()>>>(layout);
 
             cudaError_t err = cudaGetLastError();
             if (err != cudaSuccess) {

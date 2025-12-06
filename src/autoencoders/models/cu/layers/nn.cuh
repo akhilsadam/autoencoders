@@ -217,7 +217,7 @@ static __global__ void train_kernel(const DataLayout data)
     
     // --------------------------------------
     // training loop, one batch (across blocks)
-    // for (int iter = 0; iter < data.iterations; iter++)
+    for (int iter = 0; iter < data.iterations; iter++)
     {            
         // load input data for this batch item
         for (int c = 0; c < data.x.depth(); c++)
@@ -249,7 +249,7 @@ static __global__ void train_kernel(const DataLayout data)
     if (data.weight_mem_ptr != 0)
         net.__save_weights__();
 
-    printf("Training done.\n");
+    // printf("Training done.\n");
 }
 
 
