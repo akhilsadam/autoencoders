@@ -229,8 +229,8 @@ static __global__ void train_kernel(const DataLayout data)
         __syncthreads();
 
         net.fwd();
-        Loss::template op<L>(y_hat_array, y_array, grad_y_array);
-        net.bwd();
+        // Loss::template op<L>(y_hat_array, y_array, grad_y_array);
+        // net.bwd();
 
         __syncthreads();
     }
