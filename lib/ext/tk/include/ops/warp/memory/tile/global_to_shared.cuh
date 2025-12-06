@@ -64,7 +64,10 @@ __device__ static inline void load(ST &dst, const GL &src, const COORD &idx) {
                 float4 tmp;
                 move<float4>::ldg(tmp, (float4*)&src_ptr[row*row_stride + col]);
                 // move<float4>::sts(dst.idx(dst_ptr, {row, col}), tmp);
-                printf("destination pointer: %u for row %d, col %d by thread %d\n", dst.idx(dst_ptr, {row, col}), row, col, threadIdx.x);
+                if (threadIdx.x == 0) {
+                    printf("dst ptr: %u, src ptr: %p\n", dst.idx(dst_ptr, {row, col}), (float4*)&src_ptr[row*row_stride + col]);
+                }
+                printf("destination loc: %u for row %d, col %d by thread %d\n", dst.idx(dst_ptr, {row, col}), row, col, threadIdx.x);
                 // if (threadIdx.x == 0)
                 // printf("tmp value loaded: (%f, %f, %f, %f) at row %d, col %d by thread %d\n", tmp.x, tmp.y, tmp.z, tmp.w, row, col, threadIdx.x);
             }
