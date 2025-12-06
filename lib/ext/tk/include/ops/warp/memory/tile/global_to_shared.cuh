@@ -22,6 +22,11 @@ namespace kittens {
  */
 template<int axis, bool assume_aligned, ducks::st::all ST, ducks::gl::all GL, ducks::coord::tile COORD=coord<ST>, int N_THREADS=WARP_THREADS>
 __device__ static inline void load(ST &dst, const GL &src, const COORD &idx) {
+
+
+    printf("In load global to shared\n");
+    asm("trap;");
+    
     using T = typename ST::dtype;
     const int row_stride = src.template stride<axis>();
     // we can handle this many rows each time we run a memcpy_async
