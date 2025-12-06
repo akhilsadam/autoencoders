@@ -106,7 +106,7 @@ __device__ static inline void load(ST &dst, const GL &src, const COORD &idx) {
                 float4 zeros = {0.f,0.f,0.f,0.f};
                 // move<float4>::sts(dst.idx(dst_ptr, {row, col}), zeros); // use the default value
                 if (threadIdx.x == 0) {
-                    printf("dst: %p, dst ptr: %p, isShared: %d\n", dst, dst_ptr, isShared((void*) dst_ptr));
+                    printf("2dst: %p, dst ptr: %p, isShared: %d\n", dst, dst_ptr, isShared((void*) dst_ptr));
                 }
                 printf("destination loc: %u for row %d, col %d by thread %d\n", dst.idx(dst_ptr, {row, col}), row, col, threadIdx.x);
 
