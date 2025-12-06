@@ -208,7 +208,7 @@ static __global__ void train_kernel(const DataLayout data)
     auto* y_array = OUT::template salloc(al);
     auto* grad_y_array = OUT::template salloc(al);
 
-    auto* y_hat_array = reinterpret_cast<OUT::shmem_wp*>
+    auto* y_hat_array = reinterpret_cast<OUT::shmem_array*>
     (
         net.eval(al,
             reinterpret_cast<uint64_t>(x_array))
@@ -273,7 +273,7 @@ static __global__ void eval_kernel(const DataLayout data)
 
     // allocate memory
     auto* x_array = IN::template salloc(al);
-    auto* y_hat_array = reinterpret_cast<OUT::shmem_wp*>
+    auto* y_hat_array = reinterpret_cast<OUT::shmem_array*>
     (
         net.eval(al,
             reinterpret_cast<uint64_t>(x_array))
