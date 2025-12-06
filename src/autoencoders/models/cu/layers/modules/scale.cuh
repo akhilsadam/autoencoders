@@ -62,8 +62,8 @@ struct scale_module : public module<_IN, Transform, Opt> {
 
     // ------------------ fwd() ----------------------
     __device__ __forceinline__ void fwd() {
-        IN::reg_wp X;
-        OUT::reg_wp Y;
+        rt<ftype, IN::Wp.y, IN::Wp.x> X;
+        rt<ftype, OUT::Wp.y, OUT::Wp.x> Y;
         // rt<ftype,1,1> W;
         // load(W, *weight);
         // auto w = W.tiles[0][0].data[0].x;
@@ -89,8 +89,8 @@ struct scale_module : public module<_IN, Transform, Opt> {
 
     // ------------------ bwd() ----------------------
     __device__ __forceinline__ void bwd() {
-        IN::reg_wp GX, X;
-        OUT::reg_wp GY;
+        rt<ftype, IN::Wp.y, IN::Wp.x> GX, X;
+        rt<ftype, OUT::Wp.y, OUT::Wp.x> GY;
 
         ftype local_grad_w = 0.0f;
 
