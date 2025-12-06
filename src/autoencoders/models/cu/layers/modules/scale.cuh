@@ -18,10 +18,10 @@ struct scale_module : public module<IN, Transform, Opt> {
     // one shared weight
     using wgl = ftype; // gl<ftype,1,1,1,1>;
     using wtile = ftype; // shmem<1,1>;
-    // wgl* g_weight;
-    // wgl* g_grad_weight;
-    // wtile* weight;        // lives in shared memory
-    // wtile* grad_weight;   // gradient accumulator
+    wgl* g_weight;
+    wgl* g_grad_weight;
+    wtile* weight;        // lives in shared memory
+    wtile* grad_weight;   // gradient accumulator
 
     static constexpr size_t weight_bytes = sizeof(ftype);
 
@@ -32,16 +32,15 @@ struct scale_module : public module<IN, Transform, Opt> {
         // grad_weight = al.template allocate<wtile, 1>();
         // one(*weight);
         // zero(*grad_weight);
-
-        // __shared__ wtile shm_weight;
-        // __shared__ wtile shm_grad_weight;
-        // if (threadIdx.x == 0) {
-        //     shm_weight = 1.0f;
-        //     shm_grad_weight = 0.0f;
-        // }
-        // // syncthreads happens outside automatically
-        // weight = &shm_weight;
-        // grad_weight = &shm_grad_weight;
+        __shared__ wtile shm_weight;
+        __shared__ wtile shm_grad_weight;
+        if (threadIdx.x == 0) {
+            shm_weight = 1.0f;
+            shm_grad_weight = 0.0f;
+        }
+        // syncthreads happens outside automatically
+        weight = &shm_weight;
+        grad_weight = &shm_grad_weight;
     }
 
 
@@ -49,14 +48,13 @@ struct scale_module : public module<IN, Transform, Opt> {
     void __load_weights__(uint64_t mem_ptr) {
         // g_weight = reinterpret_cast<wgl*>(mem_ptr);
         // load(*weight, *g_weight, {0,0,0,0});
-
-        // g_weight = reinterpret_cast<wgl*>(mem_ptr);
-        // weight[0] = *g_weight;
+        g_weight = reinterpret_cast<wgl*>(mem_ptr);
+        weight[0] = *g_weight;
     }
 
     __device__ __forceinline__
     void __save_weights__() {
-        // *g_weight = weight[0];
+        *g_weight = weight[0];
     }
 
     // ------------------ fwd() ----------------------
@@ -66,7 +64,7 @@ struct scale_module : public module<IN, Transform, Opt> {
         // load(W, *weight);
         // auto w = W.tiles[0][0].data[0].x;
 
-        // ftype w = weight[0];
+        ftype w = weight[0];
 
         for (int c = 0; c < IN::C; ++c) {
             // for (int wave = 0; wave < IN::warpwaves; ++wave) {
@@ -109,13 +107,13 @@ struct scale_module : public module<IN, Transform, Opt> {
             // }
         }
 
-        // // atomicAdd(grad_weight[0].at(0,0), local_grad_w);  // should do parallel scan over warps
-        // // Apply SGD update only if we are the first thread
-        // if (threadIdx.x == 0)
-        // {
-        //     weight[0] = Opt::update(weight[0], grad_weight[0]);
-        //     grad_weight[0] = 0.0f;
-        // }
+        // atomicAdd(grad_weight[0].at(0,0), local_grad_w);  // should do parallel scan over warps
+        // Apply SGD update only if we are the first thread
+        if (threadIdx.x == 0)
+        {
+            weight[0] = Opt::update(weight[0], grad_weight[0]);
+            grad_weight[0] = 0.0f;
+        }
     }
 };
 

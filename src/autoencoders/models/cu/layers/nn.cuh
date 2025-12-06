@@ -198,46 +198,46 @@ static __global__ void train_kernel(const DataLayout data)
     shmem_tile* y_array = al.allocate<shmem_tile, L::C>();
     shmem_tile* grad_y_array = al.allocate<shmem_tile, L::C>();
 
-    shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
-    (
-        net.eval(al,
-            reinterpret_cast<uint64_t>(x_array))
-    );
-    net.train(al, reinterpret_cast<uint64_t>(grad_y_array));
-    // --------------------------------------
-    // weight initialization
-    net.__init_weights__(al);
-    __syncthreads();
+    // shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
+    // (
+    //     net.eval(al,
+    //         reinterpret_cast<uint64_t>(x_array));
+    // );
+    // net.train(al, reinterpret_cast<uint64_t>(grad_y_array));
+    // // --------------------------------------
+    // // weight initialization
+    // net.__init_weights__(al);
+    // __syncthreads();
 
-    if (data.weight_mem_ptr != 0)
-    {   // optional: load weights from global memory
-        net.__load_weights__(data.weight_mem_ptr);
-        __syncthreads();        
-    } 
+    // if (data.weight_mem_ptr != 0)
+    // {   // optional: load weights from global memory
+    //     net.__load_weights__(data.weight_mem_ptr);
+    //     __syncthreads();        
+    // } 
     
-    // --------------------------------------
-    // training loop, one batch (across blocks)
-    for (int iter = 0; iter < data.iterations; iter++)
-    {            
-        // load input data for this batch item
-        for (int c = 0; c < data.x.depth(); c++)
-        {
-            coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
-            load(x_array[c], data.x, idx);
-            load(y_array[c], data.y, idx);
-        }
-        __syncthreads();
+    // // --------------------------------------
+    // // training loop, one batch (across blocks)
+    // for (int iter = 0; iter < data.iterations; iter++)
+    // {            
+    //     // load input data for this batch item
+    //     for (int c = 0; c < data.x.depth(); c++)
+    //     {
+    //         coord<> idx(data.batch(), c, data.tile_y(), data.tile_x());
+    //         load(x_array[c], data.x, idx);
+    //         load(y_array[c], data.y, idx);
+    //     }
+    //     __syncthreads();
 
-        net.fwd();
-        Loss::template op<L>(y_hat_array, y_array, grad_y_array);
-        net.bwd();
+    //     net.fwd();
+    //     Loss::template op<L>(y_hat_array, y_array, grad_y_array);
+    //     net.bwd();
 
-        __syncthreads();
-    }
-    // --------------------------------------
-    // Save weights back to global
-    if (data.weight_mem_ptr != 0)
-        net.__save_weights__();
+    //     __syncthreads();
+    // }
+    // // --------------------------------------
+    // // Save weights back to global
+    // if (data.weight_mem_ptr != 0)
+    //     net.__save_weights__();
 }
 
 
@@ -254,7 +254,7 @@ static __global__ void eval_kernel(const DataLayout data)
     shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
     (
         net.eval(al,
-            reinterpret_cast<uint64_t>(x_array))
+            reinterpret_cast<uint64_t>(x_array));
     );
     // --------------------------------------
     // weight initialization
