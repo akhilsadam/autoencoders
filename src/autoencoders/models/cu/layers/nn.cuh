@@ -7,10 +7,11 @@ using namespace kittens;
 
 #define NN_CUH_INCLUDED
 
-template<class IN, template<class> class Transform, class Opt>
+template<class _IN, template<class> class Transform, class Opt>
 class module {
     public:
         // BCHW 
+        using IN = _IN;
         using OUT = Transform<IN>;
         IN::shmem_wp* x;
         OUT::shmem_wp* y;
