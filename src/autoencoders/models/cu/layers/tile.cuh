@@ -192,7 +192,7 @@ struct CHW{
 
 // forward facing temporaries to parse tensor
 
-using base_layout_ = gl<ftype, -1, -1, -1, -1, st_fl<64, 64>>;
+using base_layout_ = gl<ftype, -1, -1, -1, -1>;
 
 struct fwd_data
 {
