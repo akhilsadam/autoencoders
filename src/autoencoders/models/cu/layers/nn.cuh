@@ -243,6 +243,8 @@ static __global__ void train_kernel(const DataLayout data)
     // // Save weights back to global
     // if (data.weight_mem_ptr != 0)
     //     net.__save_weights__();
+
+    printf("Training done.\n");
 }
 
 
