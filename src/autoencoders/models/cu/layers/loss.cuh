@@ -23,13 +23,13 @@ struct mse_bwd {
 struct MSELoss{
     template<class L>
     static __device__ __forceinline__ void op(
-        const shmem<L::By, L::Bx>* y_hat,
-        const shmem<L::By, L::Bx>* y,
-        shmem<L::By, L::Bx>* grad_y
+        const shmem<L::B.y, L::B.x>* y_hat,
+        const shmem<L::B.y, L::B.x>* y,
+        shmem<L::B.y, L::B.x>* grad_y
     ) {
         // BCHW again, and we work on [C] arrays of type ST[H,W].
 
-        rt<ftype, L::By, L::Bx> WARP_y, WARP_y_hat, WARP_grad_y; // register tiles
+        rt<ftype, L::B.y, L::B.x> WARP_y, WARP_y_hat, WARP_grad_y; // register tiles
         
         for(int32_t c = 0; c < L::C; c++) {
             load(WARP_y_hat, y_hat[c]);

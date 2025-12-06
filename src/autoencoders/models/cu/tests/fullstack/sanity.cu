@@ -22,7 +22,7 @@ uint64_t train(train_data& g) {
         std::visit([&](auto& layout) {
             using Layout = std::decay_t<decltype(layout)>;
             using Tile   = typename Layout::tile_type;
-            using WarpTile = CHW<Chan::C, Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
+            using WarpTile = CHW<Chan::C, Tile>;
             using Net = network<WarpTile>;
 
             size_t total_weights = Net::total_weight_bytes();
@@ -57,7 +57,7 @@ void eval(train_data& g) {
         std::visit([&](auto& layout) {
             using Layout = std::decay_t<decltype(layout)>;
             using Tile   = typename Layout::tile_type;
-            using WarpTile = CHW<Chan::C, Tile::B.y, Tile::B.x, Tile::W.y, Tile::W.x>;
+            using WarpTile = CHW<Chan::C, Tile>;
             using Net = network<WarpTile>;
 
             size_t total_weights = Net::total_weight_bytes();

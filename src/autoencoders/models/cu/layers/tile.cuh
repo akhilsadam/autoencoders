@@ -23,10 +23,6 @@ using namespace kittens;
 #define G_CHANNEL -1
 #endif
 
-// #ifndef GTILE_XY
-// #define GTILE_XY {-1, -1}
-// #endif
-
 // #ifndef BLOCKTILE_XY
 // #define BLOCKTILE_XY {128, 128}
 // #endif
@@ -43,11 +39,16 @@ using namespace kittens;
 #define dtype bf16
 #endif
 
-template<int Gy, int Gx, int By, int Bx, int Wy, int Wx>
+// warptiles (WTs) per block, warptile size
+template<int Gy, int Gx, int WTy, int WTx, int Wy, int Wx>
 struct Tile {
     static constexpr int2 G = {Gx, Gy};
-    static constexpr int2 B = {Bx, By};
     static constexpr int2 W = {Wx, Wy};
+    static constexpr int2 WT = {WTx, WTy};
+    static constexpr int2 B = {WTx * Wx, WTy * Wy};
+    static constexpr int32_t WTs = WTy * WTx;
+
+
 };
 
 template<typename Layout, typename TileType>
@@ -81,23 +82,20 @@ struct TileBCHW : public TileType {
     
     // Warp-level indices
     __device__ __forceinline__ int32_t warp_id()  const { return threadIdx.x / kittens::WARP_THREADS; }
-    static constexpr int32_t warptile_nx = TileType::B.x / TileType::W.x;
-    static constexpr int32_t warptile_ny = TileType::B.y / TileType::W.y;
-    static constexpr int32_t warptiles = warptile_nx * warptile_ny;
-    static constexpr int32_t warpwaves = (warptiles + NUM_WORKERS - 1) / NUM_WORKERS;
+    static constexpr int32_t warpwaves = (TileType::WTs + NUM_WORKERS - 1) / NUM_WORKERS;
 
     __device__ __forceinline__ int32_t warptile_linear_id(int32_t wave) const {
         return wave * NUM_WORKERS + warp_id();
     }
 
     __device__ __forceinline__ bool warptile_active(int32_t wave) const {
-        return warptile_linear_id(wave) < warptiles;
+        return warptile_linear_id(wave) < TileType::WTs;
     }
 
     __device__ __forceinline__ int2 warptile_ixy(int32_t wave) const {
         int32_t warptile_id = warptile_linear_id(wave);
-        int32_t warptile_ix = warptile_id % warptile_nx; // iterate x (cols) first
-        int32_t warptile_iy = warptile_id / warptile_nx;
+        int32_t warptile_ix = warptile_id % TileType::WT.x; // iterate x (cols) first
+        int32_t warptile_iy = warptile_id / TileType::WT.x;
         return make_int2(warptile_ix, warptile_iy);
     }
     
@@ -116,41 +114,39 @@ struct TileBCHW : public TileType {
 
 };
 
-template<int32_t _C, int32_t _By, int32_t _Bx, int32_t _Wy, int32_t _Wx>
+template<int32_t _C, typename TileType>
 struct CHW{
     static constexpr int32_t C = _C;
-    static constexpr int32_t By = _By; 
-    static constexpr int32_t Bx = _Bx;
-    static constexpr int32_t Wy = _Wy;
-    static constexpr int32_t Wx = _Wx;
-    static constexpr int32_t N = _C * _By * _Bx;
+
+    static constexpr int2 B = TileType::B;
+    static constexpr int2 W = TileType::W;
+    static constexpr int2 WT = TileType::WT;
+
+    static constexpr int32_t N = _C * TileType::B.y * TileType::B.x;
 
     // Warp-level indices
     static __device__ __forceinline__ int32_t warp_id() { return threadIdx.x / kittens::WARP_THREADS; }
-    static constexpr int32_t warptile_nx = Bx / Wx;
-    static constexpr int32_t warptile_ny = By / Wy;
-    static constexpr int32_t warptiles = warptile_nx * warptile_ny;
-    static constexpr int32_t warpwaves = (warptiles + NUM_WORKERS - 1) / NUM_WORKERS;
+    static constexpr int32_t warpwaves = (TileType::WTs + NUM_WORKERS - 1) / NUM_WORKERS;
 
     static __device__ __forceinline__ int32_t warptile_linear_id(int32_t wave) {
         return wave * NUM_WORKERS + warp_id();
     }
 
     static __device__ __forceinline__ bool warptile_active(int32_t wave) {
-        return warptile_linear_id(wave) < warptiles;
+        return warptile_linear_id(wave) < TileType::WTs;
     }
 
     static __device__ __forceinline__ int2 warptile_ixy(int32_t wave) {
         int32_t warptile_id = warptile_linear_id(wave);
-        int32_t warptile_ix = warptile_id % warptile_nx; // iterate x (cols) first
-        int32_t warptile_iy = warptile_id / warptile_nx;
+        int32_t warptile_ix = warptile_id % TileType::WT.x; // iterate x (cols) first
+        int32_t warptile_iy = warptile_id / TileType::WT.x;
         return make_int2(warptile_ix, warptile_iy);
     }
     
     static __device__ __forceinline__ int2 warptile_xy(int32_t wave) {
         int2 ij = warptile_ixy(wave);
-        return make_int2(ij.x * Wx,
-                    ij.y * Wy);
+        return make_int2(ij.x * W.x,
+                    ij.y * W.y);
     }
 };
 
@@ -254,9 +250,12 @@ using BCHW_bwd = _BCHW_bwd<tiled_layout<TileType>, TileType>;
 template<typename TileType>
 using BCHW_train = _BCHW_train<tiled_layout<TileType>, TileType>;
 
-using Tile28 = Tile<-1, -1, 32, 16, 16, 16>;
-using Tile64 = Tile<-1, -1, 64, 32, 16, 16>; /// second is 1/2 since packed
-using Tile128 = Tile<-1, -1, 128, 64, 16, 16>;
+
+// image HW, max block HW, reg-tile / single-warp HW
+// always stores block HW shmem per block
+using Tile28 = Tile<-1, -1, 2, 2, 16, 16>;
+using Tile64 = Tile<-1, -1, 4, 4, 16, 16>;
+using Tile128 = Tile<-1, -1, 8, 8, 16, 16>;
 
 // channels
 template<int _C>
