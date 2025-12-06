@@ -201,7 +201,7 @@ static __global__ void train_kernel(const DataLayout data)
     // shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
     // (
     //     net.eval(al,
-    //         reinterpret_cast<uint64_t>(x_array));
+    //         reinterpret_cast<uint64_t>(x_array))
     // );
     // net.train(al, reinterpret_cast<uint64_t>(grad_y_array));
     // // --------------------------------------
@@ -254,7 +254,7 @@ static __global__ void eval_kernel(const DataLayout data)
     shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
     (
         net.eval(al,
-            reinterpret_cast<uint64_t>(x_array));
+            reinterpret_cast<uint64_t>(x_array))
     );
     // --------------------------------------
     // weight initialization
