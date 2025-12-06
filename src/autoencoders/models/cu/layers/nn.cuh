@@ -161,9 +161,11 @@ struct module_chain {
 
 
 // base case
-template<class IN, class Opt, class ModuleSpec>
-struct module_chain<IN, Opt, ModuleSpec> 
+template<class _IN, class Opt, class ModuleSpec>
+struct module_chain<_IN, Opt, ModuleSpec> 
 {
+    using IN = _IN;
+
     using CurrentModule = typename ModuleSpec::template type<IN, Opt>;
     CurrentModule current;
 
