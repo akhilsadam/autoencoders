@@ -39,7 +39,7 @@ uint64_t train(train_data& g) {
 
             auto* kernel = train_kernel<Layout, Tile, WarpTile, Net, Loss>;
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
-            kernel<<<layout.grid(), layout.block()>>>(layout);
+            kernel<<<layout.grid(), layout.block(), layout.mem()>>>(layout);
 
 
         }, layout);
