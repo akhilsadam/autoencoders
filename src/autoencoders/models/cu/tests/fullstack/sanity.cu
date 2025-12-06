@@ -44,8 +44,7 @@ uint64_t train(train_data& g) {
     return g.weight_mem_ptr;
 }
 
-void eval(train_data g) {
-    
+void eval(train_data& g) {
     channel_variant chan_var = channel_var(g);
     std::visit([&](auto& chan_var) {
         using Chan = std::decay_t<decltype(chan_var)>;
@@ -74,6 +73,6 @@ void eval(train_data g) {
 
 PYBIND11_MODULE(sanity, m) {
     m.doc() = "nn test python module";
-    py::bind_function<eval>(m, "eval", &train_data::x, &train_data::y, &train_data::iterations, &train_data::weight_mem_ptr);
+    py::bind_function_with_args<eval>(m, "eval", &train_data::x, &train_data::y, &train_data::iterations, &train_data::weight_mem_ptr);
     py::bind_function_with_return<train>(m, "train", &train_data::x, &train_data::y, &train_data::iterations, &train_data::weight_mem_ptr);
 }

@@ -27,5 +27,15 @@ inline void bind_function_with_return(auto m, auto name, auto TGlobal::*... memb
     );
 }
 
+
+template<auto function, typename TGlobal>
+static void bind_function_with_args(py::module_ &m, const char* name, auto TGlobal::*... member_ptrs) {
+    m.def(name, [](typename py::detail::unwrap_type<decltype(member_ptrs)>::type... args) {
+        TGlobal __g__ {static_cast<typename kittens::py::trait<decltype(member_ptrs)>::member_type>(args)...};
+        function(__g__);
+    });
+}
+
+
 } // namespace py
 } // namespace kittens
