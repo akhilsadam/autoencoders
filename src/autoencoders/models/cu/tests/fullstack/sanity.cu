@@ -27,13 +27,13 @@ uint64_t train(train_data& g) {
 
             size_t total_weights = Net::total_weight_bytes();
             // malloc weights
-            if (g.weight_mem_ptr == 0)
-            {
-                printf("Allocating weight memory of size %zu\n", total_weights);
-                void* weight_mem_ptr;
-                cudaMalloc(&weight_mem_ptr, total_weights);
-                g.weight_mem_ptr = reinterpret_cast<uint64_t>(weight_mem_ptr);
-            }
+            // if (g.weight_mem_ptr == 0)
+            // {
+            //     printf("Allocating weight memory of size %zu\n", total_weights);
+            //     void* weight_mem_ptr;
+            //     cudaMalloc(&weight_mem_ptr, total_weights);
+            //     g.weight_mem_ptr = reinterpret_cast<uint64_t>(weight_mem_ptr);
+            // }
 
             printf("Train @ C=%d, Tile=%dx%d, with weight bytes %zu @ %p\n", Chan::C, Tile::B.x, Tile::B.y, total_weights, g.weight_mem_ptr);
 
