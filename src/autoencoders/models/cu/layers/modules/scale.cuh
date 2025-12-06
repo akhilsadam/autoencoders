@@ -75,6 +75,8 @@ struct scale_module : public module<_IN, Transform, Opt> {
         {
             int2 ij = IN::warptile_ixy(wave);
             for (int c = 0; c < IN::C; ++c) {
+                
+                printf("tid and yxc: %d %d %d %d\n", threadIdx.x, ij.y, ij.x, c);
 
                 load(X, this->x[0][ij.y][ij.x][c]);
 

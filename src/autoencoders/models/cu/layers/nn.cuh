@@ -311,7 +311,7 @@ static __global__ void eval_kernel(const DataLayout data)
         for (int c = 0; c < data.y.depth(); c++)
         {
             coord<> idx(data.batch(), c, p.y, p.x);
-            store(data.y, x_array[0][wt.y][wt.x][c], idx);
+            store(data.y, y_hat_array[0][wt.y][wt.x][c], idx);
         }
     }
 
