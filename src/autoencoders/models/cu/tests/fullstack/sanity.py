@@ -34,6 +34,9 @@ def _test_nn_sanity():
     signal = torch.mean((yhat - x) ** 2).item()
     print("MSE after eval:", error)
     print("Signal after eval:", signal)
+    
+    from cu.tests import test_layers as tl
+    tl._plot_diff(x, yhat, title="NN Sanity Check Difference")
 
     # from cu.tests import test_layers as tl
     # tl._check(nn.nn_sanity(), nn_sanity())
