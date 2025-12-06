@@ -9,12 +9,15 @@ using namespace kittens;
 #include "nn.cuh"
 #endif
 
-template<class IN>
-using IdentityTransform = IN;
+template<class _IN>
+using IdentityTransform = _IN;
 
-template<class IN, template<class> class Transform, class Opt>
-struct scale_module : public module<IN, Transform, Opt> {
+template<class _IN, template<class> class Transform, class Opt>
+struct scale_module : public module<_IN, Transform, Opt> {
    
+    using IN = module<_IN, Transform, Opt>::IN;
+    using OUT = module<_IN, Transform, Opt>::OUT;
+
     // one shared weight
     using wgl = ftype; // gl<ftype,1,1,1,1>;
     using wtile = ftype; // shmem<1,1>;
