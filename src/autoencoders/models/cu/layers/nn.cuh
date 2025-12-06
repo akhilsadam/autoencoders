@@ -196,24 +196,24 @@ static __global__ void train_kernel(const DataLayout data)
     using shmem_tile = shmem<DataLayout::tile_type::B.y, DataLayout::tile_type::B.x>;
     shmem_tile* x_array = al.allocate<shmem_tile, L::C>();
     shmem_tile* y_array = al.allocate<shmem_tile, L::C>();
-    shmem_tile* grad_y_array = al.allocate<shmem_tile, L::C>();
+    // shmem_tile* grad_y_array = al.allocate<shmem_tile, L::C>();
 
-    shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
-    (
-        net.eval(al,
-            reinterpret_cast<uint64_t>(x_array))
-    );
-    net.train(al, reinterpret_cast<uint64_t>(grad_y_array));
-    // --------------------------------------
-    // weight initialization
-    net.__init_weights__(al);
-    __syncthreads();
+    // shmem_tile* y_hat_array = reinterpret_cast<shmem_tile*>
+    // (
+    //     net.eval(al,
+    //         reinterpret_cast<uint64_t>(x_array))
+    // );
+    // net.train(al, reinterpret_cast<uint64_t>(grad_y_array));
+    // // --------------------------------------
+    // // weight initialization
+    // net.__init_weights__(al);
+    // __syncthreads();
 
-    if (data.weight_mem_ptr != 0)
-    {   // optional: load weights from global memory
-        net.__load_weights__(data.weight_mem_ptr);
-        __syncthreads();        
-    } 
+    // if (data.weight_mem_ptr != 0)
+    // {   // optional: load weights from global memory
+    //     net.__load_weights__(data.weight_mem_ptr);
+    //     __syncthreads();        
+    // } 
     
     // --------------------------------------
     // training loop, one batch (across blocks)
