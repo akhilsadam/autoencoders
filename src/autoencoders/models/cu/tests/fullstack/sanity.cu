@@ -57,6 +57,7 @@ void eval(train_data& g) {
             using Net = network<WarpTile>;
 
             size_t total_weights = Net::total_weight_bytes();
+            printf("uint64_t mem_ptr = %llu\n", g.weight_mem_ptr);
             void* weight_ptr = reinterpret_cast<void*>(g.weight_mem_ptr);
 
             printf("Eval @ C=%d, Tile=%dx%d, with weight bytes %zu @ %p\n", Chan::C, Tile::B.x, Tile::B.y, total_weights, weight_ptr);
