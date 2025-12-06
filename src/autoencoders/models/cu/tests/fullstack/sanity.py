@@ -19,7 +19,7 @@ def _test_nn_sanity():
     y = x * 2.78
     yhat = torch.zeros_like(y)
         
-    mem_pointer = nn_sanity.train(x, y, 100, 0)
+    mem_pointer = torch.tensor(nn_sanity.train(x, y, 100, 0))
     print("Mem pointer after training:", mem_pointer)
 
     nn_sanity.eval(x, yhat, 0, mem_pointer)
