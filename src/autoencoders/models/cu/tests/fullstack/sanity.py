@@ -1,7 +1,6 @@
 import os
 import torch
 from torch import nn
-import numpy as np
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
@@ -23,7 +22,7 @@ def _test_nn_sanity():
     mem_pointer = nn_sanity.train(x, y, 100, 0)
     print("Mem pointer after training:", mem_pointer)
 
-    nn_sanity.eval(x, yhat, 0, np.uint64(mem_pointer))
+    nn_sanity.eval(x, yhat, 0, mem_pointer)
     print("Output after eval:", yhat)
     error = torch.mean((y - yhat) ** 2).item()
     signal = torch.mean((yhat - x) ** 2).item()
