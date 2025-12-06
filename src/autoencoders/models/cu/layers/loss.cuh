@@ -29,7 +29,7 @@ struct MSELoss{
     ) {
         // BCHW again, and we work on [WT.y, WT.x, C] arrays of type ST[Wp.y, Wp.x].
 
-        L::reg_wp WARP_y, WARP_y_hat, WARP_grad_y;
+        typename L::reg_wp WARP_y, WARP_y_hat, WARP_grad_y;
 
         for (int wave = 0; wave < L::warpwaves; ++wave) 
         {
