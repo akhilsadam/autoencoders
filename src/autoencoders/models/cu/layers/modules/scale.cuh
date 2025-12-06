@@ -15,8 +15,8 @@ using IdentityTransform = _IN;
 template<class _IN, template<class> class Transform, class Opt>
 struct scale_module : public module<_IN, Transform, Opt> {
    
-    using IN = module<_IN, Transform, Opt>::IN;
-    using OUT = module<_IN, Transform, Opt>::OUT;
+    using IN = typename module<_IN, Transform, Opt>::IN;
+    using OUT = typename module<_IN, Transform, Opt>::OUT;
 
     // one shared weight
     using wgl = ftype; // gl<ftype,1,1,1,1>;
