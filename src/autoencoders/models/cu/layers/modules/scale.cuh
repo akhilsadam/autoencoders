@@ -72,19 +72,28 @@ struct scale_module : public module<_IN, Transform, Opt> {
 
         if (blockIdx.x == 0 && blockIdx.y == 0)
         {    
+            if (threadIdx.x == 0) {
+                printf("shmem tile dims: rows=%d cols=%d, reg tile dims: rows=%d cols=%d, elems=%d\n",
+                       this->x[0][0][0][0].rows, this->x[0][0][0][0].cols,
+                       X.rows, X.cols, X.num_elems);
+            }
+            __syncwarp();
+            
             for (int wave = 0; wave < IN::warpwaves; ++wave) 
             {
                 int2 ij = IN::warptile_ixy(wave);
                 for (int c = 0; c < IN::C; ++c) 
                 {
                     
-                    printf("tid and yxc: %d %d %d %d\n", threadIdx.x, ij.y, ij.x, c);
-
                     load(X, this->x[0][ij.y][ij.x][c]);
 
-                    // #pragma unroll
-                    // for (int i = 0; i < X.num_elems; i++)
-                    //     Y.data[i] = X.data[i] * w;
+                    // Debug: print first few elements of the loaded register tile
+                    if (threadIdx.x == 0 && c == 0) {
+                        printf("Loaded rt elements (first 8): ");
+                        for (int i = 0; i < 8 && i < X.num_elems; i++)
+                            printf("%f ", X.data[i]);
+                        printf("\n");
+                    }
 
                     store(this->y[0][ij.y][ij.x][c], X);
                     __syncwarp();
