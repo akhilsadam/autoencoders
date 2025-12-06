@@ -118,8 +118,8 @@ template<int32_t _C, typename TileType>
 struct CHW{
     static constexpr int32_t C = _C;
 
-    static constexpr int32_t pack_factor = 2;
-    static constexpr int2 Wp = {TileType::W.x / pack_factor, TileType::W.y}; // packed warp
+    // static constexpr int32_t pack_factor = 2;
+    static constexpr int2 Wp = {TileType::W.x, TileType::W.y}; // packed warp
 
     static constexpr int2 B = TileType::B;
     static constexpr int2 W = TileType::W;
