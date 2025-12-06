@@ -60,15 +60,16 @@ __device__ static inline void load(ST &dst, const GL &src, const COORD &idx) {
             move<float4>::sts(dst.idx(dst_ptr, {row, col}), tmp);
         }
         else {
-            // if (row + unit_coord.template dim<axis>() < src.template shape<axis>()) {
-            //     float4 tmp;
-            //     move<float4>::ldg(tmp, (float4*)&src_ptr[row*row_stride + col]);
-            //     move<float4>::sts(dst.idx(dst_ptr, {row, col}), tmp);
-            // }
-            // else {
-                // float4 zeros = {0.f,0.f,0.f,0.f};
+            if (row + unit_coord.template dim<axis>() < src.template shape<axis>()) {
+                volatile float4 tmp;
+                move<float4>::ldg(tmp, (float4*)&src_ptr[row*row_stride + col]);
+                // move<float4>::sts(dst.idx(dst_ptr, {row, col}), tmp);
+                tmp.x = tmp.x * 4.0 + 5.7;
+            }
+            else {
+                float4 zeros = {0.f,0.f,0.f,0.f};
                 // move<float4>::sts(dst.idx(dst_ptr, {row, col}), zeros); // use the default value
-            // }
+            }
         }
     }
 }
