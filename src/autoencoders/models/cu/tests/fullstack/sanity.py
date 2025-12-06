@@ -15,7 +15,7 @@ print("Network compiled:", nn_sanity is not None)
 def _test_nn_sanity():
         # return nn.train
         
-    x = torch.randn(10, 3, 32, 32).cuda()
+    x = torch.randn(1, 3, 32, 32).cuda()
     y = x * 2.78
     yhat = torch.zeros_like(y)
         
