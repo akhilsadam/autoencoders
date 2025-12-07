@@ -8,7 +8,8 @@ class SGD {
         static constexpr float learning_rate = LEARNING_RATE;
         
         template<typename T>
-        static __device__ __forceinline__ T update(T w, T grad_w) {
-            return w - learning_rate * grad_w;
+        static __device__ __forceinline__ void update(T& w, T& grad_w) {
+            w = w - learning_rate * grad_w;
+            grad_w = T(0);
         }
 };

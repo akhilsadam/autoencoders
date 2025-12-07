@@ -1,13 +1,10 @@
 #include "kittens.cuh"
 using namespace kittens;
 
-#ifndef TILE_CUH_INCLUDED
 #include "tile.cuh"
-#endif
-
-#ifndef NN_CUH_INCLUDED
 #include "nn.cuh"
-#endif
+#include "ops/basic.cuh"
+#include "ops/scan.cuh"
 
 template<class _IN>
 using IdentityTransform = _IN;
@@ -21,10 +18,9 @@ struct scale_module : public module<_IN, Transform, Opt> {
     // one shared weight
     using wgl = ftype; // gl<ftype,1,1,1,1>;
     using wtile = ftype; // shmem<1,1>;
-    wgl* g_weight;
-    wgl* g_grad_weight;
-    wtile* weight;        // lives in shared memory
-    wtile* grad_weight;   // gradient accumulator
+    wgl* g_weight;        // pointer to global memory    
+    wtile* weight;        // pointer to shared memory
+    wtile* grad_weight;   // pointer to shared memory for gradient
 
     static constexpr size_t weight_bytes = sizeof(ftype);
 
@@ -64,40 +60,16 @@ struct scale_module : public module<_IN, Transform, Opt> {
     __device__ __forceinline__ void fwd() {
         typename IN::reg_wp X;
         typename OUT::reg_wp Y;
-        // rt<ftype,1,1> W;
-        // load(W, *weight);
-        // auto w = W.tiles[0][0].data[0].x;
-
         ftype w = weight[0];
 
-        __syncwarp();
-        
         for (int wave = 0; wave < IN::warpwaves; ++wave) 
         {
             int2 ij = IN::warptile_ixy(wave);
             for (int c = 0; c < IN::C; ++c) 
             {
-                // // // Debug: print shared tile corner values before load
-                // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0) {
-                //         auto* base = &this->x[0][0][0][0];
-                //         auto* ptr  = &this->x[0][ij.y][ij.x][c];
-                //         uintptr_t base_addr = reinterpret_cast<uintptr_t>(base);
-                //         uintptr_t ptr_addr  = reinterpret_cast<uintptr_t>(ptr);
-                //         uint32_t cvta = static_cast<uint32_t>(__cvta_generic_to_shared(&ptr->data[0]));
-
-                //         printf("[DEBUG] ij=(%d,%d) c=%d  ptr=%p  off=%ld  cvta=0x%x  warp=%d lane=%d\n",
-                //             ij.x, ij.y, c,
-                //             ptr,
-                //             ptr_addr - base_addr,
-                //             cvta,
-                //             warpid(),
-                //             laneid());
-                //     }
-
                 load(X, this->x[0][ij.y][ij.x][c]);
-                
-
-                store(this->y[0][ij.y][ij.x][c], X);
+                bin_map<scale>(Y, X, w);
+                store(this->y[0][ij.y][ij.x][c], Y);
                 __syncwarp();
             }
         }
@@ -109,35 +81,32 @@ struct scale_module : public module<_IN, Transform, Opt> {
         typename IN::reg_wp GX, X;
         typename OUT::reg_wp GY;
 
-        ftype local_grad_w = 0.0f;
+        ftype w = weight[0];
+        ftype reg_grad_w = 0.0f;
 
         for (int wave = 0; wave < IN::warpwaves; ++wave) 
         {
             int2 ij = IN::warptile_ixy(wave);
-            for (int c = 0; c < IN::C; ++c) {
+            for (int c = 0; c < IN::C; ++c) 
+            {
 
                 load(X, this->x[0][ij.y][ij.x][c]);
                 load(GY, this->grad_y[0][ij.y][ij.x][c]);
 
-                // #pragma unroll
-                // for (int i=0;i<X.num_elems;i++) {
-                //     GX.data[i] = GY.data[i] * w[0].at(0,0);
-                //     local_grad_w += GY.data[i] * X.data[i];
-                // }
+                bin_map<scale>(GX, GY, w); // GX.data[i] = GY.data[i] * w;
+                reg_grad_w += dot(GY, X); // reg_grad_w += GY.data[i] * X.data[i];
 
-                store(this->grad_x[0][ij.y][ij.x][c], GY);
-
+                store(this->grad_x[0][ij.y][ij.x][c], GX);
                 __syncwarp();
             }
         }
 
-        // atomicAdd(grad_weight[0].at(0,0), local_grad_w);  // should do parallel scan over warps
-        // Apply SGD update only if we are the first thread
-        if (threadIdx.x == 0)
-        {
-            weight[0] = Opt::update(weight[0], grad_weight[0]);
-            grad_weight[0] = 0.0f;
-        }
+        // accumulate gradient (parallel scan) across warps
+        scan::warp_collect(reg_grad_w);
+        scan::atomic_store(grad_weight[0], reg_grad_w);
+
+        // Apply SGD update 
+        Opt::update(weight[0], grad_weight[0]);
     }
 };
 

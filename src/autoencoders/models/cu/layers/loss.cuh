@@ -1,9 +1,6 @@
 #include "kittens.cuh"
 using namespace kittens;
-
-#ifndef TILE_CUH_INCLUDED
 #include "tile.cuh"
-#endif
 
 template<int N>
 struct mse_bwd {
