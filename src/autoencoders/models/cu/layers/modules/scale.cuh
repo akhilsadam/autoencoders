@@ -72,11 +72,11 @@ struct scale_module : public module<_IN, Transform, Opt> {
 
         if (blockIdx.x == 0 && blockIdx.y == 0)
         {    
-            if (threadIdx.x == 0) {
-                printf("shmem tile dims: rows=%d cols=%d, reg tile dims: rows=%d cols=%d\n",
-                       this->x[0][0][0][0].rows, this->x[0][0][0][0].cols,
-                       X.rows, X.cols);
-            }
+            // if (threadIdx.x == 0) {
+            //     printf("shmem tile dims: rows=%d cols=%d, reg tile dims: rows=%d cols=%d\n",
+            //            this->x[0][0][0][0].rows, this->x[0][0][0][0].cols,
+            //            X.rows, X.cols);
+            // }
             __syncwarp();
             
             for (int wave = 0; wave < IN::warpwaves; ++wave) 
@@ -84,22 +84,22 @@ struct scale_module : public module<_IN, Transform, Opt> {
                 int2 ij = IN::warptile_ixy(wave);
                 for (int c = 0; c < IN::C; ++c) 
                 {
-                    // Debug: print shared tile corner values before load
-                    if (threadIdx.x == 0 && c == 0) {
-                        auto& st = this->x[0][ij.y][ij.x][c];
-                        printf("Shared tile[0,0]=%f [15,15]=%f\n", 
-                               st[0][0].x, st[st.rows-1][st.cols-1].y);
-                    }
-                    __syncwarp();
+                    // // Debug: print shared tile corner values before load
+                    // if (threadIdx.x == 0 && c == 0) {
+                    //     auto& st = this->x[0][ij.y][ij.x][c];
+                    //     printf("Shared tile[0,0]=%f [15,15]=%f\n", 
+                    //            st[0][0].x, st[st.rows-1][st.cols-1].y);
+                    // }
+                    // __syncwarp();
                     
                     load(X, this->x[0][ij.y][ij.x][c]);
 
-                    // Debug: verify register tile corners
-                    if (threadIdx.x == 0 && c == 0) {
-                        printf("tid=%d: X.at(0,0)=%f X.at(15,15)=%f\n", 
-                               threadIdx.x, X[0][0].x, X[15][15].y);
-                    }
-                    __syncwarp();
+                    // // Debug: verify register tile corners
+                    // if (threadIdx.x == 0 && c == 0) {
+                    //     printf("tid=%d: X.at(0,0)=%f X.at(15,15)=%f\n", 
+                    //            threadIdx.x, X[0][0].x, X[15][15].y);
+                    // }
+                    // __syncwarp();
 
                     store(this->y[0][ij.y][ij.x][c], X);
                     __syncwarp();
