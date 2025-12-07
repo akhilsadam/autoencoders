@@ -1,6 +1,8 @@
 #include "kittens.cuh"
 using namespace kittens;
 
+#ifndef EXT_CUH_INCLUDED
+#define EXT_CUH_INCLUDED
 // extensions for kittens operations
 
 /**
@@ -22,3 +24,5 @@ __device__ static inline void tern_map(T &dst, const T &src, const T &src2, cons
         dst.data[i] = op::template op<typename T::dtype>(src.data[i], src2.data[i], param);
     }
 }
+
+#endif // EXT_CUH_INCLUDED

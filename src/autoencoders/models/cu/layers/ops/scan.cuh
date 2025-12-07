@@ -29,7 +29,7 @@ __device__ __forceinline__ Data shfl_up_custom(Data val, int offset) {
 }
 
 template <typename T>
-__device__ __forceinline__ void warp_collect(T& val) {
+__device__ __forceinline__ void frag_collect(T& val) {
     uint8_t lane = threadIdx.x % warp_size;
     #pragma unroll
     for (int p2 = 0; p2 < warp_size_p2; p2++) {

@@ -4,6 +4,7 @@ using namespace kittens;
 #include "tile.cuh"
 #include "nn.cuh"
 #include "ops/basic.cuh"
+#include "ops/frag.cuh"
 #include "ops/scan.cuh"
 
 template<class _IN>
@@ -94,7 +95,7 @@ struct scale_module : public module<_IN, Transform, Opt> {
                 load(GY, this->grad_y[0][ij.y][ij.x][c]);
 
                 bin_map<scale>(GX, GY, w); // GX.data[i] = GY.data[i] * w;
-                reg_grad_w += dot(GY, X); // reg_grad_w += GY.data[i] * X.data[i];
+                frag_dot(reg_grad_w, GY, X); // reg_grad_w += GY.data[i] * X.data[i];
 
                 store(this->grad_x[0][ij.y][ij.x][c], GX);
                 __syncwarp();
@@ -102,7 +103,8 @@ struct scale_module : public module<_IN, Transform, Opt> {
         }
 
         // accumulate gradient (parallel scan) across warps
-        scan::warp_collect(reg_grad_w);
+        // frag_collect collects fragments across lanes in a warp
+        scan::frag_collect(reg_grad_w); 
         scan::atomic_store(grad_weight[0], reg_grad_w);
 
         // Apply SGD update 
