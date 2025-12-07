@@ -6,7 +6,7 @@
 
 struct scale {
     template<class T>
-    __device__ __forceinline__ static T op(T& out, const T& in, const ftype& weight) 
+    __device__ __forceinline__ static T op(const T& in, const ftype& weight) 
     { return in * weight; }
 };
 
