@@ -9,11 +9,11 @@ using namespace kittens;
 template<typename op, ducks::rt::all T, typename D> // T2, w, h can be inferred from dst as long as op is specialized
 __device__ static inline void frag_dot(D &dst, const T &A, const T &B) {
     #pragma unroll
-    for(int i = 0; i < dst.height; i++) {
+    for(int i = 0; i < A.height; i++) {
         #pragma unroll
-        for(int j = 0; j < dst.width; j++) {
+        for(int j = 0; j < A.width; j++) {
             #pragma unroll
-            for(int k = 0; k < dst.packed_per_tile; k++) {
+            for(int k = 0; k < A.packed_per_tile; k++) {
                 dst += (A.tiles[i][j].data[k] * B.tiles[i][j].data[k]);
             }
         }
