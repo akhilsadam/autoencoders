@@ -70,8 +70,8 @@ struct scale_module : public module<_IN, Transform, Opt> {
 
         ftype w = weight[0];
 
-        if (blockIdx.x == 0 && blockIdx.y == 0)
-        {    
+        // if (blockIdx.x == 0 && blockIdx.y == 0)
+        // {    
             // if (threadIdx.x == 0) {
             //     printf("shmem tile dims: rows=%d cols=%d, reg tile dims: rows=%d cols=%d\n",
             //            this->x[0][0][0][0].rows, this->x[0][0][0][0].cols,
@@ -85,13 +85,22 @@ struct scale_module : public module<_IN, Transform, Opt> {
                 for (int c = 0; c < IN::C; ++c) 
                 {
                     // // Debug: print shared tile corner values before load
-                    // if (threadIdx.x == 0 && c == 0) {
-                    //     auto& st = this->x[0][ij.y][ij.x][c];
-                    //     printf("Shared tile[0,0]=%f [15,15]=%f\n", 
-                    //            st[0][0].x, st[st.rows-1][st.cols-1].y);
-                    // }
-                    // __syncwarp();
-                    
+                    if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0) {
+                            auto* base = &this->x[0][0][0][0];
+                            auto* ptr  = &this->x[0][ij.y][ij.x][c];
+                            uintptr_t base_addr = reinterpret_cast<uintptr_t>(base);
+                            uintptr_t ptr_addr  = reinterpret_cast<uintptr_t>(ptr);
+                            uint32_t cvta = static_cast<uint32_t>(__cvta_generic_to_shared(&ptr->data[0]));
+
+                            printf("[DEBUG] ij=(%d,%d) c=%d  ptr=%p  off=%ld  cvta=0x%x  warp=%d lane=%d\n",
+                                ij.x, ij.y, c,
+                                ptr,
+                                ptr_addr - base_addr,
+                                cvta,
+                                warpid(),
+                                laneid());
+                        }
+
                     load(X, this->x[0][ij.y][ij.x][c]);
 
                     // // Debug: verify register tile corners
@@ -105,7 +114,7 @@ struct scale_module : public module<_IN, Transform, Opt> {
                     __syncwarp();
                 }
             }
-        }
+        
     }
 
     // ------------------ bwd() ----------------------
