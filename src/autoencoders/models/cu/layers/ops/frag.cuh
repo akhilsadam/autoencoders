@@ -9,7 +9,7 @@ using namespace kittens;
 template<typename op, ducks::st::all T> // T2, w, h can be inferred from dst as long as op is specialized
 __device__ static inline void frag_dot(typename T::dtype &dst, const T &A, const T &B) {
     #pragma unroll
-    for(int i = laneid(); i < dst.num_elements; i += GROUP_THREADS) {
+    for(int i = laneid(); i < dst.num_elements; i += group::GROUP_THREADS) {
         dst += A.data[i] * B.data[i];
     }
 }
