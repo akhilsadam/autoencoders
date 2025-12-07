@@ -137,7 +137,6 @@ struct CHW{
     // shared memory and reg type
     using shmem_wp = st<ftype, Wp.y, Wp.x>;
     using reg_wp = rt<ftype, Wp.y, Wp.x>;
-s
     using shmem_array = shmem_wp[WT.y][WT.x][C];
 
     // allocator
