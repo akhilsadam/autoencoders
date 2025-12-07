@@ -1,7 +1,7 @@
 #include "kittens.cuh"
 using namespace kittens;
 
-
+#include "ops/vectorization.cuh"
 // partial ops that need to be collected with a scan across the warp
 #ifndef FRAG_CUH_INCLUDED
 #define FRAG_CUH_INCLUDED
@@ -14,7 +14,7 @@ __device__ static inline void frag_dot(typename T::dtype &dst, const T &A, const
         for(int j = 0; j < A.width; j++) {
             #pragma unroll
             for(int k = 0; k < A.packed_per_tile; k++) {
-                dst += (A.tiles[i][j].data[k] * B.tiles[i][j].data[k]);
+                dst += sum(A.tiles[i][j].data[k] * B.tiles[i][j].data[k]);
             }
         }
     }
