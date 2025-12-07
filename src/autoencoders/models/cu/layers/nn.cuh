@@ -196,6 +196,7 @@ struct module_chain<_IN, Opt, ModuleSpec>
 template<typename DataLayout, typename TileType, class Net, class Loss>
 static __global__ void train_kernel(const DataLayout data)
 {
+    // needs to be aligned due to random weight allocs
     extern __shared__ __align__(128) alignment_dummy __shm[]; 
     shared_allocator al((int*)&__shm[0]);
     Net net;
@@ -244,9 +245,9 @@ static __global__ void train_kernel(const DataLayout data)
         }
         __syncthreads();
 
-        // net.fwd();
-        // Loss::template op<OUT>(y_hat_array, y_array, grad_y_array);
-        // net.bwd();
+        net.fwd();
+        Loss::template op<OUT>(y_hat_array, y_array, grad_y_array);
+        net.bwd();
 
         __syncthreads();
     }
@@ -264,7 +265,7 @@ static __global__ void train_kernel(const DataLayout data)
 template<typename DataLayout, typename TileType, class Net, class Loss>
 static __global__ void eval_kernel(const DataLayout data)
 {
-    extern __shared__ alignment_dummy __shm[]; 
+    extern __shared__ __align__(128) alignment_dummy __shm[]; 
     shared_allocator al((int*)&__shm[0]);
     Net net;
 
