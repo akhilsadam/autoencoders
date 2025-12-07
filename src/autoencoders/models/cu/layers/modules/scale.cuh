@@ -3,7 +3,6 @@ using namespace kittens;
 
 #include "tile.cuh"
 #include "nn.cuh"
-#include "ops/basic.cuh"
 #include "ops/frag.cuh"
 #include "ops/scan.cuh"
 
@@ -69,7 +68,7 @@ struct scale_module : public module<_IN, Transform, Opt> {
             for (int c = 0; c < IN::C; ++c) 
             {
                 load(X, this->x[0][ij.y][ij.x][c]);
-                bin_map<scale>(Y, X, w);
+                bin_map<base_ops::mul>(Y, X, w);
                 store(this->y[0][ij.y][ij.x][c], Y);
                 __syncwarp();
             }
@@ -94,7 +93,7 @@ struct scale_module : public module<_IN, Transform, Opt> {
                 load(X, this->x[0][ij.y][ij.x][c]);
                 load(GY, this->grad_y[0][ij.y][ij.x][c]);
 
-                bin_map<scale>(GX, GY, w); // GX.data[i] = GY.data[i] * w;
+                bin_map<base_ops::mul>(GX, GY, w); // GX.data[i] = GY.data[i] * w;
                 frag_dot(reg_grad_w, GY, X); // reg_grad_w += GY.data[i] * X.data[i];
 
                 store(this->grad_x[0][ij.y][ij.x][c], GX);
