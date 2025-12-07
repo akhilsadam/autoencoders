@@ -196,6 +196,7 @@ struct module_chain<_IN, Opt, ModuleSpec>
 template<typename DataLayout, typename TileType, class Net, class Loss>
 static __global__ void train_kernel(const DataLayout data)
 {
+    struct alignas(128) alignment_dummy { int x; };
     extern __shared__ alignment_dummy __shm[]; 
     shared_allocator al((int*)&__shm[0]);
     Net net;
