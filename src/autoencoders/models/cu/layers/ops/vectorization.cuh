@@ -12,6 +12,7 @@ __device__ __forceinline__ V vop(const V& a, const A& b, F f) {
     return r;
 }
 
+template<class V, class A, class F>
 __device__ __forceinline__ V rvop(const A& a, const V& b, F f) {
     V r; r.x=f(a,b.x); r.y=f(a,b.y);
     if constexpr (requires{a.z;}) r.z=f(a,b.z);
