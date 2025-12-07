@@ -32,7 +32,7 @@ template <typename T>
 __device__ __forceinline__ void warp_collect(T& val) {
     uint8_t lane = threadIdx.x % warp_size;
     #pragma unroll
-    for (int p2 = 0; p2 < ks_steps; p2++) {
+    for (int p2 = 0; p2 < warp_size_p2; p2++) {
         int offset = 1 << p2; // 1, 2, 4, 8, 16
         T shfl_val = shfl_up_custom(val, offset);
         if (lane >= offset) {

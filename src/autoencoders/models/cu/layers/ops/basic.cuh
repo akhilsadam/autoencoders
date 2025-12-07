@@ -8,11 +8,11 @@
     };
 
     template<>
-    __device__ __forceinline__ static float scale::op(float& out, const float& in, const ftype& weight)
+    __device__ __forceinline__ float scale::op(float& out, const float& in, const float& weight)
     { return in * weight; }
 
     template<>
-    __device__ __forceinline__ static float2 scale::op(float2& out, const float2& in, const ftype& weight)
+    __device__ __forceinline__ float2 scale::op(float2& out, const float2& in, const float& weight)
     { return float2{in.x * weight, in.y * weight}; }
 
 #endif // OPS_BASIC_CUH_INCLUDED
