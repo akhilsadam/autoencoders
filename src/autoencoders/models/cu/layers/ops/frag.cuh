@@ -6,8 +6,8 @@ using namespace kittens;
 #ifndef FRAG_CUH_INCLUDED
 #define FRAG_CUH_INCLUDED
 
-template<typename op, ducks::st::all T> // T2, w, h can be inferred from dst as long as op is specialized
-__device__ static inline void frag_dot(typename T::dtype &dst, const T &A, const T &B) {
+template<typename op, ducks::st::all T, typename D> // T2, w, h can be inferred from dst as long as op is specialized
+__device__ static inline void frag_dot(D &dst, const T &A, const T &B) {
     #pragma unroll
     for(int i = 0; i < dst.height; i++) {
         #pragma unroll
