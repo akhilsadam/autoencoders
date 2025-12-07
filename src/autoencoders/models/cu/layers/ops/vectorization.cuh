@@ -3,63 +3,40 @@
 #ifndef VECTORIZATION_CUH_INCLUDED
 #define VECTORIZATION_CUH_INCLUDED
 
-#define BINOP(op) [] __device__ __forceinline__ (auto a, auto b){ return a op b; }
-
-template <class V, class A, class F>
-__device__ __forceinline__
-V vec_apply(const V& v, const A& x, F f) {
-    V r;
-    r.x = f(v.x, x);
-    r.y = f(v.y, x);
-    if constexpr (requires { v.z; }) r.z = f(v.z, x);
-    if constexpr (requires { v.w; }) r.w = f(v.w, x);
+// elementwise apply (works for x,y[ ,z[ ,w]])
+template<class V, class A, class F>
+__device__ __forceinline__ V vop(const V& a, const A& b, F f) {
+    V r; r.x=f(a.x,b); r.y=f(a.y,b);
+    if constexpr (requires{a.z;}) r.z=f(a.z,b);
+    if constexpr (requires{a.w;}) r.w=f(a.w,b);
     return r;
 }
 
-// vector-scalar operations
+__device__ __forceinline__ V rvop(const A& a, const V& b, F f) {
+    V r; r.x=f(a,b.x); r.y=f(a,b.y);
+    if constexpr (requires{a.z;}) r.z=f(a,b.z);
+    if constexpr (requires{a.w;}) r.w=f(a,b.w);
+    return r;
+}
 
-template <class V>
-__device__ __forceinline__
-V operator*(const V& v, const typename V::value_type& s) { return vec_apply(v, s, BINOP(*)); }
+// op functors
+struct Add{__device__ __forceinline__ auto operator()(auto A,auto B)const{return A+B;}};
+struct Sub{__device__ __forceinline__ auto operator()(auto A,auto B)const{return A-B;}};
+struct Mul{__device__ __forceinline__ auto operator()(auto A,auto B)const{return A*B;}};
+struct Div{__device__ __forceinline__ auto operator()(auto A,auto B)const{return A/B;}};
 
-template <class V>
-__device__ __forceinline__
-V operator+(const V& v, const typename V::value_type& s) { return vec_apply(v, s, BINOP(+)); }
+// vector ∘ scalar    // vector ∘ vector
+#define VEC_OP(OP,FN) \
+template<class V> __device__ __forceinline__ V operator OP(const V&a,const V&b){return vop(a,b,FN{});} \
+template<class V> __device__ __forceinline__ V operator OP(const V&a,const typename V::value_type&s){return vop(a,s,FN{});} \
+template<class V> __device__ __forceinline__ V operator OP(const typename V::value_type&s,const V&a){return rvop(s,a,FN{});}
 
-template <class V>
-__device__ __forceinline__
-V operator-(const V& v, const typename V::value_type& s) { return vec_apply(v, s, BINOP(-)); }
+VEC_OP(*,Mul)
+VEC_OP(+,Add)
+VEC_OP(-,Sub)
+VEC_OP(/,Div)
 
-template <class V>
-__device__ __forceinline__
-V operator/(const V& v, const typename V::value_type& s) { return vec_apply(v, s, BINOP(/)); }
+#undef VEC_OP
 
-// scalar-vector (comm. ops)
-
-template <class V>
-__device__ __forceinline__
-V operator*(const typename V::value_type& s, const V& v) { return v * s; }
-
-template <class V>
-__device__ __forceinline__
-V operator+(const typename V::value_type& s, const V& v) { return v + s; }
-
-// vector-vector operations
-
-template <class V>
-__device__ __forceinline__
-V operator*(const V& a, const V& b) { return vec_apply(a, b, BINOP(*)); }
-
-template <class V>
-__device__ __forceinline__
-V operator+(const V& a, const V& b) { return vec_apply(a, b, BINOP(+)); }
-
-template <class V>
-__device__ __forceinline__
-V operator-(const V& a, const V& b) { return vec_apply(a, b, BINOP(-)); }
-
-template <class V>
-__device__ __forceinline__
-V operator/(const V& a, const V& b) { return vec_apply(a, b, BINOP(/)); }
 
 #endif // VECTORIZATION_CUH_INCLUDED
