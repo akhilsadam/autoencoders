@@ -55,13 +55,13 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             shm_weight = 1.0f;
             shm_grad_weight = 0.0f;
         }
-        one(shm_weight_mat);
-        zero(shm_grad_weight_mat);
+        // one(shm_weight_mat);
+        // zero(shm_grad_weight_mat);
         // syncthreads happens outside automatically
         weight = &shm_weight;
         grad_weight = &shm_grad_weight;
-        weight_mat = &shm_weight_mat;
-        grad_weight_mat = &shm_grad_weight_mat;
+        // weight_mat = &shm_weight_mat;
+        // grad_weight_mat = &shm_grad_weight_mat;
     }
 
 
