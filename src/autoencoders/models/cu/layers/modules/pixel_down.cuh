@@ -77,12 +77,12 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
         if (threadIdx.x == 0)
         {
-            printf("pointer %p\n", g_weight_mat);
+            printf("pointer %p -> %p\n", g_weight_mat, weight_mat);
         }
         load(weight_mat[0], g_weight_mat[0], {0,0,0,0});
         if (threadIdx.x == 0)
         {
-            printf("loaded pointer %p\n", g_weight_mat);
+            printf("loaded pointer %p -> %p\n", g_weight_mat, weight_mat);
         }
     }
 
