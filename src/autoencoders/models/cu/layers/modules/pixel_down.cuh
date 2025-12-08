@@ -93,11 +93,11 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         
         ftype w = weight[0];
 
-        if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
-        {
-            printf("Scale weight: %f\n", w);
-            // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
-        }
+        // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
+        // {
+        //     printf("Scale weight: %f\n", w);
+        //     // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
+        // }
 
         for (int wave = 0; wave < IN::warpwaves; ++wave) 
         {
@@ -110,7 +110,6 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             }
             tile_to_flat<IN::C, k_in>(X_flat, X);
             /////
-            // bin_map<base_ops::mul>(Y_flat, X_flat, w);
             simple_mult(Y_flat, X_flat, w); // Y.data[i] = X.data[i] * w;
             /////
             flat_to_tile<IN::C, k_in>(Y, Y_flat);
@@ -158,15 +157,17 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             tile_to_flat<IN::C, k_in>(GY_flat, GY);
 
             /////
-
-            // bin_map<base_ops::mul>(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
-            simple_mult(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
-            frag_dot(reg_grad_w, GY_flat, X_flat); // reg_grad_w
             
-            // for (int c = 0; c < IN::C; ++c) 
-            // {
-            //     frag_dot(reg_grad_w, GY[c], X[c]);
-            // }
+            // both of these below ops are NaN producing (explodes) individually
+            // bin_map<base_ops::mul>(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
+            // frag_dot(reg_grad_w, GY_flat, X_flat); // reg_grad_w
+
+            simple_mult(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
+            
+            for (int c = 0; c < IN::C; ++c) 
+            {
+                frag_dot(reg_grad_w, GY[c], X[c]);
+            }
 
             /////
             flat_to_tile<IN::C, k_in>(GX, GX_flat);
@@ -176,19 +177,6 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             }
             __syncwarp();
 
-
-            // for (int c = 0; c < IN::C; ++c) 
-            // {
-
-            //     load(X, this->x[0][ij.y][ij.x][c]);
-            //     load(GY, this->grad_y[0][ij.y][ij.x][c]);
-
-            //     bin_map<base_ops::mul>(GX, GY, w); // GX.data[i] = GY.data[i] * w;
-            //     frag_dot(reg_grad_w, GY, X); // reg_grad_w += GY.data[i] * X.data[i];
-
-            //     store(this->grad_x[0][ij.y][ij.x][c], GX);
-            //     __syncwarp();
-            // }
         }
 
         // accumulate gradient (parallel scan) across warps
@@ -196,11 +184,11 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         scan::frag_collect(reg_grad_w); 
         scan::atomic_store(grad_weight[0], reg_grad_w);
 
-        if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
-        {
-            printf("grad weight: %f\n", grad_weight[0]);
-            // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
-        }
+        // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
+        // {
+        //     printf("grad weight: %f\n", grad_weight[0]);
+        //     // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
+        // }
 
         // Apply SGD update 
         Opt::update(weight[0], grad_weight[0]);
