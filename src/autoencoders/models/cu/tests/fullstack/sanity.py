@@ -20,13 +20,11 @@ def _test_nn_sanity():
     yhat = torch.zeros_like(y)
         
     mem_pointer = 0
+    mem_pointer = nn_sanity.train(x, y, mem_pointer, 1) # warmup quirk
     for i in range(10):
         # load new data too every iteration, technically
-        mem_pointer = nn_sanity.train(x, y, mem_pointer, 10)
+        mem_pointer = nn_sanity.train(x, y, mem_pointer, 100)
         print("Mem pointer after training:", mem_pointer)
-    
-    # print(y.shape)
-    # print(y[0,0, :5, :5])
 
     nn_sanity.eval(x, yhat, mem_pointer, 0)
     print("Output after eval:", yhat)
@@ -37,6 +35,8 @@ def _test_nn_sanity():
     
     from cu.tests import test_layers as tl
     tl._plot_diff(x, yhat, title="NN Sanity Check Difference")
+    
+    assert error < 1e-4, f"NN Sanity Check failed with MSE {error}"
 
     # from cu.tests import test_layers as tl
     # tl._check(nn.nn_sanity(), nn_sanity())
