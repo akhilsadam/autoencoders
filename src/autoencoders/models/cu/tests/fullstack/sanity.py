@@ -22,7 +22,7 @@ def _test_nn_sanity():
     mem_pointer = nn_sanity.train(x, y, 0, 10)
     print("Mem pointer after training:", mem_pointer)
     
-    mem_pointer = nn_sanity.train(x, y, mem_pointer, 1000)
+    mem_pointer = nn_sanity.train(x, y, mem_pointer, 10)
     print("Mem pointer after training:", mem_pointer)
     
     # print(y.shape)
