@@ -38,7 +38,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     wtile_mat* weight_mat;        // pointer to shared memory
     wtile_mat* grad_weight_mat;   // pointer to shared memory for gradient
 
-    static constexpr uint32_t n_weights = 1 + (l_out * l_in); // scale + matmul
+    static constexpr uint32_t n_weights = 1 + 3 + (l_out * l_in); // scale + (align) + matmul
     static constexpr size_t weight_bytes =  n_weights * sizeof(ftype);
 
     // ------------------ weights ----------------------
@@ -47,10 +47,6 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         __shared__ wtile shm_weight;
         __shared__ wtile shm_grad_weight;
-        // two floats = 8 bytes
-        __shared__ wtile dummyalign;
-        __shared__ wtile dummy2align;
-
 
         wtile_mat &shm_weight_mat = al.template allocate<wtile_mat>();
         wtile_mat &shm_grad_weight_mat = al.template allocate<wtile_mat>();
@@ -76,8 +72,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         g_weight = reinterpret_cast<wgl*>(mem_ptr);
         weight[0] = *g_weight;
 
-        // g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr + sizeof(ftype));
-        // load(*weight_mat, *g_weight_mat, {0,0,0,0});
+        g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr + 16);
+        load(*weight_mat, *g_weight_mat, {0,0,0,0});
     }
 
     __device__ __forceinline__
