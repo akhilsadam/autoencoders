@@ -71,6 +71,15 @@ stest-cu-single:
 	
 	/tests/${TEST}
 
+
+stest-cu-single-memcheck:
+	source ${INSTALL}/module.sh && \
+	source "$(VENV)/bin/activate" && \
+	cuda-memcheck HYDRA_FULL_ERROR=1 $(PYTHON) -m pytest -s -v src/autoencoders/models/cu -k "${TEST}"
+	
+	/tests/${TEST}
+
+
 strain:
 	source ${INSTALL}/module.sh && $(MAKE) train
 
