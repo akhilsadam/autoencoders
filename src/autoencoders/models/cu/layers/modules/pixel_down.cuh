@@ -95,11 +95,15 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // typename IN::reg_wp X;
         // typename OUT::reg_wp Y;
         
-        ftype w = weight[0];
+        // ftype w = weight[0];
+        rt<ftype,l_out,l_in> W_flat;
+        load(*weight_mat, W_flat, {0,0,0,0});
+
 
         if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
         {
-            printf("Scale weight: %f\n", w);
+            printf("weight mat 0,0: %f\n", W_flat.tiles[0][0].data[0].x);
+            // printf("Scale weight: %f\n", w);
             // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
         }
 
