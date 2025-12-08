@@ -149,8 +149,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         rt<ftype, n_in, l_in> GX_flat, X_flat; // n,l layout
         rt<ftype, n_out, l_out> GY_flat; // n,l layout
 
-        ftype w = weight[0];
-        ftype reg_grad_w = 0.0f;
+        // ftype w = weight[0];
+        // ftype reg_grad_w = 0.0f;
 
         for (int wave = 0; wave < IN::warpwaves; ++wave) 
         {
