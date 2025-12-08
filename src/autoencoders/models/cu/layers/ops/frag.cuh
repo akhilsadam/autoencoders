@@ -23,7 +23,7 @@ __device__ static inline void frag_dot(ftype &dst, const T &A, const T &B) {
 }
 
 template<ducks::rt::all T> // T2, w, h can be inferred from dst as long as op is specialized
-__device__ static inline void simple_mult(const T &A, const T &B, ftype &w) {
+__device__ static inline void simple_mult(T &A, const T &B, ftype &w) {
     #pragma unroll
     for(int i = 0; i < A.height; i++) {
         #pragma unroll
