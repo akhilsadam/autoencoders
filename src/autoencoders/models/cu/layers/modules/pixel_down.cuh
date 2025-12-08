@@ -47,6 +47,10 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         __shared__ wtile shm_weight;
         __shared__ wtile shm_grad_weight;
+        // two floats = 8 bytes
+        __shared__ wtile dummyalign;
+        __shared__ wtile dummy2align;
+
 
         wtile_mat &shm_weight_mat = al.template allocate<wtile_mat>();
         wtile_mat &shm_grad_weight_mat = al.template allocate<wtile_mat>();
