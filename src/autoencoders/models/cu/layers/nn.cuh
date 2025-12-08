@@ -345,7 +345,7 @@ uint64_t basic_train(train_data& g) {
                 g.weight_mem_ptr = reinterpret_cast<uint64_t>(weight_mem_ptr);
             }
 
-            printf("Train @ C=%d, Tile=%dx%d, with weight bytes %zu @ %p\n", Chan::C, Tile::B.x, Tile::B.y, total_weights, g.weight_mem_ptr);
+            // printf("Train @ C=%d, Tile=%dx%d, with weight bytes %zu @ %p\n", Chan::C, Tile::B.x, Tile::B.y, total_weights, g.weight_mem_ptr);
 
             auto* kernel = train_kernel<Layout, Tile, Net, Loss>;
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());

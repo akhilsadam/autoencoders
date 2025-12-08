@@ -24,7 +24,7 @@ def _test_nn_sanity():
     for i in range(10):
         # load new data too every iteration, technically
         mem_pointer = nn_sanity.train(x, y, mem_pointer, 100)
-        print("Mem pointer after training:", mem_pointer)
+        # print("Mem pointer after training:", mem_pointer)
 
     nn_sanity.eval(x, yhat, mem_pointer, 0)
     print("Output after eval:", yhat)
