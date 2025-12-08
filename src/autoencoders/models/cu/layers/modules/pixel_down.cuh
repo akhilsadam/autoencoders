@@ -130,8 +130,13 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
     // ------------------ bwd() ----------------------
     __device__ __forceinline__ void bwd() {
-        typename IN::reg_wp GX, X;
-        typename OUT::reg_wp GY;
+        // typename IN::reg_wp GX, X;
+        // typename OUT::reg_wp GY;
+
+        typename IN::reg_array GX, X;
+        typename OUT::reg_array GY;
+        rt<ftype, n_in, l_in> GX_flat, X_flat; // n,l layout
+        rt<ftype, n_out, l_out> GY_flat; // n,l layout
 
         ftype w = weight[0];
         ftype reg_grad_w = 0.0f;
@@ -139,18 +144,41 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         for (int wave = 0; wave < IN::warpwaves; ++wave) 
         {
             int2 ij = IN::warptile_ixy(wave);
+
             for (int c = 0; c < IN::C; ++c) 
             {
-
-                load(X, this->x[0][ij.y][ij.x][c]);
-                load(GY, this->grad_y[0][ij.y][ij.x][c]);
-
-                bin_map<base_ops::mul>(GX, GY, w); // GX.data[i] = GY.data[i] * w;
-                frag_dot(reg_grad_w, GY, X); // reg_grad_w += GY.data[i] * X.data[i];
-
-                store(this->grad_x[0][ij.y][ij.x][c], GX);
-                __syncwarp();
+                load(X[c], this->x[0][ij.y][ij.x][c]);
+                load(GY[c], this->grad_y[0][ij.y][ij.x][c]);
             }
+            tile_to_flat<IN::C, k_in>(X_flat, X);
+            tile_to_flat<IN::C, k_in>(GY_flat, GY);
+
+            /////
+
+            bin_map<base_ops::mul>(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
+            frag_dot(reg_grad_w, GY_flat, X_flat); // reg_grad_w
+
+            /////
+            flat_to_tile<IN::C, k_in>(GX, GX_flat);
+            for (int c = 0; c < IN::C; ++c)
+            {
+                store(this->grad_x[0][ij.y][ij.x][c], GX[c]);
+            }
+            __syncwarp();
+
+
+            // for (int c = 0; c < IN::C; ++c) 
+            // {
+
+            //     load(X, this->x[0][ij.y][ij.x][c]);
+            //     load(GY, this->grad_y[0][ij.y][ij.x][c]);
+
+            //     bin_map<base_ops::mul>(GX, GY, w); // GX.data[i] = GY.data[i] * w;
+            //     frag_dot(reg_grad_w, GY, X); // reg_grad_w += GY.data[i] * X.data[i];
+
+            //     store(this->grad_x[0][ij.y][ij.x][c], GX);
+            //     __syncwarp();
+            // }
         }
 
         // accumulate gradient (parallel scan) across warps
