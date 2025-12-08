@@ -10,10 +10,17 @@ template<class _IN>
 using IdentityTransform = _IN;
 
 template<class _IN, template<class> class Transform, class Opt>
-struct PixelLayerModule : public module<_IN, Transform, Opt> {
+struct PixelDNModule : public module<_IN, Transform, Opt> {
    
     using IN = _IN;
     using OUT = Transform<IN>;
+
+    static constexpr uint32_t k_in = 4; // template this
+    static constexpr uint32_t k_out = 2; // half of k_in
+    static constexpr uint32_t l_in = IN::C * k_in * k_in;
+    static constexpr uint32_t l_out = OUT::C * k_out * k_out;
+    static constexpr uint32_t n_in = IN::N / l_in;
+    static constexpr uint32_t n_out = OUT::N / l_out;
 
     // one shared weight
     using wgl = ftype; // gl<ftype,1,1,1,1>;
@@ -60,6 +67,9 @@ struct PixelLayerModule : public module<_IN, Transform, Opt> {
     __device__ __forceinline__ void fwd() {
         typename IN::reg_wp X;
         typename OUT::reg_wp Y;
+        rt<ftype, n_in, l_in> X_flat; // n,l layout
+        rt<ftype, n_out, l_out> Y_flat; // n,l layout
+        
         ftype w = weight[0];
 
         // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) {
@@ -69,6 +79,25 @@ struct PixelLayerModule : public module<_IN, Transform, Opt> {
         for (int wave = 0; wave < IN::warpwaves; ++wave) 
         {
             int2 ij = IN::warptile_ixy(wave);
+            // expecting a tile of size 16x16(xPx2 pack, p=1 for now)
+            auto tk_tile_in = this->x[0][ij.y][ij.x];
+
+            #pragma unroll
+            for(int i = 0; i < A.height; i++) {
+                #pragma unroll
+                for(int j = 0; j < A.width; j++) {
+                    
+                    #pragma unroll
+                    for(int k = 0; k < A.packed_per_tile; k++) {
+                        A_flat.tiles[n][l].data[k].x = A.tiles[i][j].data[k].x;
+                        A_flat.tiles[n][l].data[k].y = A.tiles[i][j].data[k].y;
+                    }
+                }
+            }
+
+
+
+
             for (int c = 0; c < IN::C; ++c) 
             {
                 load(X, this->x[0][ij.y][ij.x][c]);
@@ -115,4 +144,4 @@ struct PixelLayerModule : public module<_IN, Transform, Opt> {
     }
 };
 
-using PixelLayer = ModuleSpec<PixelLayerModule, IdentityTransform>;
+using PixelDown = ModuleSpec<PixelDNModule, IdentityTransform>;

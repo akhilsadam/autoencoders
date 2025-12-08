@@ -48,8 +48,6 @@ using namespace kittens;
         static constexpr int2 WT = {WTx, WTy};
         static constexpr int2 B = {WTx * Wx, WTy * Wy};
         static constexpr int32_t WTs = WTy * WTx;
-
-
     };
 
     template<typename Layout, typename TileType>
