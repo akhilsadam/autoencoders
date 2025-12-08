@@ -160,9 +160,9 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             
             for (int c = 0; c < IN::C; ++c) 
             {
-                frag_dot(reg_grad_w, GY, X);
+                frag_dot(reg_grad_w, GY[c], X[c]);
             }
-            
+
             /////
             flat_to_tile<IN::C, k_in>(GX, GX_flat);
             for (int c = 0; c < IN::C; ++c)
