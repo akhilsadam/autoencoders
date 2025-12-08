@@ -84,7 +84,7 @@ __device__ static inline void load(ST &dst, const GL &src, const COORD &idx) {
         int row = load_idx / memcpy_per_row;
         int col = (load_idx*elem_per_memcpy) % dst.cols;
 
-        printf("HERE");
+        printf("HERE with %p\n", dst_ptr);
 
         if constexpr (assume_aligned) {
             printf("ASSUMED ALIGNED LOAD\n");
