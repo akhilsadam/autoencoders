@@ -107,7 +107,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             }
             tile_to_flat<IN::C, k_in>(X_flat, X);
             /////
-            // bin_map<base_ops::mul>(Y_flat, X_flat, w);
+            bin_map<base_ops::mul>(Y_flat, X_flat, w);
             /////
             flat_to_tile<IN::C, k_in>(Y, X_flat);
             for (int c = 0; c < OUT::C; ++c) 
