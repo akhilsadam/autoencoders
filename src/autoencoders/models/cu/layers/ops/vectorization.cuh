@@ -20,14 +20,14 @@
 //     return r;
 // }
 
-template<class V>
-__device__ __forceinline__ typename V::value_type vector_sum(const V& a) {
-    using T = decltype(a.x);
-    T r = a.x + a.y;
-    if constexpr (requires{a.z;}) r += a.z;
-    if constexpr (requires{a.w;}) r += a.w;
-    return r;
-}
+// template<class V>
+// __device__ __forceinline__ typename V::value_type vector_sum(const V& a) {
+//     using T = decltype(a.x);
+//     T r = a.x + a.y;
+//     if constexpr (requires{a.z;}) r += a.z;
+//     if constexpr (requires{a.w;}) r += a.w;
+//     return r;
+// }
 
 // // op functors
 // struct PlusEq{__device__ __forceinline__ void operator()(auto &A,auto B)const{A+=B;}};
