@@ -184,11 +184,11 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         scan::frag_collect(reg_grad_w); 
         scan::atomic_store(grad_weight[0], reg_grad_w);
 
-        // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
-        // {
-        //     printf("grad weight: %f\n", grad_weight[0]);
-        //     // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
-        // }
+        if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
+        {
+            printf("grad weight: %f\n", grad_weight[0]);
+            // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
+        }
 
         // Apply SGD update 
         Opt::update(weight[0], grad_weight[0]);
