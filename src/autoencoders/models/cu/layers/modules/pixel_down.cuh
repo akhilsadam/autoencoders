@@ -83,8 +83,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
     // ------------------ fwd() ----------------------
     __device__ __forceinline__ void fwd() {
-        typename IN::reg_wp X;
-        typename OUT::reg_wp Y;
+        typename IN::reg_array X;
+        typename OUT::reg_array Y;
         rt<ftype, n_in, l_in> X_flat; // n,l layout
         rt<ftype, n_out, l_out> Y_flat; // n,l layout
         
@@ -100,11 +100,20 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         {
             int2 ij = IN::warptile_ixy(wave);
             // // expecting a tile of size 16x16(xPx2 pack, p=1 for now)
-            tile_to_flat<IN::C, k_in>(X_flat, this->x[0][ij.y][ij.x]);
 
+            for (int c = 0; c < IN::C; ++c) 
+            {
+                load(X[c], this->x[0][ij.y][ij.x][c]);
+            }
+            tile_to_flat<IN::C, k_in>(X_flat, X);
+            /////
             bin_map<base_ops::mul>(Y_flat, X_flat, w);
-
-            flat_to_tile<IN::C, k_in>(this->y[0][ij.y][ij.x], Y_flat);
+            /////
+            flat_to_tile<IN::C, k_in>(Y, Y_flat);
+            for (int c = 0; c < OUT::C; ++c) 
+            {
+                store(this->y[0][ij.y][ij.x][c], Y[c]);
+            }
 
             __syncwarp();
 
