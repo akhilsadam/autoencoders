@@ -47,9 +47,9 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         __shared__ wtile shm_weight;
         __shared__ wtile shm_grad_weight;
-        __shared__ wtile_mat shm_weight_mat;
-        __shared__ wtile_mat shm_grad_weight_mat;
 
+        wtile_mat &shm_weight_mat = al.template allocate<wtile_mat>();
+        wtile_mat &shm_grad_weight_mat = al.template allocate<wtile_mat>();
 
         if (threadIdx.x == 0) {
             shm_weight = 1.0f;
@@ -80,7 +80,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     void __save_weights__() {
         *g_weight = weight[0];
 
-        store(*g_weight_mat, *weight_mat, {0,0,0,0});
+        // store(*g_weight_mat, *weight_mat, {0,0,0,0});
     }
 
     // ------------------ fwd() ----------------------
