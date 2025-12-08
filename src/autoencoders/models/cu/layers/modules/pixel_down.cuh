@@ -38,7 +38,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     wtile_mat* weight_mat;        // pointer to shared memory
     wtile_mat* grad_weight_mat;   // pointer to shared memory for gradient
 
-    static constexpr size_t weight_bytes = sizeof(ftype);
+    static constexpr size_t weight_bytes = sizeof(wgl) + sizeof(wgl_mat);
 
     // ------------------ weights ----------------------
     template <typename T>
