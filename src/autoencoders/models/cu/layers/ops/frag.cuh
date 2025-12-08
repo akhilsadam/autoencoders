@@ -38,7 +38,7 @@ __device__ static inline void debug_mult(T &A, const T &B, ftype &w) {
                 }
             }
         }
-    }
+    } // neeed to fix, still wrong
 }
 
 
