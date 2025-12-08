@@ -99,11 +99,11 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         {
             int2 ij = IN::warptile_ixy(wave);
             // expecting a tile of size 16x16(xPx2 pack, p=1 for now)
-            tile_to_flat<IN, k_in>(X_flat, this->x[0][ij.y][ij.x]);
+            tile_to_flat<IN::C, k_in>(X_flat, this->x[0][ij.y][ij.x]);
 
             bin_map<base_ops::mul>(Y_flat, X_flat, w);
 
-            flat_to_tile<IN, k_in>(this->y[0][ij.y][ij.x], Y_flat);
+            flat_to_tile<IN::C, k_in>(this->y[0][ij.y][ij.x], Y_flat);
 
             __syncwarp();
 
