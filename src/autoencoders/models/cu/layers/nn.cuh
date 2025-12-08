@@ -351,6 +351,11 @@ uint64_t basic_train(train_data& g) {
             cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
             kernel<<<layout.grid(), layout.block(), layout.mem()>>>(layout);
 
+            cudaError_t err = cudaGetLastError();
+            if (err != cudaSuccess) {
+                printf("CUDA ERROR after train kernel: %s\n", cudaGetErrorString(err));
+            }
+            cudaDeviceSynchronize();
 
         }, layout);
     }, chan_var);
