@@ -155,8 +155,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
             /////
 
-            bin_map<base_ops::mul>(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
-            frag_dot(reg_grad_w, GY_flat, X_flat); // reg_grad_w
+            // bin_map<base_ops::mul>(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
+            // frag_dot(reg_grad_w, GY_flat, X_flat); // reg_grad_w
 
             /////
             flat_to_tile<IN::C, k_in>(GX, GX_flat);
@@ -187,7 +187,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         scan::atomic_store(grad_weight[0], reg_grad_w);
 
         // Apply SGD update 
-        Opt::update(weight[0], grad_weight[0]);
+        // Opt::update(weight[0], grad_weight[0]);
     }
 };
 
