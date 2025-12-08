@@ -158,7 +158,11 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             bin_map<base_ops::mul>(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
             // frag_dot(reg_grad_w, GY_flat, X_flat); // reg_grad_w
             
-            frag_dot(reg_grad_w, GY, X);
+            for (int c = 0; c < IN::C; ++c) 
+            {
+                frag_dot(reg_grad_w, GY, X);
+            }
+            
             /////
             flat_to_tile<IN::C, k_in>(GX, GX_flat);
             for (int c = 0; c < IN::C; ++c)
