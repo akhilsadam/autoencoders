@@ -25,41 +25,44 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     // matmul is n,l * Ll -> n,L
 
     // one shared weight
-    using wgl = ftype; // gl<ftype,1,1,1,1>;
-    using wtile = ftype; // shmem<1,1>;
-    wgl* g_weight;        // pointer to global memory    
-    wtile* weight;        // pointer to shared memory
-    wtile* grad_weight;   // pointer to shared memory for gradient
+    // using wgl = ftype; // gl<ftype,1,1,1,1>;
+    // using wtile = ftype; // shmem<1,1>;
+    // wgl* g_weight;        // pointer to global memory    
+    // wtile* weight;        // pointer to shared memory
+    // wtile* grad_weight;   // pointer to shared memory for gradient
 
 
-    // using wgl_mat = gl<ftype,1,1,l_out,l_in>; // weight for matmul
-    // using wtile_mat = st<ftype,l_out,l_in>;
-    // wgl_mat* g_weight_mat;        // pointer to global memory    
-    // wtile_mat* weight_mat;        // pointer to shared memory
-    // wtile_mat* grad_weight_mat;   // pointer to shared memory for gradient
+    using wgl_mat = gl<ftype,1,1,l_out,l_in>; // weight for matmul
+    using wtile_mat = st<ftype,l_out,l_in>;
+    wgl_mat* g_weight_mat;        // pointer to global memory    
+    wtile_mat* weight_mat;        // pointer to shared memory
+    wtile_mat* grad_weight_mat;   // pointer to shared memory for gradient
 
-    static constexpr uint32_t n_weights = 1 + 3 + (l_out * l_in); // scale + (align) + matmul
+    // static constexpr uint32_t n_weights = 1;
+    static constexpr uint32_t n_weights = (l_out * l_in);
     static constexpr size_t weight_bytes =  n_weights * sizeof(ftype);
 
     // ------------------ weights ----------------------
     template <typename T>
     __device__ __forceinline__ void __init_weights__(T& al) {
 
-        __shared__ wtile shm_weight;
-        __shared__ wtile shm_grad_weight;
+        // __shared__ wtile shm_weight;
+        // __shared__ wtile shm_grad_weight;
 
-        // weight_mat = &al.template allocate<wtile_mat>();
-        // grad_weight_mat = &al.template allocate<wtile_mat>();
+        // if (threadIdx.x == 0) {
+        //     shm_weight = 1.0f;
+        //     shm_grad_weight = 0.0f;
+        // }
+        // // syncthreads happens outside automatically
+        // weight = &shm_weight;
+        // grad_weight = &shm_grad_weight;
 
-        if (threadIdx.x == 0) {
-            shm_weight = 1.0f;
-            shm_grad_weight = 0.0f;
-        }
-        // one(shm_weight_mat);
-        // zero(shm_grad_weight_mat);
-        // syncthreads happens outside automatically
-        weight = &shm_weight;
-        grad_weight = &shm_grad_weight;
+
+
+        weight_mat = &al.template allocate<wtile_mat>();
+        grad_weight_mat = &al.template allocate<wtile_mat>();
+
+
     }
 
 
@@ -67,18 +70,19 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     void __load_weights__(uint64_t mem_ptr) {
         // g_weight = reinterpret_cast<wgl*>(mem_ptr);
         // load(*weight, *g_weight, {0,0,0,0});
-        g_weight = reinterpret_cast<wgl*>(mem_ptr);// + (l_out * l_in) * sizeof(ftype));
-        weight[0] = *g_weight;
 
-        // g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
-        // load(*weight_mat, *g_weight_mat, {0,0,0,0});
+        // g_weight = reinterpret_cast<wgl*>(mem_ptr);// + (l_out * l_in) * sizeof(ftype));
+        // weight[0] = *g_weight;
+
+        g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
+        load(*weight_mat, *g_weight_mat, {0,0,0,0});
     }
 
     __device__ __forceinline__
     void __save_weights__() {
-        *g_weight = weight[0];
+        // *g_weight = weight[0];
 
-        // store(*g_weight_mat, *weight_mat, {0,0,0,0});
+        store(*g_weight_mat, *weight_mat, {0,0,0,0});
     }
 
     // ------------------ fwd() ----------------------
@@ -162,12 +166,12 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             // bin_map<base_ops::mul>(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
             // frag_dot(reg_grad_w, GY_flat, X_flat); // reg_grad_w
 
-            debug_mult(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
+            // debug_mult(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
             
-            for (int c = 0; c < IN::C; ++c) 
-            {
-                frag_dot(reg_grad_w, GY[c], X[c]);
-            }
+            // for (int c = 0; c < IN::C; ++c) 
+            // {
+            //     frag_dot(reg_grad_w, GY[c], X[c]);
+            // }
 
             /////
             flat_to_tile<IN::C, k_in>(GX, GX_flat);
@@ -181,17 +185,17 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         // accumulate gradient (parallel scan) across warps
         // frag_collect collects fragments across lanes in a warp
-        scan::frag_collect(reg_grad_w); 
-        scan::atomic_store(grad_weight[0], reg_grad_w);
+        // scan::frag_collect(reg_grad_w); 
+        // scan::atomic_store(grad_weight[0], reg_grad_w);
 
-        if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
-        {
-            printf("grad weight: %f\n", grad_weight[0]);
-            // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
-        }
+        // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
+        // {
+        //     printf("grad weight: %f\n", grad_weight[0]);
+        //     // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
+        // }
 
-        // Apply SGD update 
-        Opt::update(weight[0], grad_weight[0]);
+        // // Apply SGD update 
+        // Opt::update(weight[0], grad_weight[0]);
     }
 };
 
