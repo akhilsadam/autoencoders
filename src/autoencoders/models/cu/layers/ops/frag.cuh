@@ -26,7 +26,7 @@ __device__ static inline void frag_dot(ftype &dst, const T &A, const T &B) {
 
 
 template<ducks::rt::all T, ducks::rt::all U, int32_t c_in, int32_t k_in>
-__device__ static inline void tile_to_flat(U &A_flat, const T &A) {
+__device__ static inline void tile_to_flat(U &A_flat, const T* A) {
         
     const int y_tiles = A.height / k_in;
     const int x_tiles = A.width / k_in;
@@ -44,8 +44,8 @@ __device__ static inline void tile_to_flat(U &A_flat, const T &A) {
 
                 #pragma unroll
                 for(int k = 0; k < A.packed_per_tile; k++) {
-                    A_flat.tiles[n][l].data[k].x = A.tiles[j][i].data[k].x;
-                    A_flat.tiles[n][l].data[k].y = A.tiles[j][i].data[k].y;
+                    A_flat.tiles[n][l].data[k].x = A[c].tiles[j][i].data[k].x;
+                    A_flat.tiles[n][l].data[k].y = A[c].tiles[j][i].data[k].y;
                 }
             }
         }
@@ -53,7 +53,7 @@ __device__ static inline void tile_to_flat(U &A_flat, const T &A) {
 }
 
 template<ducks::rt::all T, ducks::rt::all U, int32_t c_in, int32_t k_in>
-__device__ static inline void flat_to_tile(T &A, const U &A_flat) {
+__device__ static inline void flat_to_tile(T* A, const U &A_flat) {
         
     const int y_tiles = A.height / k_in;
     const int x_tiles = A.width / k_in;
@@ -71,8 +71,8 @@ __device__ static inline void flat_to_tile(T &A, const U &A_flat) {
 
                 #pragma unroll
                 for(int k = 0; k < A.packed_per_tile; k++) {
-                    A.tiles[j][i].data[k].x = A_flat.tiles[n][l].data[k].x;
-                    A.tiles[j][i].data[k].y = A_flat.tiles[n][l].data[k].y;
+                    A[c].tiles[j][i].data[k].x = A_flat.tiles[n][l].data[k].x;
+                    A[c].tiles[j][i].data[k].y = A_flat.tiles[n][l].data[k].y;
                 }
             }
         }
