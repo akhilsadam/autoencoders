@@ -48,8 +48,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         __shared__ wtile shm_weight;
         __shared__ wtile shm_grad_weight;
 
-        wtile_mat &shm_weight_mat = al.template allocate<wtile_mat>();
-        wtile_mat &shm_grad_weight_mat = al.template allocate<wtile_mat>();
+        weight_mat = al.template allocate<wtile_mat>();
+        grad_weight_mat = al.template allocate<wtile_mat>();
 
         if (threadIdx.x == 0) {
             shm_weight = 1.0f;
@@ -60,8 +60,6 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // syncthreads happens outside automatically
         weight = &shm_weight;
         grad_weight = &shm_grad_weight;
-        weight_mat = &shm_weight_mat;
-        grad_weight_mat = &shm_grad_weight_mat;
     }
 
 
@@ -72,8 +70,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         g_weight = reinterpret_cast<wgl*>(mem_ptr);
         weight[0] = *g_weight;
 
-        g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr + 16);
-        load(*weight_mat, *g_weight_mat, {0,0,0,0});
+        // g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr + 16);
+        // load(*weight_mat, *g_weight_mat, {0,0,0,0});
     }
 
     __device__ __forceinline__
