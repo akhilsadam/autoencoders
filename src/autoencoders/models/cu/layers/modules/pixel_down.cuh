@@ -110,7 +110,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             }
             tile_to_flat<IN::C, k_in>(X_flat, X);
             /////
-            simple_mult(Y_flat, X_flat, w); // Y.data[i] = X.data[i] * w;
+            debug_mult(Y_flat, X_flat, w); // Y.data[i] = X.data[i] * w;
             /////
             flat_to_tile<IN::C, k_in>(Y, Y_flat);
             for (int c = 0; c < OUT::C; ++c) 
