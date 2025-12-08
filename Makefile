@@ -77,7 +77,7 @@ stest-cu-single-memcheck:
 	source "$(VENV)/bin/activate" && \
 	HYDRA_FULL_ERROR=1 \
 	compute-sanitizer --tool memcheck \
-	bash -c "$(PYTHON) -m pytest -s -v src/autoencoders/models/cu $(pwd)/src/autoencoders/models/cu/tests/${TEST}"
+	bash -c "cd $(pwd) && $(PYTHON) -m pytest -s -v src/autoencoders/models/cu tests/${TEST}"
 
 strain:
 	source ${INSTALL}/module.sh && $(MAKE) train
