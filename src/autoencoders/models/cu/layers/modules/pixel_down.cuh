@@ -82,7 +82,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     void __save_weights__() {
         // *g_weight = weight[0];
 
-        store(*g_weight_mat, *weight_mat, {0,0,0,0});
+        store(g_weight_mat[0], weight_mat[0], {0,0,0,0});
     }
 
     // ------------------ fwd() ----------------------
