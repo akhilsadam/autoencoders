@@ -27,13 +27,12 @@ uint64_t train(train_data& g) {
 
             size_t total_weights = Net::total_weight_bytes();
             // malloc weights
+            printf("uint64_t mem_ptr = %llu\n", g.weight_mem_ptr);
             if (g.weight_mem_ptr == 0)
             {
                 printf("Allocating weight memory of size %zu\n", total_weights);
                 void* weight_mem_ptr;
                 cudaMalloc(&weight_mem_ptr, total_weights);
-                std::vector<float> h_weights(total_weights / sizeof(float), 1.0f); // initialize all to 1.0
-                cudaMemcpy(weight_mem_ptr, h_weights.data(), total_weights, cudaMemcpyHostToDevice); // to init values
                 g.weight_mem_ptr = reinterpret_cast<uint64_t>(weight_mem_ptr);
                 
             }
