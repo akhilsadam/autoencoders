@@ -272,12 +272,23 @@ using namespace kittens;
         using OUT = Net::OUT;
 
         // allocate memory
+        // auto* x_array = IN::template salloc(al);
+        // auto* y_hat_array = reinterpret_cast<OUT::shmem_array*>
+        // (
+        //     net.eval(al,
+        //         reinterpret_cast<uint64_t>(x_array))
+        // );
         auto* x_array = IN::template salloc(al);
+        auto* y_array = OUT::template salloc(al);
+        auto* grad_y_array = OUT::template salloc(al);
+
         auto* y_hat_array = reinterpret_cast<OUT::shmem_array*>
         (
             net.eval(al,
                 reinterpret_cast<uint64_t>(x_array))
         );
+        net.train(al, reinterpret_cast<uint64_t>(grad_y_array));
+
         // --------------------------------------
         // weight initialization
         net.__init_weights__(al);
