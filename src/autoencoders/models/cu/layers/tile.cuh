@@ -132,7 +132,7 @@ using namespace kittens;
         static constexpr int2 WT = TileType::WT;
 
         static constexpr int32_t N = _C * TileType::B.y * TileType::B.x;
-        static constexpr int32_t N_subtile = _C * TileType::Wp.y * TileType::Wp.x;
+        static constexpr int32_t N_WT = _C * Wp.y * Wp.x; // packed size of each warptile
 
         // shared memory and reg type
         using shmem_wp = st<ftype, Wp.y, Wp.x>;
