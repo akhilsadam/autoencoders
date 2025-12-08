@@ -90,31 +90,31 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         
         ftype w = weight[0];
 
-        if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
-        {
-            // printf("Scale weight: %f\n", w);
-            printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
-        }
+        // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
+        // {
+        //     // printf("Scale weight: %f\n", w);
+        //     // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
+        // }
 
         for (int wave = 0; wave < IN::warpwaves; ++wave) 
         {
             int2 ij = IN::warptile_ixy(wave);
             // // expecting a tile of size 16x16(xPx2 pack, p=1 for now)
-            // tile_to_flat<IN::C, k_in>(X_flat, this->x[0][ij.y][ij.x]);
+            tile_to_flat<IN::C, k_in>(X_flat, this->x[0][ij.y][ij.x]);
 
-            // bin_map<base_ops::mul>(Y_flat, X_flat, w);
+            bin_map<base_ops::mul>(Y_flat, X_flat, w);
 
-            // flat_to_tile<IN::C, k_in>(this->y[0][ij.y][ij.x], Y_flat);
+            flat_to_tile<IN::C, k_in>(this->y[0][ij.y][ij.x], Y_flat);
 
             __syncwarp();
 
-            for (int c = 0; c < IN::C; ++c) 
-            {
-                load(X, this->x[0][ij.y][ij.x][c]);
-                bin_map<base_ops::mul>(Y, X, w);
-                store(this->y[0][ij.y][ij.x][c], Y);
-                __syncwarp();
-            }
+            // for (int c = 0; c < IN::C; ++c) 
+            // {
+            //     load(X, this->x[0][ij.y][ij.x][c]);
+            //     bin_map<base_ops::mul>(Y, X, w);
+            //     store(this->y[0][ij.y][ij.x][c], Y);
+            //     __syncwarp();
+            // }
         }
         
     }
