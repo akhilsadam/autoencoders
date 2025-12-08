@@ -11,7 +11,7 @@ using namespace kittens;
     #define TILE_CUH_INCLUDED
 
     #ifndef NUM_WORKERS
-    #define NUM_WORKERS (4)
+    #define NUM_WORKERS (1)
     #endif
 
     #define NUM_THREADS (NUM_WORKERS*kittens::WARP_THREADS)
@@ -139,7 +139,7 @@ using namespace kittens;
         using reg_wp = rt<ftype, Wp.y, Wp.x>;
         using shmem_array = shmem_wp[WT.y][WT.x][C];
         using reg_array = reg_wp[C];
-
+        
         // allocator
         template <typename T>
         static __device__ __forceinline__ void salloc(T& al, shmem_array*& x) {
@@ -282,7 +282,7 @@ using namespace kittens;
 
     // image HW, max block HW, reg-tile / single-warp HW
     // always stores block HW shmem per block
-    using Tile28 = Tile<-1, -1, 1, 1, 16, 16>;
+    using Tile28 = Tile<-1, -1, 2, 2, 16, 16>;
     using Tile64 = Tile<-1, -1, 4, 4, 16, 16>;
     using Tile128 = Tile<-1, -1, 8, 8, 16, 16>;
 
