@@ -32,11 +32,11 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     wtile* grad_weight;   // pointer to shared memory for gradient
 
 
-    using wgl_mat = gl<ftype,1,1,l_out,l_in>; // weight for matmul
-    using wtile_mat = st<ftype,l_out,l_in>;
-    wgl_mat* g_weight_mat;        // pointer to global memory    
-    wtile_mat* weight_mat;        // pointer to shared memory
-    wtile_mat* grad_weight_mat;   // pointer to shared memory for gradient
+    // using wgl_mat = gl<ftype,1,1,l_out,l_in>; // weight for matmul
+    // using wtile_mat = st<ftype,l_out,l_in>;
+    // wgl_mat* g_weight_mat;        // pointer to global memory    
+    // wtile_mat* weight_mat;        // pointer to shared memory
+    // wtile_mat* grad_weight_mat;   // pointer to shared memory for gradient
 
     static constexpr uint32_t n_weights = 1 + 3 + (l_out * l_in); // scale + (align) + matmul
     static constexpr size_t weight_bytes =  n_weights * sizeof(ftype);
@@ -48,15 +48,15 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         __shared__ wtile shm_weight;
         __shared__ wtile shm_grad_weight;
 
-        weight_mat = &al.template allocate<wtile_mat>();
-        grad_weight_mat = &al.template allocate<wtile_mat>();
+        // weight_mat = &al.template allocate<wtile_mat>();
+        // grad_weight_mat = &al.template allocate<wtile_mat>();
 
         if (threadIdx.x == 0) {
             shm_weight = 1.0f;
             shm_grad_weight = 0.0f;
         }
-        one(shm_weight_mat);
-        zero(shm_grad_weight_mat);
+        // one(shm_weight_mat);
+        // zero(shm_grad_weight_mat);
         // syncthreads happens outside automatically
         weight = &shm_weight;
         grad_weight = &shm_grad_weight;
