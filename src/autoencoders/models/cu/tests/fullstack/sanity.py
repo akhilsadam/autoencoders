@@ -31,7 +31,7 @@ def _test_nn_sanity():
     error = torch.mean((y - yhat) ** 2)
     signal = torch.mean((yhat - x) ** 2)
     print("MSE:", error.item())
-    # print("Signal after eval:", signal)
+    print("Signal after eval:", signal)
     print(f"SNR: {10 * torch.log10(signal / error).item():.2f} dB")
     
     from cu.tests import test_layers as tl
