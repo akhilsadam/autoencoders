@@ -32,7 +32,10 @@ uint64_t train(train_data& g) {
                 printf("Allocating weight memory of size %zu\n", total_weights);
                 void* weight_mem_ptr;
                 cudaMalloc(&weight_mem_ptr, total_weights);
+                std::vector<float> h_weights(total_weights / sizeof(float), 1.0f); // initialize all to 1.0
+                cudaMemcpy(weight_mem_ptr, h_weights.data(), total_weights, cudaMemcpyHostToDevice); // to init values
                 g.weight_mem_ptr = reinterpret_cast<uint64_t>(weight_mem_ptr);
+                
             }
 
             printf("Train @ C=%d, Tile=%dx%d, with weight bytes %zu @ %p\n", Chan::C, Tile::B.x, Tile::B.y, total_weights, g.weight_mem_ptr);
