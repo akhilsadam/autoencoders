@@ -83,13 +83,13 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
     // ------------------ fwd() ----------------------
     __device__ __forceinline__ void fwd() {
-        // typename IN::reg_array X;
-        // typename OUT::reg_array Y;
-        // rt<ftype, n_in, l_in> X_flat; // n,l layout
-        // rt<ftype, n_out, l_out> Y_flat; // n,l layout
+        typename IN::reg_array X;
+        typename OUT::reg_array Y;
+        rt<ftype, n_in, l_in> X_flat; // n,l layout
+        rt<ftype, n_out, l_out> Y_flat; // n,l layout
 
-        typename IN::reg_wp X;
-        typename OUT::reg_wp Y;
+        // typename IN::reg_wp X;
+        // typename OUT::reg_wp Y;
         
         ftype w = weight[0];
 
@@ -104,29 +104,30 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             int2 ij = IN::warptile_ixy(wave);
             // // expecting a tile of size 16x16(xPx2 pack, p=1 for now)
 
-            // for (int c = 0; c < IN::C; ++c) 
-            // {
-            //     load(X[c], this->x[0][ij.y][ij.x][c]);
-            // }
-            // tile_to_flat<IN::C, k_in>(X_flat, X);
-            // /////
-            // bin_map<base_ops::mul>(Y_flat, X_flat, w);
-            // /////
-            // flat_to_tile<IN::C, k_in>(Y, Y_flat);
-            // for (int c = 0; c < OUT::C; ++c) 
-            // {
-            //     store(this->y[0][ij.y][ij.x][c], Y[c]);
-            // }
-
-            // __syncwarp();
-
             for (int c = 0; c < IN::C; ++c) 
             {
-                load(X, this->x[0][ij.y][ij.x][c]);
-                bin_map<base_ops::mul>(Y, X, w);
-                store(this->y[0][ij.y][ij.x][c], Y);
-                __syncwarp();
+                load(X[c], this->x[0][ij.y][ij.x][c]);
             }
+            tile_to_flat<IN::C, k_in>(X_flat, X);
+            /////
+            // bin_map<base_ops::mul>(Y_flat, X_flat, w);
+            simple_mult(Y_flat, X_flat, w); // Y.data[i] = X.data[i] * w;
+            /////
+            flat_to_tile<IN::C, k_in>(Y, Y_flat);
+            for (int c = 0; c < OUT::C; ++c) 
+            {
+                store(this->y[0][ij.y][ij.x][c], Y[c]);
+            }
+
+            __syncwarp();
+
+            // for (int c = 0; c < IN::C; ++c) 
+            // {
+            //     load(X, this->x[0][ij.y][ij.x][c]);
+            //     bin_map<base_ops::mul>(Y, X, w);
+            //     store(this->y[0][ij.y][ij.x][c], Y);
+            //     __syncwarp();
+            // }
         }
         
     }
@@ -158,7 +159,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
             /////
 
-            bin_map<base_ops::mul>(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
+            // bin_map<base_ops::mul>(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
+            simple_mult(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
             // frag_dot(reg_grad_w, GY_flat, X_flat); // reg_grad_w
             
             for (int c = 0; c < IN::C; ++c) 
