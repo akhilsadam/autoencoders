@@ -67,10 +67,10 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     void __load_weights__(uint64_t mem_ptr) {
         // g_weight = reinterpret_cast<wgl*>(mem_ptr);
         // load(*weight, *g_weight, {0,0,0,0});
-        g_weight = reinterpret_cast<wgl*>(mem_ptr);
+        g_weight = reinterpret_cast<wgl*>(mem_ptr + (l_out * l_in) * sizeof(ftype));
         weight[0] = *g_weight;
 
-        // g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr + 16);
+        g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
         // load(*weight_mat, *g_weight_mat, {0,0,0,0});
     }
 
@@ -90,7 +90,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         
         ftype w = weight[0];
 
-        // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) {
+        // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
+        //{
         //     printf("Scale weight: %f\n", w);
         // }
 
