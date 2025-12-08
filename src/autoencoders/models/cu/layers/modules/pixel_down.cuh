@@ -75,7 +75,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // weight[0] = *g_weight;
 
         // g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
-        g_weight_mat[0].raw_ptr = mem_ptr;
+        g_weight_mat[0].raw_ptr = reinterpret_cast<ftype*>(mem_ptr);
         // if (threadIdx.x == 0)
         // {
         //     printf("pointer %p %p -> %p\n", mem_ptr, g_weight_mat, weight_mat);
