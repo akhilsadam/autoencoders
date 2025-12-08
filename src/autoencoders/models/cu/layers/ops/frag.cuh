@@ -14,7 +14,7 @@ __device__ static inline void frag_dot(ftype &dst, const T &A, const T &B) {
         for(int j = 0; j < A.width; j++) {
             #pragma unroll
             for(int k = 0; k < A.packed_per_tile; k++) {
-                dst += sum(A.tiles[i][j].data[k] * B.tiles[i][j].data[k]);
+                dst += vector_sum(A.tiles[i][j].data[k] * B.tiles[i][j].data[k]);
             }
         }
     }

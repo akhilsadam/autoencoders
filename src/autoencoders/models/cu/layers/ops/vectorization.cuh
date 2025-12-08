@@ -21,7 +21,7 @@ __device__ __forceinline__ V rvop(const A& a, const V& b, F f) {
 }
 
 template<class V>
-__device__ __forceinline__ typename V::value_type sum(const V& a) {
+__device__ __forceinline__ typename V::value_type vector_sum(const V& a) {
     typename V::value_type r = a.x + a.y;
     if constexpr (requires{a.z;}) r += a.z;
     if constexpr (requires{a.w;}) r += a.w;
