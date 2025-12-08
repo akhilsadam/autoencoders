@@ -80,6 +80,10 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             printf("pointer %p\n", g_weight_mat);
         }
         load(weight_mat[0], g_weight_mat[0], {0,0,0,0});
+        if (threadIdx.x == 0)
+        {
+            printf("loaded pointer %p\n", g_weight_mat);
+        }
     }
 
     __device__ __forceinline__
