@@ -25,5 +25,62 @@ __device__ static inline void frag_dot(ftype &dst, const T &A, const T &B) {
 
 
 
+template<ducks::rt::all T, ducks::rt::all U, int32_t c_in, int32_t k_in>
+__device__ static inline void tile_to_flat(U &A_flat, const T &A) {
+        
+    const int y_tiles = A.height / k_in;
+    const int x_tiles = A.width / k_in;
+
+    #pragma unroll
+    for (int c = 0; c < c_in; ++c) {
+        #pragma unroll
+        for(int j = 0; j < A.height; j++) {
+            #pragma unroll
+            for(int i = 0; i < A.width; i++) {
+                // make 4x4 blocks from 16x16 input
+
+                int n = (j / k_in) * x_tiles + (i / k_in);
+                int l = c * k_in * k_in + (j % k_in) * k_in + (i % k_in);
+
+                #pragma unroll
+                for(int k = 0; k < A.packed_per_tile; k++) {
+                    A_flat.tiles[n][l].data[k].x = A.tiles[j][i].data[k].x;
+                    A_flat.tiles[n][l].data[k].y = A.tiles[j][i].data[k].y;
+                }
+            }
+        }
+    }
+}
+
+template<ducks::rt::all T, ducks::rt::all U, int32_t c_in, int32_t k_in>
+__device__ static inline void flat_to_tile(T &A, const U &A_flat) {
+        
+    const int y_tiles = A.height / k_in;
+    const int x_tiles = A.width / k_in;
+
+    #pragma unroll
+    for (int c = 0; c < c_in; ++c) {
+        #pragma unroll
+        for(int j = 0; j < A.height; j++) {
+            #pragma unroll
+            for(int i = 0; i < A.width; i++) {
+                // make 4x4 blocks from 16x16 input
+
+                int n = (j / k_in) * x_tiles + (i / k_in);
+                int l = c * k_in * k_in + (j % k_in) * k_in + (i % k_in);
+
+                #pragma unroll
+                for(int k = 0; k < A.packed_per_tile; k++) {
+                    A.tiles[j][i].data[k].x = A_flat.tiles[n][l].data[k].x;
+                    A.tiles[j][i].data[k].y = A_flat.tiles[n][l].data[k].y;
+                }
+            }
+        }
+    }
+}
+
+
+
+
 
 #endif // FRAG_CUH_INCLUDED

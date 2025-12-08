@@ -70,8 +70,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         g_weight = reinterpret_cast<wgl*>(mem_ptr + (l_out * l_in) * sizeof(ftype));
         weight[0] = *g_weight;
 
-        g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
-        load(*weight_mat, *g_weight_mat, {0,0,0,0});
+        // g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
+        // load(*weight_mat, *g_weight_mat, {0,0,0,0});
     }
 
     __device__ __forceinline__
@@ -99,31 +99,21 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         {
             int2 ij = IN::warptile_ixy(wave);
             // expecting a tile of size 16x16(xPx2 pack, p=1 for now)
-            // auto tk_tile_in = this->x[0][ij.y][ij.x];
+            tile_to_flat<IN, k_in>(X_flat, this->x[0][ij.y][ij.x]);
 
-            // #pragma unroll
-            // for(int i = 0; i < A.height; i++) {
-            //     #pragma unroll
-            //     for(int j = 0; j < A.width; j++) {
-                    
-            //         #pragma unroll
-            //         for(int k = 0; k < A.packed_per_tile; k++) {
-            //             A_flat.tiles[n][l].data[k].x = A.tiles[i][j].data[k].x;
-            //             A_flat.tiles[n][l].data[k].y = A.tiles[i][j].data[k].y;
-            //         }
-            //     }
+            bin_map<base_ops::mul>(Y_flat, X_flat, w);
+
+            flat_to_tile<IN, k_in>(this->y[0][ij.y][ij.x], Y_flat);
+
+            __syncwarp();
+
+            // for (int c = 0; c < IN::C; ++c) 
+            // {
+            //     load(X, this->x[0][ij.y][ij.x][c]);
+            //     bin_map<base_ops::mul>(Y, X, w);
+            //     store(this->y[0][ij.y][ij.x][c], Y);
+            //     __syncwarp();
             // }
-
-
-
-
-            for (int c = 0; c < IN::C; ++c) 
-            {
-                load(X, this->x[0][ij.y][ij.x][c]);
-                bin_map<base_ops::mul>(Y, X, w);
-                store(this->y[0][ij.y][ij.x][c], Y);
-                __syncwarp();
-            }
         }
         
     }
