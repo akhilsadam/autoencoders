@@ -23,16 +23,19 @@ __device__ static inline void frag_dot(ftype &dst, const T &A, const T &B) {
 }
 
 template<ducks::rt::all T> // T2, w, h can be inferred from dst as long as op is specialized
-__device__ static inline void simple_mult(T &A, const T &B, ftype &w) {
-    #pragma unroll
-    for(int i = 0; i < A.height; i++) {
+__device__ static inline void debug_mult(T &A, const T &B, ftype &w) {
+    if (threadIdx.x==0)
+    {
         #pragma unroll
-        for(int j = 0; j < A.width; j++) {
+        for(int i = 0; i < A.height; i++) {
             #pragma unroll
-            for(int k = 0; k < A.packed_per_tile; k++) {
-                // dst += vector_sum(A.tiles[i][j].data[k] * B.tiles[i][j].data[k]);
-                A.tiles[i][j].data[k].x = B.tiles[i][j].data[k].x * w;
-                A.tiles[i][j].data[k].y = B.tiles[i][j].data[k].y * w;
+            for(int j = 0; j < A.width; j++) {
+                #pragma unroll
+                for(int k = 0; k < A.packed_per_tile; k++) {
+                    // dst += vector_sum(A.tiles[i][j].data[k] * B.tiles[i][j].data[k]);
+                    A.tiles[i][j].data[k].x = B.tiles[i][j].data[k].x * w;
+                    A.tiles[i][j].data[k].y = B.tiles[i][j].data[k].y * w;
+                }
             }
         }
     }
