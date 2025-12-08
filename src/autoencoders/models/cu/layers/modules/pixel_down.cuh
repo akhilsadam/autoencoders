@@ -33,7 +33,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
 
     using wgl_mat = gl<ftype,1,1,l_out,l_in>; // weight for matmul
-    using wtile_mat = shmem<1,1,l_out,l_in>;
+    using wtile_mat = st<ftype,l_out,l_in>;
     wgl_mat* g_weight_mat;        // pointer to global memory    
     wtile_mat* weight_mat;        // pointer to shared memory
     wtile_mat* grad_weight_mat;   // pointer to shared memory for gradient
@@ -78,7 +78,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     __device__ __forceinline__
     void __save_weights__() {
         *g_weight = weight[0];
-        
+
         store(*g_weight_mat, *weight_mat, {0,0,0,0});
     }
 
