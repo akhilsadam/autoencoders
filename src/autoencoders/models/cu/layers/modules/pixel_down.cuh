@@ -187,7 +187,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         scan::atomic_store(grad_weight[0], reg_grad_w);
 
         // Apply SGD update 
-        // Opt::update(weight[0], grad_weight[0]);
+        Opt::update(weight[0], grad_weight[0]);
     }
 };
 
