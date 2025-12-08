@@ -84,7 +84,10 @@ __device__ static inline void load(ST &dst, const GL &src, const COORD &idx) {
         int row = load_idx / memcpy_per_row;
         int col = (load_idx*elem_per_memcpy) % dst.cols;
 
+        printf("HERE")
+
         if constexpr (assume_aligned) {
+            printf("ASSUMED ALIGNED LOAD\n");
             float4 tmp;
             move<float4>::ldg(tmp, (float4*)&src_ptr[row*row_stride + col]);
             move<float4>::sts(dst.idx(dst_ptr, {row, col}), tmp);
