@@ -52,7 +52,7 @@ __device__ static inline void tile_to_flat(U &A_flat, const T* A) {
     }
 }
 
-template<ducks::rt::all T, ducks::st::all U, int32_t c_in, int32_t k_in>
+template<ducks::st::all T, ducks::rt::all U, int32_t c_in, int32_t k_in>
 __device__ static inline void flat_to_tile(T* A, const U &A_flat) {
         
     const int y_tiles = A[0].height / k_in;
