@@ -15,7 +15,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     using IN = _IN;
     using OUT = Transform<IN>;
 
-    static constexpr uint32_t k_in = 8; // template this
+    static constexpr uint32_t k_in = 8; // template this (needs to be large on first layer)
     static constexpr uint32_t k_out = 4; // half of k_in
     static constexpr uint32_t l_in = IN::C * k_in * k_in;
     static constexpr uint32_t l_out = OUT::C * k_out * k_out;
