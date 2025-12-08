@@ -318,3 +318,77 @@ using namespace kittens;
     }
 
 #endif // NN_CUH_INCLUDED
+
+#ifndef NN_CPP_INCLUDE
+#define NN_CPP_INCLUDE
+
+template<template<class> class network, class Loss>
+uint64_t basic_train(train_data& g) {
+    channel_variant chan_var = channel_var(g);
+    std::visit([&](auto& chan_var) {
+        using Chan = std::decay_t<decltype(chan_var)>;
+    
+        layout_variant<BCHW_train> layout = create_layout<BCHW_train, train_data>(g);
+        std::visit([&](auto& layout) {
+            using Layout = std::decay_t<decltype(layout)>;
+            using Tile   = typename Layout::tile_type;
+            using WarpTile = CHW<Chan::C, Tile>;
+            using Net = network<WarpTile>;
+
+            size_t total_weights = Net::total_weight_bytes();
+            // malloc weights
+            if (g.weight_mem_ptr == 0)
+            {
+                printf("Allocating weight memory of size %zu\n", total_weights);
+                void* weight_mem_ptr;
+                cudaMalloc(&weight_mem_ptr, total_weights);
+                g.weight_mem_ptr = reinterpret_cast<uint64_t>(weight_mem_ptr);
+            }
+
+            printf("Train @ C=%d, Tile=%dx%d, with weight bytes %zu @ %p\n", Chan::C, Tile::B.x, Tile::B.y, total_weights, g.weight_mem_ptr);
+
+            auto* kernel = train_kernel<Layout, Tile, Net, Loss>;
+            cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
+            kernel<<<layout.grid(), layout.block(), layout.mem()>>>(layout);
+
+
+        }, layout);
+    }, chan_var);
+    
+    return g.weight_mem_ptr;
+}
+
+template<template<class> class network, class Loss>
+void basic_eval(train_data& g) {
+    channel_variant chan_var = channel_var(g);
+    std::visit([&](auto& chan_var) {
+        using Chan = std::decay_t<decltype(chan_var)>;
+    
+        layout_variant<BCHW_train> layout = create_layout<BCHW_train, train_data>(g);
+        std::visit([&](auto& layout) {
+            using Layout = std::decay_t<decltype(layout)>;
+            using Tile   = typename Layout::tile_type;
+            using WarpTile = CHW<Chan::C, Tile>;
+            using Net = network<WarpTile>;
+
+            size_t total_weights = Net::total_weight_bytes();
+            // printf("uint64_t mem_ptr = %llu\n", g.weight_mem_ptr);
+            // void* weight_ptr = reinterpret_cast<void*>(g.weight_mem_ptr);
+
+            printf("Eval @ C=%d, Tile=%dx%d, with weight bytes %zu\n", Chan::C, Tile::B.x, Tile::B.y, total_weights);
+
+            auto* kernel = eval_kernel<Layout, Tile, Net, Loss>;
+            cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, layout.mem());
+            kernel<<<layout.grid(), layout.block(), layout.mem()>>>(layout);
+
+            cudaError_t err = cudaGetLastError();
+            if (err != cudaSuccess) {
+                printf("CUDA ERROR after eval kernel: %s\n", cudaGetErrorString(err));
+            }
+            cudaDeviceSynchronize();
+
+        }, layout);
+    }, chan_var);
+}
+
+#endif // NN_CPP_INCLUDE

@@ -62,9 +62,9 @@ struct scale_module : public module<_IN, Transform, Opt> {
         typename OUT::reg_wp Y;
         ftype w = weight[0];
 
-        if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) {
-            printf("Scale weight: %f\n", w);
-        }
+        // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) {
+        //     printf("Scale weight: %f\n", w);
+        // }
 
         for (int wave = 0; wave < IN::warpwaves; ++wave) 
         {
