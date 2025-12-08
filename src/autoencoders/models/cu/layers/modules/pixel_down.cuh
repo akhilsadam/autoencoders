@@ -79,7 +79,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         {
             printf("pointer %p\n", g_weight_mat);
         }
-        // load(*weight_mat, *g_weight_mat, {0,0,0,0});
+        load(weight_mat[0], g_weight_mat[0], {0,0,0,0});
     }
 
     __device__ __forceinline__
