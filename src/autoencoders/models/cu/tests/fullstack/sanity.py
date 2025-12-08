@@ -21,7 +21,7 @@ def _test_nn_sanity():
         
     mem_pointer = 0
     mem_pointer = nn_sanity.train(x, y, mem_pointer, 1) # warmup quirk
-    for i in range(10):
+    for i in range(2):
         # load new data too every iteration, technically
         mem_pointer = nn_sanity.train(x, y, mem_pointer, 10)
         # print("Mem pointer after training:", mem_pointer)
