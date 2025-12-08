@@ -27,11 +27,12 @@ def _test_nn_sanity():
         # print("Mem pointer after training:", mem_pointer)
 
     nn_sanity.eval(x, yhat, mem_pointer, 0)
-    print("Output after eval:", yhat)
+    # print("Output after eval:", yhat)
     error = torch.mean((y - yhat) ** 2).item()
     signal = torch.mean((yhat - x) ** 2).item()
-    print("MSE after eval:", error)
-    print("Signal after eval:", signal)
+    print("MSE:", error)
+    # print("Signal after eval:", signal)
+    print(f"PSNR: {10 * torch.log10(signal / error):.2f} dB")
     
     from cu.tests import test_layers as tl
     tl._plot_diff(x, yhat, title="NN Sanity Check Difference")

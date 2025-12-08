@@ -10,7 +10,7 @@ template<class _IN>
 using IdentityTransform = _IN;
 
 template<class _IN, template<class> class Transform, class Opt>
-struct PixelLayer : public module<_IN, Transform, Opt> {
+struct PixelLayerModule : public module<_IN, Transform, Opt> {
    
     using IN = _IN;
     using OUT = Transform<IN>;
@@ -115,4 +115,4 @@ struct PixelLayer : public module<_IN, Transform, Opt> {
     }
 };
 
-using ScaleModule = ModuleSpec<scale_module, IdentityTransform>;
+using PixelLayer = ModuleSpec<PixelLayerModule, IdentityTransform>;
