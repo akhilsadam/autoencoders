@@ -6,11 +6,14 @@ using namespace kittens;
 #include "nn.cuh"
 #include "loss.cuh"
 #include "opt.cuh"
-#include "modules/scale.cuh"
+// #include "modules/scale.cuh"
+#include "modules/pixel_down.cuh"
 #include "util/bind_w_return.cuh"
 
 template<class L>
-using network = module_chain<L, SGD, ScaleModule>;
+// using network = module_chain<L, SGD, ScaleModule>;
+using network = module_chain<L, SGD, PixelDown>;
+
 using Loss = MSELoss;
 
 

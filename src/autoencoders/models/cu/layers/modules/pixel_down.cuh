@@ -22,6 +22,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     static constexpr uint32_t n_in = IN::N / l_in;
     static constexpr uint32_t n_out = OUT::N / l_out;
 
+    // matmul is n,l * Ll -> n,L
+
     // one shared weight
     using wgl = ftype; // gl<ftype,1,1,1,1>;
     using wtile = ftype; // shmem<1,1>;
@@ -29,24 +31,36 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     wtile* weight;        // pointer to shared memory
     wtile* grad_weight;   // pointer to shared memory for gradient
 
+
+    using wgl_mat = gl<ftype,1,1,l_out,l_in>; // weight for matmul
+    using wtile_mat = shmem<1,1,l_out,l_in>;
+    wgl_mat* g_weight_mat;        // pointer to global memory    
+    wtile_mat* weight_mat;        // pointer to shared memory
+    wtile_mat* grad_weight_mat;   // pointer to shared memory for gradient
+
     static constexpr size_t weight_bytes = sizeof(ftype);
 
     // ------------------ weights ----------------------
     template <typename T>
     __device__ __forceinline__ void __init_weights__(T& al) {
-        // weight = al.template allocate<wtile, 1>();
-        // grad_weight = al.template allocate<wtile, 1>();
-        // one(*weight);
-        // zero(*grad_weight);
+
         __shared__ wtile shm_weight;
         __shared__ wtile shm_grad_weight;
+        __shared__ wtile_mat shm_weight_mat;
+        __shared__ wtile_mat shm_grad_weight_mat;
+
+
         if (threadIdx.x == 0) {
             shm_weight = 1.0f;
             shm_grad_weight = 0.0f;
         }
+        one(shm_weight_mat);
+        zero(shm_grad_weight_mat);
         // syncthreads happens outside automatically
         weight = &shm_weight;
         grad_weight = &shm_grad_weight;
+        weight_mat = &shm_weight_mat;
+        grad_weight_mat = &shm_grad_weight_mat;
     }
 
 
@@ -56,11 +70,16 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // load(*weight, *g_weight, {0,0,0,0});
         g_weight = reinterpret_cast<wgl*>(mem_ptr);
         weight[0] = *g_weight;
+
+        g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr + sizeof(ftype));
+        load(*weight_mat, *g_weight_mat, {0,0,0,0});
     }
 
     __device__ __forceinline__
     void __save_weights__() {
         *g_weight = weight[0];
+        
+        store(*g_weight_mat, *weight_mat, {0,0,0,0});
     }
 
     // ------------------ fwd() ----------------------
@@ -80,20 +99,20 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         {
             int2 ij = IN::warptile_ixy(wave);
             // expecting a tile of size 16x16(xPx2 pack, p=1 for now)
-            auto tk_tile_in = this->x[0][ij.y][ij.x];
+            // auto tk_tile_in = this->x[0][ij.y][ij.x];
 
-            #pragma unroll
-            for(int i = 0; i < A.height; i++) {
-                #pragma unroll
-                for(int j = 0; j < A.width; j++) {
+            // #pragma unroll
+            // for(int i = 0; i < A.height; i++) {
+            //     #pragma unroll
+            //     for(int j = 0; j < A.width; j++) {
                     
-                    #pragma unroll
-                    for(int k = 0; k < A.packed_per_tile; k++) {
-                        A_flat.tiles[n][l].data[k].x = A.tiles[i][j].data[k].x;
-                        A_flat.tiles[n][l].data[k].y = A.tiles[i][j].data[k].y;
-                    }
-                }
-            }
+            //         #pragma unroll
+            //         for(int k = 0; k < A.packed_per_tile; k++) {
+            //             A_flat.tiles[n][l].data[k].x = A.tiles[i][j].data[k].x;
+            //             A_flat.tiles[n][l].data[k].y = A.tiles[i][j].data[k].y;
+            //         }
+            //     }
+            // }
 
 
 
