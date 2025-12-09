@@ -104,8 +104,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             zero(ZY_flat);
             mma_ABt(Y_flat, X_flat, W_flat, ZY_flat);  
 
-            flat_to_tile<OUT::C, k_out>(Y, Y_flat);  // Fixed: should use OUT::C and k_out
-            // cast_flat_to_tile<OUT::C, k_out>(Y, X_flat);  // Fixed: should use OUT::C and k_out
+            // flat_to_tile<OUT::C, k_out>(Y, Y_flat);  // Fixed: should use OUT::C and k_out
+            cast_flat_to_tile<OUT::C, k_out>(Y, X_flat);  // Fixed: should use OUT::C and k_out
 
             for (int c = 0; c < OUT::C; ++c) 
             {
@@ -115,33 +115,33 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             __syncwarp();
 
 
-            // now check that the MMA is correct
-            if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
-            {
-                int yi = 4;
-                int xi = 3;
-                float val_hat = 0.0f;
-                for(int u=0; u < l_in; u++){
-                    val_hat += __bfloat162float(X_flat.tiles[yi][u].data[0].x) * __bfloat162float(W_flat.tiles[xi][u].data[0].x);
-                }
+            // // now check that the MMA is correct
+            // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
+            // {
+            //     int yi = 4;
+            //     int xi = 3;
+            //     float val_hat = 0.0f;
+            //     for(int u=0; u < l_in; u++){
+            //         val_hat += __bfloat162float(X_flat.tiles[yi][u].data[0].x) * __bfloat162float(W_flat.tiles[xi][u].data[0].x);
+            //     }
 
-                printf("\n ---");
-                for (int u=0; u < l_in; u++){
-                    float w_val = __bfloat162float(W_flat.tiles[xi][u].data[0].x);
-                    printf("%f ", w_val);
-                }
-                printf("\n ---");
-                for (int u=0; u < l_in; u++){
-                    float x_val = __bfloat162float(X_flat.tiles[yi][u].data[0].x);
-                    printf("%f ", x_val);
-                }
-                printf("\n");
-                float err = val_hat - Y_flat.tiles[yi][xi].data[0].x;
-                // if (abs(err) > 0.1f){
-                    printf("FWD Mma err at y=%d,x=%d: %f (val_hat: %f, val: %f)\n", yi, xi, err, val_hat, Y_flat.tiles[yi][xi].data[0].x);
-                // }
+            //     printf("\n ---");
+            //     for (int u=0; u < l_in; u++){
+            //         float w_val = __bfloat162float(W_flat.tiles[xi][u].data[0].x);
+            //         printf("%f ", w_val);
+            //     }
+            //     printf("\n ---");
+            //     for (int u=0; u < l_in; u++){
+            //         float x_val = __bfloat162float(X_flat.tiles[yi][u].data[0].x);
+            //         printf("%f ", x_val);
+            //     }
+            //     printf("\n");
+            //     float err = val_hat - Y_flat.tiles[yi][xi].data[0].x;
+            //     // if (abs(err) > 0.1f){
+            //         printf("FWD Mma err at y=%d,x=%d: %f (val_hat: %f, val: %f)\n", yi, xi, err, val_hat, Y_flat.tiles[yi][xi].data[0].x);
+            //     // }
 
-            }
+            // }
 
         }
         
@@ -169,72 +169,72 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // ftype w = weight[0];
         // ftype reg_grad_w = 0.0f;
 
-        for (int wave = 0; wave < IN::warpwaves; ++wave) 
-        {
-            int2 ij = IN::warptile_ixy(wave);
+        // for (int wave = 0; wave < IN::warpwaves; ++wave) 
+        // {
+        //     int2 ij = IN::warptile_ixy(wave);
 
-            for (int c = 0; c < IN::C; ++c) 
-            {
-                load(X[c], this->x[0][ij.y][ij.x][c]);
-            }
-            for (int c = 0; c < OUT::C; ++c)
-            {
-                load(GY[c], this->grad_y[0][ij.y][ij.x][c]);
-            }
-            cast_tile_to_flat<IN::C, k_in>(X_flat, X);
-            cast_tile_to_flat<OUT::C, k_out>(GY_flat, GY);
-            cast_tile_to_flat<OUT::C, k_out>(GY_flat_col, GY);
+        //     for (int c = 0; c < IN::C; ++c) 
+        //     {
+        //         load(X[c], this->x[0][ij.y][ij.x][c]);
+        //     }
+        //     for (int c = 0; c < OUT::C; ++c)
+        //     {
+        //         load(GY[c], this->grad_y[0][ij.y][ij.x][c]);
+        //     }
+        //     cast_tile_to_flat<IN::C, k_in>(X_flat, X);
+        //     cast_tile_to_flat<OUT::C, k_out>(GY_flat, GY);
+        //     cast_tile_to_flat<OUT::C, k_out>(GY_flat_col, GY);
 
-            /////
+        //     /////
             
-            // GX (n,l) = GY (n,L) * W (L,l)
-            // row, row, col, row
-            zero(GX_flat);
-            mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
+        //     // GX (n,l) = GY (n,L) * W (L,l)
+        //     // row, row, col, row
+        //     zero(GX_flat);
+        //     mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
 
 
-           // now check that the MMA is correct
-            if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
-            {
-                int ci = 1;
-                int yi = 4;
-                int xi = 3;
-                float val_hat = 0.0f;
-                for(int u=0; u < l_out; u++){
-                    val_hat += __bfloat162float(GY_flat.tiles[yi][u].data[0].x) * __bfloat162float(W_flat.tiles[u][xi].data[0].x);
-                }
+        //    // now check that the MMA is correct
+        //     if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
+        //     {
+        //         int ci = 1;
+        //         int yi = 4;
+        //         int xi = 3;
+        //         float val_hat = 0.0f;
+        //         for(int u=0; u < l_out; u++){
+        //             val_hat += __bfloat162float(GY_flat.tiles[yi][u].data[0].x) * __bfloat162float(W_flat.tiles[u][xi].data[0].x);
+        //         }
 
-                float err = val_hat - GX_flat.tiles[yi][xi].data[0].x;
-                if (abs(err) > 0.1f){
-                    printf("FWD Mma err at c=%d,y=%d,x=%d: %f (val_hat: %f, val: %f)\n", ci, yi, xi, err, val_hat, GX_flat.tiles[yi][xi].data[0].x);
-                }
+        //         float err = val_hat - GX_flat.tiles[yi][xi].data[0].x;
+        //         if (abs(err) > 0.1f){
+        //             printf("FWD Mma err at c=%d,y=%d,x=%d: %f (val_hat: %f, val: %f)\n", ci, yi, xi, err, val_hat, GX_flat.tiles[yi][xi].data[0].x);
+        //         }
 
-            }
-
-
+        //     }
 
 
-            // // need to check if this is equiv.
-            // rt<smtype, l_in, l_out> W_flat_T;  // Transposed dimensions
-            // transpose(W_flat_T, W_flat);
-            // mma_ABt(GX_flat, GY_flat, W_flat_T, GX_flat);
 
-            // GA += GY (n,L)^T * X (n,l)
-            // row, col, col, row
-            mma_AtB(GW_flat, GY_flat_col, X_flat, GW_flat);
-            // mismatch -> maybe use transposes instead
-            // then row row col row
-            // transpose_inplace(GY_flat); does not quite work
 
-            /////
-            flat_to_tile<IN::C, k_in>(GX, GX_flat);
-            for (int c = 0; c < IN::C; ++c)
-            {
-                store(this->grad_x[0][ij.y][ij.x][c], GX[c]);
-            }
-            __syncwarp();
+        //     // // need to check if this is equiv.
+        //     // rt<smtype, l_in, l_out> W_flat_T;  // Transposed dimensions
+        //     // transpose(W_flat_T, W_flat);
+        //     // mma_ABt(GX_flat, GY_flat, W_flat_T, GX_flat);
 
-        }
+        //     // GA += GY (n,L)^T * X (n,l)
+        //     // row, col, col, row
+        //     mma_AtB(GW_flat, GY_flat_col, X_flat, GW_flat);
+        //     // mismatch -> maybe use transposes instead
+        //     // then row row col row
+        //     // transpose_inplace(GY_flat); does not quite work
+
+        //     /////
+        //     flat_to_tile<IN::C, k_in>(GX, GX_flat);
+        //     for (int c = 0; c < IN::C; ++c)
+        //     {
+        //         store(this->grad_x[0][ij.y][ij.x][c], GX[c]);
+        //     }
+        //     __syncwarp();
+
+        // }
 
         // accumulate gradient (TODO parallel scan) across warps
         // for now serial + slow add 
