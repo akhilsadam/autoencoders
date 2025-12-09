@@ -16,8 +16,8 @@ class SGD {
 
 template<>
 __device__ __forceinline__ void SGD::update<bf16_2>(bf16_2& w, bf16_2& grad_w) {
-    w.x = w.x - learning_rate * grad_w.x;
-    w.y = w.y - learning_rate * grad_w.y;
+    w.x = w.x - __float2bfloat16_rn(learning_rate) * grad_w.x;
+    w.y = w.y - __float2bfloat16_rn(learning_rate) * grad_w.y;
 
     grad_w.x = __float2bfloat16_rn(0.0f);
     grad_w.y = __float2bfloat16_rn(0.0f);
