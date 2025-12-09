@@ -36,7 +36,7 @@ def _test_nn_basic_siren():
         
     mem_pointer = 0
     mem_pointer = nn_siren.train(x, y, mem_pointer, 1) # warmup quirk
-    for i in range(100):
+    for i in range(10):
         # load new data too every iteration, technically
         
         t = time()
@@ -64,12 +64,15 @@ def _test_nn_basic_siren():
     # print("Signal after eval:", signal)
     # print(f"SNR: {10 * torch.log10(signal / error).item():.2f} dB")
     
+    train_T = np.array(train_T) / 100.0
+    eval_T = np.array(eval_T) / 100.0
+    
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(1,4, figsize=(16,4))
-    ax[0].hist(train_T)
-    ax[0].set_title("Train Time per Iteration (s)")
-    ax[1].hist(eval_T)
-    ax[1].set_title("Eval Time per Iteration (s)")
+    ax[0].hist(train_T, bins=50)
+    ax[0].set_title("Train Time per Iteration")
+    ax[1].hist(eval_T, bins=50)
+    ax[1].set_title("Eval Time per Iteration")
     ax[2].plot(MSE_T)
     ax[2].set_title("MSE over Iterations")
     ax[3].plot(SNR_T)
