@@ -177,7 +177,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             // GA += GY (n,L)^T * X (n,l)
             // row, col, col, row mismatch -> use transposes instead
             // then row row col row
-            transpose_inplace(GY_flat);
+            // transpose_inplace(GY_flat);
             mma_AB(GW_flat, GY_flat, X_flat, GW_flat);
 
             /////
