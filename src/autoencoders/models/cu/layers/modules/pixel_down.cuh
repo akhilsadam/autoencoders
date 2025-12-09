@@ -120,13 +120,13 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
                 int xi = 3;
                 float val_hat = 0.0f;
                 for(int u=0; u < l_in; u++){
-                    val_hat += __bfloat162float_rn(X_flat.tiles[yi][u].data[0].x * W_flat.tiles[xi][u].data[0].x);
+                    val_hat += __bfloat162float(X_flat.tiles[yi][u].data[0].x * W_flat.tiles[xi][u].data[0].x);
                 }
 
                 printf("\n");
                 for (int u=0; u < l_in; u++){
                     // float x_val = __bfloat162float_rn(X_flat.tiles[yi][u].data[0].x);
-                    float w_val = __bfloat162float_rn(W_flat.tiles[xi][u].data[0].x);
+                    float w_val = __bfloat162float(W_flat.tiles[xi][u].data[0].x);
                     printf("%f ", w_val);
                 }
                 printf("\n");
