@@ -73,7 +73,7 @@ __device__ static inline void tile_to_flat(U &A_flat, const T (&A)[c_in]) {
 template<int32_t c_in, int32_t k_in, ducks::rt::all T, ducks::rt::all U>
 __device__ static inline void cast_tile_to_flat(U &A_flat, const T (&A)[c_in]) {
 
-    const int r = A[0].rows
+    const int r = A[0].rows;
     printf("Tile rows: %d\n", r);
         
     const int y_tiles = A[0].height / k_in;
