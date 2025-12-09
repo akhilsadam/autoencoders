@@ -185,10 +185,11 @@ struct ChannelModuleBase : public module<_IN, Transform, Opt> {
 };
 
 template<int32_t C>
-struct ChannelTransform{
+struct ChannelTransform
+{
     template<class _IN>
     using T = CHW<C, typename _IN::TT>;
-}
+};
 
 
 template<int32_t C>
