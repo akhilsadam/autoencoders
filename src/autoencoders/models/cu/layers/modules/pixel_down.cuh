@@ -144,6 +144,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         
         rt<smtype, n_in, l_in, ducks::rt_layout::col> X_flat; // n,l layout
         rt<smtype, n_out, l_out> GY_flat; // n,l layout
+        rt<smtype, n_in, l_in, ducks::rt_layout::col> GY_flat_col; // n,l layout
         rt<smtype,l_out,l_in, ducks::rt_layout::col> W_flat;
         load(W_flat, *weight_mat);
 
@@ -176,7 +177,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
             // // GA += GY (n,L)^T * X (n,l)
             // // row, col, col, row mismatch -> transpose GY
-            mma_AtB(GW_flat, transpose(GY_flat), X_flat, GW_flat);
+            transpose(GY_flat_col, GY_flat);
+            mma_AtB(GW_flat, GY_flat_col, X_flat, GW_flat);
 
             /////
             flat_to_tile<IN::C, k_in>(GX, GX_flat);
