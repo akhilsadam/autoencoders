@@ -74,6 +74,8 @@ __device__ static inline void debug_mult(T &A, const T &B, ftype &w) {
 
 
 
+
+
 template<int32_t c_in, int32_t k_in, ducks::rt::all T, ducks::rt::all U>
 __device__ static inline void tile_to_flat(U &A_flat, const T (&A)[c_in]) {
         

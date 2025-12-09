@@ -8,13 +8,14 @@ using namespace kittens;
 #include "opt.cuh"
 // #include "modules/scale.cuh"
 // #include "modules/pixel_down.cuh"
+#include "modules/siren.cuh"
 #include "modules/chan.cuh"
 #include "util/bind_w_return.cuh"
 
 template<class L>
 using network = module_chain<L, SGD,
- ChannelModule<3>,
- ChannelModule<3>,
+    SirenModule<3>,
+//  ChannelModule<3>,
 //  ChannelModule<10>,
  ChannelModule<3>,
 >;

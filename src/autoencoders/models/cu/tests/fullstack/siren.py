@@ -12,12 +12,14 @@ nn_siren = compile(
 # compiled?
 print("Network compiled:", nn_siren is not None)
 
-def _test_nn_siren():
-        # return nn.train
-        
-
-    f = lambda x: x 
-    x = torch.randn(1, 3, 32, 32).cuda()
+def _test_nn_basic_siren():
+    cx = torch.linspace(-1.0, 1.0, steps=32)
+    cy = torch.linspace(-1.0, 1.0, steps=32)
+    xv, yv = torch.meshgrid(cx, cy, indexing='ij')
+    x = torch.stack([xv, yv], dim=0).unsqueeze(0).cuda()  # Shape: (1, 2, 32, 32)
+    
+    f = lambda c: torch.sin(4*c[:,0] + 2*c[:,1]) + 0.5*torch.cos(3*c[:,0] - c[:,1])
+    
     y = f(x)
     
     
@@ -27,13 +29,9 @@ def _test_nn_siren():
     mem_pointer = nn_siren.train(x, y, mem_pointer, 1) # warmup quirk
     for i in range(10):
         # load new data too every iteration, technically
-        x = torch.randn(1, 3, 32, 32).cuda()
-        y = f(x)
         mem_pointer = nn_siren.train(x, y, mem_pointer, 100)
         # print("Mem pointer after training:", mem_pointer)
 
-    x = torch.randn(1, 3, 32, 32).cuda()
-    y = f(x)
     nn_siren.eval(x, yhat, mem_pointer, 0)
     # print("Output after eval:", yhat)
     error = torch.mean((y - yhat) ** 2)
@@ -46,8 +44,3 @@ def _test_nn_siren():
     tl._plot_diff(x, yhat, title="NN Siren Check Difference")
     
     assert error < 1e-4, f"NN Siren Check failed with MSE {error}"
-
-    # from cu.tests import test_layers as tl
-    # tl._check(nn.nn_sanity(), nn_sanity())
-    # # tl._check(nn.Identity(), nn_sanity())
-    
