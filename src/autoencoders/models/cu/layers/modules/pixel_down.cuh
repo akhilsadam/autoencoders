@@ -92,7 +92,6 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         rt<ftype, n_out, l_out> Y_flat;
         rt<ftype, n_out, l_out> ZY_flat; // n,l layout
-        zero(ZY_flat);
 
 
         if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
@@ -115,6 +114,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
             // Y (n,L) <- X (n,l) * W (L,l)^T
             // row, row, row, row
+            zero(ZY_flat);
             mma_ABt(Y_flat, X_flat, W_flat, ZY_flat);  
 
             flat_to_tile<IN::C, k_in>(Y, Y_flat);
@@ -145,7 +145,6 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         rt<ftype, n_in, l_in> GX_flat;
         rt<ftype, l_out, l_in> GW_flat;
-        zero(GX_flat);
         zero(GW_flat);
 
 
@@ -162,13 +161,14 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
                 load(GY[c], this->grad_y[0][ij.y][ij.x][c]);
             }
             cast_tile_to_flat<IN::C, k_in>(X_flat, X);
-            cast_tile_to_flat<IN::C, k_in>(GY_flat, GY);
-            cast_tile_to_flat<IN::C, k_in>(GY_flat_col, GY);
+            cast_tile_to_flat<OUT::C, k_out>(GY_flat, GY);
+            cast_tile_to_flat<OUT::C, k_out>(GY_flat_col, GY);
 
             /////
             
             // GX (n,l) += GY (n,L) * W (L,l)
             // row, row, col, row
+            zero(GX_flat);
             mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
 
             // GA += GY (n,L)^T * X (n,l)
@@ -192,12 +192,12 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // for now serial + slow add 
         store(grad_weight_mat[0][warpid()], GW_flat);
         __syncthreads();
-        // if (warpid() == 0) {
-        //     for (int w = 1; w < NUM_WORKERS; ++w)
-        //     {
-        //         add(grad_weight_mat[0][0], grad_weight_mat[0][0], grad_weight_mat[0][w]);
-        //     }
-        // }
+        if (warpid() == 0) {
+            for (int w = 1; w < NUM_WORKERS; ++w)
+            {
+                add(grad_weight_mat[0][0], grad_weight_mat[0][0], grad_weight_mat[0][w]);
+            }
+        }
         
         // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
         // {
