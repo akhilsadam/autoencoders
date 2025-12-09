@@ -14,6 +14,8 @@ using namespace kittens;
 template<class L>
 using network = module_chain<L, SGD,
  ChannelModule<3>,
+ ChannelModule<10>,
+ ChannelModule<3>,
 >;
 
 using Loss = MSELoss;
