@@ -8,7 +8,7 @@ from cu.compile import compile
 nn_siren = compile(
     kernel=os.path.join(os.path.dirname(__file__), "siren.cu"),
     template_kwargs={
-        "LEARNING_RATE": 1e-7,
+        "LEARNING_RATE": 1e-4,
     }
 )
 ##
