@@ -187,8 +187,16 @@ struct ChannelModuleBase : public module<_IN, Transform, Opt> {
                 }
             }
         }
-
-
+        if(threadIdx.x == 0) {
+            // print matrix for debugging
+            printf("Weight after update:\n");
+            for (int oc = 0; oc < OUT::C; ++oc) {
+                for (int ic = 0; ic < IN::C + 1; ++ic) {
+                    printf("%f ", weight[0][oc][ic]);
+                }
+                printf("\n");
+            }
+        }
     }
 };
 
