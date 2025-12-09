@@ -21,7 +21,7 @@ struct SirenModuleBase : public module<_IN, Transform, Opt> {
     wmat* weight;        // pointer to shared memory
     wmat* grad_weight;   // pointer to shared memory for gradient
 
-    float omega_0 = 10.0f;
+    // HARDCODED omega0 for now!
 
     static constexpr size_t weight_bytes = sizeof(wmat);
 
@@ -103,7 +103,7 @@ struct SirenModuleBase : public module<_IN, Transform, Opt> {
                 bin_map<base_ops::sum>(Y[oc], Y[oc], w[oc][IN::C]); // bias
                 // relu
 
-                act_sine<omega_0>(Y[oc], Y[oc]);
+                act_sine<10.0f>(Y[oc], Y[oc]);
             }
   
 
@@ -161,7 +161,7 @@ struct SirenModuleBase : public module<_IN, Transform, Opt> {
             for (int c = 0; c < OUT::C; ++c)    
             {   
                 load(GY[c], this->grad_y[0][ij.y][ij.x][c]);
-                act_sine_bwd<omega_0>(GY[c], A[c], GY[c]); // inplace activation backward
+                act_sine_bwd<10.0f>(GY[c], A[c], GY[c]); // inplace activation backward
             }
 
             // GX = GY * W^T

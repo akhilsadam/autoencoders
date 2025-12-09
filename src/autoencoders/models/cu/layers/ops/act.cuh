@@ -7,7 +7,7 @@ using namespace kittens;
 #define ACT_CUH_INCLUDED
 
 
-template<float w,ducks::rt::all T> // T2, w, h can be inferred from dst as long as op is specialized
+template<float w, ducks::rt::all T> // T2, w, h can be inferred from dst as long as op is specialized
 __device__ static inline void act_sine(T &A, const T &X) {
     #pragma unroll
     for(int i = 0; i < A.height; i++) {
