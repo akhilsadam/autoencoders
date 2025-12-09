@@ -150,10 +150,7 @@ using namespace kittens;
         }
 
         static size_t total_weight_bytes() {
-            if (sizeof...(Rest) == 0)
-                return CurrentModule::weight_bytes;
-            else
-                return CurrentModule::weight_bytes + NextModule::total_weight_bytes();
+            return CurrentModule::weight_bytes + NextModule::total_weight_bytes();
         }
 
     };
