@@ -70,25 +70,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
     __device__ __forceinline__
     void __load_weights__(uint64_t mem_ptr) {
-        // g_weight = reinterpret_cast<wgl*>(mem_ptr);
-        // load(*weight, *g_weight, {0,0,0,0});
-
-        // g_weight = reinterpret_cast<wgl*>(mem_ptr);// + (l_out * l_in) * sizeof(ftype));
-        // weight[0] = *g_weight;
-
-        // g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
-        // g_weight_mat[0].raw_ptr = reinterpret_cast<ftype*>(mem_ptr);
-        
-        
-        // if (threadIdx.x == 0)
-        // {
-        //     printf("pointer %p %p -> %p\n", mem_ptr, g_weight_mat, weight_mat);
-        // }
-
         g_weight_mat = reinterpret_cast<smtype*>(mem_ptr);
         aligned_load_to_st<smtype, l_in, wtile_mat>(weight_mat[0], g_weight_mat);
-
-    
     }
 
     __device__ __forceinline__
@@ -112,7 +95,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
         {
-            printf("weight mat 0,0: %f\n", W_flat.tiles[0][0].data[0].x);
+            // printf("weight mat 0,0: %d\n", W_flat.tiles[0][0].data[0].x);
             // printf("Scale weight: %f\n", w);
             // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
         }
