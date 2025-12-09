@@ -127,7 +127,7 @@ struct SirenModuleBase : public module<_IN, Transform, Opt> {
                 bin_map<base_ops::sum>(Y[oc], Y[oc], w[oc][IN::C]); // bias
                 // relu
 
-                act_sine<10.0f>(Y[oc], Y[oc]);
+                act_sine<1.0f>(Y[oc], Y[oc]);
             }
   
 
@@ -185,7 +185,7 @@ struct SirenModuleBase : public module<_IN, Transform, Opt> {
             for (int c = 0; c < OUT::C; ++c)    
             {   
                 load(GY[c], this->grad_y[0][ij.y][ij.x][c]);
-                act_sine_bwd<10.0f>(GY[c], A[c], GY[c]); // inplace activation backward
+                act_sine_bwd<1.0f>(GY[c], A[c], GY[c]); // inplace activation backward
             }
 
             // GX = GY * W^T
