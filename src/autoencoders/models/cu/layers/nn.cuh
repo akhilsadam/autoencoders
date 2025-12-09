@@ -105,22 +105,22 @@ using namespace kittens;
         // iterate forward through the chain for y_ptr
         template <typename T>
         __device__ inline uint64_t eval(T& al, const uint64_t x_ptr = 0) {
-            auto* next_x_ptr = current.eval(al, x_ptr);
+            uint64_t next_x_ptr = current.eval(al, x_ptr);
             return next.eval(al, next_x_ptr);
         }
 
         // iterate backward through the chain for grad_x_ptr
         template <typename T>
         __device__ inline uint64_t train(T& al, const uint64_t grad_y_ptr = 0) {
-            auto* curr_grad_y_ptr = next.train(al, grad_y_ptr);
+            uint64_t curr_grad_y_ptr = next.train(al, grad_y_ptr);
             return current.train(al, curr_grad_y_ptr);
         }
 
         // iterate through to init weights
         template <typename T>
-        __device__ inline void init_weights(T& al) {
-            current.init_weights(al);
-            next.init_weights(al);
+        __device__ inline void __init_weights__(T& al) {
+            current.__init_weights__(al);
+            next.__init_weights__(al);
         }
 
         __device__ inline void __load_weights__(const uint64_t mem_ptr) {
