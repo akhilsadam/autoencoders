@@ -110,6 +110,25 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
             __syncwarp();
 
+
+            // now check that the MMA is correct
+            if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
+            {
+                int ci = 1;
+                int yi = 4;
+                int xi = 3;
+                float val_hat = 0.0f;
+                for(int u=0; u < l_in; u++){
+                    val_hat += static_cast<float>(X_flat.tiles[0][u].data[0].x) * static_cast<float>(W_flat.tiles[ci * k_out * k_out + yi * k_out + xi][u].data[0].x);
+                }
+
+                float err = val_hat - Y_flat.tiles[0][ci * k_out * k_out + yi * k_out + xi].data[0].x;
+                if (abs(err) > 0.1f){
+                    printf("FWD Mma err at c=%d,y=%d,x=%d: %f (val_hat: %f, val: %f)\n", ci, yi, xi, err, val_hat, Y_flat.tiles[0][ci * k_out * k_out + yi * k_out + xi].data[0].x);
+                }
+
+            }
+
         }
         
     }
