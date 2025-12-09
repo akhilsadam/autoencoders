@@ -29,7 +29,7 @@ def _test_nn_sanity():
         # load new data too every iteration, technically
         x = torch.randn(1, 3, 32, 32).cuda()
         y = f(x)
-        mem_pointer = nn_sanity.train(x, y, mem_pointer, 1)
+        mem_pointer = nn_sanity.train(x, y, mem_pointer, 100)
         # print("Mem pointer after training:", mem_pointer)
 
     x = torch.randn(1, 3, 32, 32).cuda()
