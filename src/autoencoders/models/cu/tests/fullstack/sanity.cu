@@ -6,8 +6,8 @@ using namespace kittens;
 #include "nn.cuh"
 #include "loss.cuh"
 #include "opt.cuh"
-// #include "modules/scale.cuh"
-#include "modules/pixel_down.cuh"
+#include "modules/scale.cuh"
+// #include "modules/pixel_down.cuh"
 #include "util/bind_w_return.cuh"
 
 template<class L>
