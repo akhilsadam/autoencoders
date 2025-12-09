@@ -157,12 +157,12 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             // GX (n,l) = GY (n,L) * W (L,l)
             // row, row, col, row
             zero(GX_flat);
-            // mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
+            mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
 
-            // need to check if this is equiv.
-            rt<smtype, l_in, l_out> W_flat_T;  // Transposed dimensions
-            transpose(W_flat_T, W_flat);
-            mma_ABt(GX_flat, GY_flat, W_flat_T, GX_flat);
+            // // need to check if this is equiv.
+            // rt<smtype, l_in, l_out> W_flat_T;  // Transposed dimensions
+            // transpose(W_flat_T, W_flat);
+            // mma_ABt(GX_flat, GY_flat, W_flat_T, GX_flat);
 
             // GA += GY (n,L)^T * X (n,l)
             // row, col, col, row
