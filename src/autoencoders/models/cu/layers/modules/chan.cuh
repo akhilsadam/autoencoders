@@ -85,7 +85,7 @@ struct ChannelModuleBase : public module<_IN, Transform, Opt> {
                 for (int ic = 0; ic < IN::C; ++ic) 
                 {   
                     // Y[oc] += X[ic] * w[oc][ic] + w[oc][IN::C]; // bias
-                    bin_map<base_ops::fma_AxBtC>(Y[oc], X[ic], w[oc][ic], Y[oc]);
+                    scalar_fma_map(Y[oc], X[ic], w[oc][ic], Y[oc]);
                 }
                 bin_map<base_ops::sum>(Y[oc], w[oc][IN::C]); // bias
             }
@@ -142,7 +142,7 @@ struct ChannelModuleBase : public module<_IN, Transform, Opt> {
                 for (int oc = 0; oc < OUT::C; ++oc) 
                 {   
                     // GX[ic] += GY[oc] * w[oc][ic];
-                    bin_map<base_ops::fma_AxBtC>(GX[ic], GY[oc], w[oc][ic], GX[ic]);
+                    scalar_fma_map(GX[ic], GY[oc], w[oc][ic], GX[ic]);
                     
                     // reg_grad_w[oc][ic] += frag_dot(GY[oc], X[ic]);
                     frag_dot(reg_grad_w[oc][ic], GY[oc], X[ic]);    
