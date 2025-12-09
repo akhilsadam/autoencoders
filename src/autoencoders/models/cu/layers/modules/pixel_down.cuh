@@ -74,7 +74,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         rt<smtype, n_in, l_in> X_flat; // n,l layout
 
         rt<smtype, l_out, l_in> W_flat;
-        load(W_flat, *weight_mat);
+        load(W_flat, weight_mat[0]);
 
         rt<ftype, n_in, l_out> Y_flat;
         rt<ftype, n_in, l_out> ZY_flat; // n,l layout
