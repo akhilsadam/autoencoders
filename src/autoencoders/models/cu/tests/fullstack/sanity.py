@@ -27,6 +27,7 @@ def _test_nn_sanity():
     mem_pointer = nn_sanity.train(x, y, mem_pointer, 1) # warmup quirk
     for i in range(100):
         # load new data too every iteration, technically
+        x = torch.randn(1, 3, 32, 32).cuda()
         y = f(x)
         mem_pointer = nn_sanity.train(x, y, mem_pointer, 1000)
         # print("Mem pointer after training:", mem_pointer)
