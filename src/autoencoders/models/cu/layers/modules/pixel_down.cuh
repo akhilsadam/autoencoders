@@ -17,10 +17,10 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
     static constexpr uint32_t k_in = 4; // template this
     static constexpr uint32_t k_out = 4; // half of k_in
-    static constexpr uint32_t l_in = IN::C * k_in * k_in;
-    static constexpr uint32_t l_out = OUT::C * k_out * k_out;
-    static constexpr uint32_t n_in = IN::N_WT / l_in;
-    static constexpr uint32_t n_out = OUT::N_WT / l_out;
+    static constexpr int l_in = IN::C * k_in * k_in;
+    static constexpr int l_out = OUT::C * k_out * k_out;
+    static constexpr int n_in = IN::N_WT / l_in;
+    static constexpr int n_out = OUT::N_WT / l_out;
 
     // matmul is n,l * Ll -> n,L
 
