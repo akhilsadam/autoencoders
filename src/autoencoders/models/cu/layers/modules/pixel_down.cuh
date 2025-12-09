@@ -15,12 +15,13 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     using IN = _IN;
     using OUT = Transform<IN>;
 
-    static constexpr int k_in = 4; // template this
-    static constexpr int k_out = 4; // half of k_in
-    static constexpr int l_in = IN::C * k_in * k_in;
-    static constexpr int l_out = OUT::C * k_out * k_out;
-    static constexpr int n_in = IN::N_WT / l_in;
-    static constexpr int n_out = OUT::N_WT / l_out;
+    static constexpr uint32_t k_in = 4; // template this
+    static constexpr uint32_t k_out = 4; // half of k_in
+    static constexpr uint32_t l_in = IN::C * k_in * k_in;
+    static constexpr uint32_t l_out = OUT::C * k_out * k_out;
+    static constexpr uint32_t n_in = IN::N_WT / l_in;
+    static constexpr uint32_t n_out = OUT::N_WT / l_out;
+
     // matmul is n,l * Ll -> n,L
 
     // one shared weight
@@ -76,7 +77,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
         // g_weight_mat[0].raw_ptr = reinterpret_cast<ftype*>(mem_ptr);
 
-        g_weight_mat = &make_gl<ftype,1,1,l_out,l_in>(mem_ptr,
+        g_weight_mat = &make_gl<gl<ftype,1,1,l_out,l_in>>(
+            mem_ptr,
             1, 1, l_out, l_in);
         
         
