@@ -83,7 +83,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // }
 
         g_weight_mat = reinterpret_cast<ftype*>(mem_ptr);
-        load_to_st<wtile_mat>(weight_mat[0], g_weight_mat);
+        load_to_st<l_in, wtile_mat>(weight_mat[0], g_weight_mat);
 
     
     }

@@ -124,11 +124,11 @@ __device__ static inline void flat_to_tile(T (&A)[c_in], const U &A_flat) {
 // }
 
 
-template<ducks::st::all ST, int N_THREADS=kittens::WARP_THREADS>
+template<int cols, ducks::st::all ST, int N_THREADS=kittens::WARP_THREADS>
 __device__ static inline void load_to_st(ST &dst, ftype* src_ptr) {
 
     using T = typename ST::dtype;
-    const int row_stride = src.template stride<2>(); // axis is 2 by default
+    const int row_stride = cols; // src.template stride<axis>(); // axis is 2 by default, so cols..
     // we can handle this many rows each time we run a memcpy_async
     constexpr int elem_per_memcpy = sizeof(float4)/sizeof(typename ST::dtype);
     constexpr int memcpy_per_row = ST::cols / elem_per_memcpy;
