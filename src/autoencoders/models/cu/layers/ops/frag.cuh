@@ -60,6 +60,15 @@ __device__ static inline void tile_to_flat(U &A_flat, const T (&A)[c_in]) {
                 int n = (j / k_in) * x_tiles + (i / k_in);
                 int l = c * k_in * k_in + (j % k_in) * k_in + (i % k_in);
 
+
+            if (threadIdx.x == 0 && blockIdx.x==0 && blockIdx.y==0 && blockIdx.z==0) {
+                printf("DEBUG dims: A.h=%d A.w=%d k_in=%d packed=%d\n",
+                    A[0].height, A[0].width, k_in, A[0].packed_per_tile);
+                if (yi < 0 || yi >= A[0].height|| xi < 0 || xi >= A[0].width) {
+                    printf("OUT OF RANGE debug indexes yi=%d xi=%d\n", yi, xi);
+                }
+            }
+
                 #pragma unroll
                 for(int k = 0; k < A[0].packed_per_tile; k++) {
                     A_flat.tiles[n][l].data[k].x = A[c].tiles[j][i].data[k].x;

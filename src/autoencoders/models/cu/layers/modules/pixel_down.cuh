@@ -112,13 +112,6 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
             __syncwarp();
 
-            if (threadIdx.x == 0 && blockIdx.x==0 && blockIdx.y==0 && blockIdx.z==0) {
-                printf("DEBUG dims: n_in=%d, l_in=%d, l_out=%d, X.h=%d X.w=%d k_in=%d packed=%d\n",
-                    n_in, l_in, l_out, X[0].height, X[0].width, k_in, X[0].packed_per_tile);
-                if (yi < 0 || yi >= n_in || xi < 0 || xi >= l_out) {
-                    printf("OUT OF RANGE debug indexes yi=%d xi=%d (n_in=%d l_out=%d)\n", yi, xi, n_in, l_out);
-                }
-            }
             if (threadIdx.x==0 && blockIdx.x==0 && blockIdx.y==0 && blockIdx.z==0) {
                 int y_tiles = A[0].height / k_in;
                 int x_tiles = A[0].width / k_in;
