@@ -1,6 +1,6 @@
 
 #ifndef LEARNING_RATE
-#define LEARNING_RATE 0.01f
+#define LEARNING_RATE 0.001f
 #endif
 
 class SGD {
