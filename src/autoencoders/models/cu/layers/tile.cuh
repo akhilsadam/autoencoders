@@ -297,16 +297,18 @@ using namespace kittens;
 
     using C1 = __CHAN__<1>;
     using C3 = __CHAN__<3>;
-    using channel_variant = std::variant<C1, C3>;
+    using C16 = __CHAN__<16>;
+    using channel_variant = std::variant<C1, C3, C16>;
 
     // select channel based on depth
     template<typename BaseData>
     __host__ channel_variant channel_var(const BaseData& g) {
         int C = g.x.depth();
-        size_t idx = (C == 1) ? 0 : 1;
+        size_t idx = (C == 1) ? 0 : (C == 3) ? 1 : 2;
         switch (idx) {
             case 0: return C1{};
             case 1: return C3{};
+            case 2: return C16{};
             default:
                 throw std::runtime_error("Unsupported channel size");
         }
