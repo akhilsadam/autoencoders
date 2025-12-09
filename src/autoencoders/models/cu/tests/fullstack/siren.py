@@ -42,7 +42,7 @@ def _test_nn_basic_siren():
         
     mem_pointer = 0
     mem_pointer = nn_siren.train(x, y, mem_pointer, 1) # warmup quirk
-    for i in range(100):
+    for i in range(1000):
         # load new data too every iteration, technically
         
         t = time()
