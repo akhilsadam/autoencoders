@@ -263,13 +263,13 @@ using namespace kittens;
     using reg_tile_ft = rt<ftype, TileType::W.y, TileType::W.x>;
 
     template<typename TileType>
-    using reg_tile_dt = rt<dtype, TileType::W.y, TileType::W.x>;
+    using reg_tile_smt = rt<smtype, TileType::W.y, TileType::W.x>;
 
     // template<class _HW>
     // using reg_wtile_ft = rt<ftype, _HW::Wy, _HW::Wx>;
 
     // template<class _HW>
-    // using reg_wtile_dt = rt<dtype, _HW::Wy, _HW::Wx>;
+    // using reg_wtile_smt = rt<smtype, _HW::Wy, _HW::Wx>;
 
     template<typename TileType>
     using BCHW_fwd = _BCHW_fwd<tiled_layout<TileType>, TileType>;
