@@ -13,7 +13,7 @@ using namespace kittens;
 
 template<class L>
 using network = module_chain<L, SGD,
- ModuleSpec<ChannelModuleBase, ChannelTransformBase<3>>
+ ChannelModule<3>,
 >;
 
 using Loss = MSELoss;

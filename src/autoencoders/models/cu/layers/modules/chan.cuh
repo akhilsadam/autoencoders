@@ -6,9 +6,6 @@ using namespace kittens;
 #include "ops/frag.cuh"
 #include "ops/scan.cuh"
 
-template<int32_t C, class _IN>
-using ChannelTransformBase = CHW<C, typename _IN::TT>;
-
 template<class _IN, template<class> class Transform, class Opt>
 struct ChannelModuleBase : public module<_IN, Transform, Opt> {
    
@@ -187,5 +184,12 @@ struct ChannelModuleBase : public module<_IN, Transform, Opt> {
     }
 };
 
+template<int32_t C>
+struct ChannelTransform{
+    template<class _IN>
+    using T = CHW<C, typename _IN::TT>;
+}
 
-// ModuleSpec<ChannelModuleBase, ChannelTransformBase<C>>
+
+template<int32_t C>
+using ChannelModule = ModuleSpec<ChannelModuleBase, ChannelTransform<C>::template T>;
