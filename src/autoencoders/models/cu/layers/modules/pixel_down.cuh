@@ -111,7 +111,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         
         // ftype w = weight[0];
 
-        rt<ftype,l_out,l_in,ducks::rt_layout::col> W_flat;
+        rt<ftype,l_out,l_in> W_flat;
         load(W_flat, *weight_mat);
 
 
@@ -134,6 +134,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             tile_to_flat<IN::C, k_in>(X_flat, X);
 
             // Y (n,L) <- X (n,l) * W (L,l)^T
+            // row, row, row, row
             mma_ABt(Y_flat, X_flat, W_flat, ZY_flat);  
 
             flat_to_tile<IN::C, k_in>(Y, Y_flat);
@@ -163,10 +164,10 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         typename IN::reg_array GX, X;
         typename OUT::reg_array GY;
         rt<ftype, n_in, l_in> GX_flat;
-        rt<ftype, n_in, l_in, ducks::rt_layout::col> X_flat; // n,l layout
+        rt<ftype, n_in, l_in> X_flat; // n,l layout
         rt<ftype, n_out, l_out> GY_flat; // n,l layout
 
-        rt<ftype,l_out,l_in,ducks::rt_layout::col> W_flat;
+        rt<ftype,l_out,l_in, ducks::rt_layout::col> W_flat;
         rt<ftype,l_out,l_in> GW_flat;
         load(W_flat, *weight_mat);
 
@@ -192,10 +193,12 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             /////
             
             // GX (n,l) += GY (n,L) * W (L,l)
+            // row, row, col, row
             mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
 
-            // GA += GY (n,L)^T * X (n,l)
-            mma_AtB(GW_flat, GY_flat, X_flat, GW_flat);
+            // // GA += GY (n,L)^T * X (n,l)
+            // // row, col, col, row mismatch
+            // mma_AtB(GW_flat, GY_flat, X_flat, GW_flat);
 
             /////
             flat_to_tile<IN::C, k_in>(GX, GX_flat);
