@@ -23,7 +23,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     static constexpr uint32_t l_in = IN::C * k_in * k_in;
     static constexpr uint32_t l_out = OUT::C * k_out * k_out;
     static constexpr uint32_t n_in = IN::N_WT / l_in;
-    static constexpr uint32_t n_out = OUT::N_WT / l_out;
+    // static constexpr uint32_t n_in = OUT::N_WT / l_out;
+    // will be the same
 
     // matmul is n,l * Ll -> n,L
 
@@ -48,27 +49,10 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     // ------------------ weights ----------------------
     template <typename T>
     __device__ __forceinline__ void __init_weights__(T& al) {
-
-        // __shared__ wtile shm_weight;
-        // __shared__ wtile shm_grad_weight;
-
-        // if (threadIdx.x == 0) {
-        //     shm_weight = 1.0f;
-        //     shm_grad_weight = 0.0f;
-        // }
-        // // syncthreads happens outside automatically
-        // weight = &shm_weight;
-        // grad_weight = &shm_grad_weight;
-
-
-
         weight_mat = &al.template allocate<wtile_mat>();
         grad_weight_mat = &al.template allocate<wtile_mat, NUM_WORKERS>();
         // unfortunately, need one per warp...
-
-
     }
-
 
     __device__ __forceinline__
     void __load_weights__(uint64_t mem_ptr) {
@@ -87,18 +71,18 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         typename OUT::reg_array Y;
         rt<smtype, n_in, l_in> X_flat; // n,l layout
 
-        rt<smtype,l_out,l_in> W_flat;
+        rt<smtype, l_out, l_in> W_flat;
         load(W_flat, *weight_mat);
 
-        rt<ftype, n_out, l_out> Y_flat;
-        rt<ftype, n_out, l_out> ZY_flat; // n,l layout
+        rt<ftype, n_in, l_out> Y_flat;
+        rt<ftype, n_in, l_out> ZY_flat; // n,l layout
 
 
         if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
         {
             // printf("weight mat 0,0: %d\n", W_flat.tiles[0][0].data[0].x);
             // printf("Scale weight: %f\n", w);
-            // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
+            // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_in, l_out);
         }
 
         for (int wave = 0; wave < IN::warpwaves; ++wave) 
@@ -112,12 +96,13 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             }
             cast_tile_to_flat<IN::C, k_in>(X_flat, X);
 
-            // Y (n,L) <- X (n,l) * W (L,l)^T
+            // Y (n,L) = X (n,l) * W (L,l)^T
             // row, row, row, row
+            zero(Y_flat);
             zero(ZY_flat);
             mma_ABt(Y_flat, X_flat, W_flat, ZY_flat);  
 
-            flat_to_tile<IN::C, k_in>(Y, Y_flat);
+            flat_to_tile<OUT::C, k_out>(Y, Y_flat);  // Fixed: should use OUT::C and k_out
             for (int c = 0; c < OUT::C; ++c) 
             {
                 store(this->y[0][ij.y][ij.x][c], Y[c]);
@@ -138,8 +123,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         typename OUT::reg_array GY;
         
         rt<smtype, n_in, l_in, ducks::rt_layout::col> X_flat; // n,l layout
-        rt<smtype, n_out, l_out> GY_flat; // n,l layout
-        rt<smtype, n_out, l_out, ducks::rt_layout::col> GY_flat_col; // n,l layout
+        rt<smtype, n_in, l_out> GY_flat; // n,l layout
+        rt<smtype, n_in, l_out, ducks::rt_layout::col> GY_flat_col; // n,l layout
         rt<smtype, l_out, l_in, ducks::rt_layout::col> W_flat;
         load(W_flat, *weight_mat);
 
@@ -158,6 +143,9 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             for (int c = 0; c < IN::C; ++c) 
             {
                 load(X[c], this->x[0][ij.y][ij.x][c]);
+            }
+            for (int c = 0; c < OUT::C; ++c)
+            {
                 load(GY[c], this->grad_y[0][ij.y][ij.x][c]);
             }
             cast_tile_to_flat<IN::C, k_in>(X_flat, X);
@@ -166,17 +154,22 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
             /////
             
-            // GX (n,l) += GY (n,L) * W (L,l)
+            // GX (n,l) = GY (n,L) * W (L,l)
             // row, row, col, row
             zero(GX_flat);
-            mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
+            // mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
+
+            // need to check if this is equiv.
+            rt<smtype, l_in, l_out> W_flat_T;  // Transposed dimensions
+            transpose(W_flat_T, W_flat);
+            mma_ABt(GX_flat, GY_flat, W_flat_T, GX_flat);
 
             // GA += GY (n,L)^T * X (n,l)
             // row, col, col, row
             mma_AtB(GW_flat, GY_flat_col, X_flat, GW_flat);
             // mismatch -> maybe use transposes instead
             // then row row col row
-            // transpose_inplace(GY_flat); does not quite wokr
+            // transpose_inplace(GY_flat); does not quite work
 
             /////
             flat_to_tile<IN::C, k_in>(GX, GX_flat);
@@ -192,17 +185,17 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // for now serial + slow add 
         store(grad_weight_mat[0][warpid()], GW_flat);
         __syncthreads();
-        if (warpid() == 0) {
-            for (int w = 1; w < NUM_WORKERS; ++w)
-            {
-                add(grad_weight_mat[0][0], grad_weight_mat[0][0], grad_weight_mat[0][w]);
-            }
-        }
+        // if (warpid() == 0) {
+        //     for (int w = 1; w < NUM_WORKERS; ++w)
+        //     {
+        //         add(grad_weight_mat[0][0], grad_weight_mat[0][0], grad_weight_mat[0][w]);
+        //     }
+        // }
         
         // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
         // {
         //     printf("grad weight: %f\n", grad_weight[0]);
-        //     // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
+        //     // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_in, l_out);
         // }
 
         // Apply SGD update 
