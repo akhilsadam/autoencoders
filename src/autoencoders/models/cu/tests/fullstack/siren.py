@@ -2,7 +2,6 @@ import os
 import torch
 from torch import nn
 from time import time
-
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
 from cu.compile import compile
@@ -64,8 +63,9 @@ def _test_nn_basic_siren():
     # print("Signal after eval:", signal)
     # print(f"SNR: {10 * torch.log10(signal / error).item():.2f} dB")
     
-    train_T = np.array(train_T) / 100.0
-    eval_T = np.array(eval_T) / 100.0
+    
+    train_T = torch.tensor(train_T) / 100.0
+    eval_T = torch.tensor(eval_T) / 100.0
     
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(1,4, figsize=(16,4))
