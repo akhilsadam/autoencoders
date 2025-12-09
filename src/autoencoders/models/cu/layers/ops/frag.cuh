@@ -211,11 +211,11 @@ __device__ static inline void aligned_store_to_gl(qtype* dst_ptr, const ST &src)
 template<typename op, ducks::rt::all T>
 __device__ static inline void inplace_bin_map(const T &lhs, const T &rhs) {
     #pragma unroll
-    for(int i = 0; i < dst.height; i++) {
+    for(int i = 0; i < lhs.height; i++) {
         #pragma unroll
-        for(int j = 0; j < dst.width; j++) {
+        for(int j = 0; j < lhs.width; j++) {
             #pragma unroll
-            for(int k = 0; k < dst.packed_per_tile; k++) {
+            for(int k = 0; k < lhs.packed_per_tile; k++) {
                 op::template op<typename T::dtype>(lhs.tiles[i][j].data[k], rhs.tiles[i][j].data[k]);
             }
         }
