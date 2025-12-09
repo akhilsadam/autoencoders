@@ -192,12 +192,12 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // for now serial + slow add 
         store(grad_weight_mat[0][warpid()], GW_flat);
         __syncthreads();
-        if (warpid() == 0) {
-            for (int w = 1; w < NUM_WORKERS; ++w)
-            {
-                add(grad_weight_mat[0][0], grad_weight_mat[0][0], grad_weight_mat[0][w]);
-            }
-        }
+        // if (warpid() == 0) {
+        //     for (int w = 1; w < NUM_WORKERS; ++w)
+        //     {
+        //         add(grad_weight_mat[0][0], grad_weight_mat[0][0], grad_weight_mat[0][w]);
+        //     }
+        // }
         
         // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
         // {
