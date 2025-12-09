@@ -18,13 +18,15 @@ print("Network compiled:", nn_siren is not None)
 def _test_nn_basic_siren():
     cx = torch.linspace(-1.0, 1.0, steps=32)[None, :].repeat(32, 1)
     cy = torch.linspace(-1.0, 1.0, steps=32)[:, None].repeat(1, 32)
-    x = torch.stack([cx, cy, cx], dim=0).unsqueeze(0).cuda()  # Shape: (1, 2, 32, 32)
+    x = torch.stack([*[cx, cy], *([cx,] * 14) 
+                     ], dim=0).unsqueeze(0).cuda()  # Shape: (1, 2, 32, 32)
     
     f = lambda c: torch.stack(
         [
             torch.sin(4*c[:,0]) + 0.5 * (c[:,1]),
             torch.sin(2*c[:,0] - 3*c[:,1]),# - 0.5*torch.cos(c[:,0] + 4*c[:,1]),
-            torch.sin(-3*c[:,0] + c[:,1])# + 0.5
+            torch.sin(-3*c[:,0] + c[:,1]),# + 0.5
+            *[0 * c[:,0] for _ in range(13)]
         ], dim=1
     )
     
@@ -95,11 +97,11 @@ def _test_nn_basic_siren():
     
     
     fig,ax = plt.subplots(1,3, figsize=(12,4))
-    ax[0].imshow(x[0].permute(1,2,0).cpu().numpy())
+    ax[0].imshow(x[0,:,:,:3].permute(1,2,0).cpu().numpy())
     ax[0].set_title("Input")
-    ax[1].imshow(y[0].permute(1,2,0).cpu().numpy())
+    ax[1].imshow(y[0,:,:,:3].permute(1,2,0).cpu().numpy())
     ax[1].set_title("Target")
-    ax[2].imshow(yhat[0].permute(1,2,0).cpu().numpy())
+    ax[2].imshow(yhat[0,:,:,:3].permute(1,2,0).cpu().numpy())
     ax[2].set_title("Output")
     plt.savefig("siren_output.png")
     

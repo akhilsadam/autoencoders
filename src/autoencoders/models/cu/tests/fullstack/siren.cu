@@ -14,10 +14,10 @@ using namespace kittens;
 
 template<class L>
 using network = module_chain<L, SGD,
-    SirenModule<20>,
+    SirenModule<16>,
 //  ChannelModule<3>,
 //  ChannelModule<10>,
- ChannelModule<3>,
+ ChannelModule<16>,
 >;
 
 using Loss = MSELoss;
