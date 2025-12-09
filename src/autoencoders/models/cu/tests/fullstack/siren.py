@@ -7,7 +7,9 @@ from time import time
 from cu.compile import compile
 nn_siren = compile(
     kernel=os.path.join(os.path.dirname(__file__), "siren.cu"),
-    LEARNING_RATE=1e-4,
+    template_kwargs={
+        "LEARNING_RATE": 1e-4,
+    }
 )
 ##
 # compiled?
