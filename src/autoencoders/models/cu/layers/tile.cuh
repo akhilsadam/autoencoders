@@ -36,8 +36,9 @@ using namespace kittens;
     #define ftype float
     #endif
 
-    #ifndef dtype
-    #define dtype bf16
+    // dtype already taken by TK
+    #ifndef smtype
+    #define smtype bf16
     #endif
 
     // warptiles (WTs) per block, warptile size
