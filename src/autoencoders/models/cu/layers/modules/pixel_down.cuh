@@ -123,9 +123,9 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
                 }
 
                 float err = val_hat - Y_flat.tiles[0][ci * k_out * k_out + yi * k_out + xi].data[0].x;
-                if (abs(err) > 0.1f){
+                // if (abs(err) > 0.1f){
                     printf("FWD Mma err at c=%d,y=%d,x=%d: %f (val_hat: %f, val: %f)\n", ci, yi, xi, err, val_hat, Y_flat.tiles[0][ci * k_out * k_out + yi * k_out + xi].data[0].x);
-                }
+                // }
 
             }
 
