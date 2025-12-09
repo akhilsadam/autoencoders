@@ -125,7 +125,7 @@ using namespace kittens;
 
         __device__ inline void __load_weights__(const uint64_t mem_ptr) {
             current.__load_weights__(mem_ptr);
-            next.__load_weights__(mem_ptr + CurrentModule::weight_bytes());
+            next.__load_weights__(mem_ptr + CurrentModule::weight_bytes);
         }
 
         // __device__ inline void _save_weights(uint64_t mem_ptr) {
