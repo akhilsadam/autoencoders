@@ -94,6 +94,15 @@ def _test_nn_basic_siren():
     plt.close(fig)
     
     
+    fig,ax = plt.subplots(1,3, figsize=(12,4))
+    ax[0].imshow(x[0].permute(1,2,0).cpu().numpy())
+    ax[0].set_title("Input")
+    ax[1].imshow(y[0].permute(1,2,0).cpu().numpy())
+    ax[1].set_title("Target")
+    ax[2].imshow(yhat[0].permute(1,2,0).cpu().numpy())
+    ax[2].set_title("Output")
+    plt.savefig("siren_output.png")
+    
     from cu.tests import test_layers as tl
     tl._plot_diff(x, yhat, title="NN Siren Check Difference")
     
