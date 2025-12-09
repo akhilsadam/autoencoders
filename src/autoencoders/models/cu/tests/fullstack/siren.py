@@ -17,7 +17,13 @@ def _test_nn_basic_siren():
     cy = torch.linspace(-1.0, 1.0, steps=32)[:, None].repeat(1, 32)
     x = torch.stack([cx, cy, cx], dim=0).unsqueeze(0).cuda()  # Shape: (1, 2, 32, 32)
     
-    f = lambda c: torch.sin(4*c[:,0] + 2*c[:,1]) + 0.5*torch.cos(3*c[:,0] - c[:,1])
+    f = lambda c: torch.stack(
+        [
+            torch.sin(4*c[:,0] + 2*c[:,1]) + 0.5*torch.cos(3*c[:,0] - c[:,1]),
+            torch.sin(2*c[:,0] - 3*c[:,1]) - 0.5*torch.cos(c[:,0] + 4*c[:,1]),
+            torch.sin(-3*c[:,0] + c[:,1]) + 0.5
+        ], dim=1
+    )
     
     y = f(x)
     
