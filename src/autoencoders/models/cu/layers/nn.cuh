@@ -153,7 +153,7 @@ using namespace kittens;
             if (sizeof...(Rest) == 0)
                 return CurrentModule::weight_bytes;
             else
-                return CurrentModule::weight_bytes + module_chain<NextIN, Rest...>::total_weight_bytes();
+                return CurrentModule::weight_bytes + NextModule::total_weight_bytes();
         }
 
     };
