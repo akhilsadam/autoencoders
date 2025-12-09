@@ -142,7 +142,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         typename IN::reg_array GX, X;
         typename OUT::reg_array GY;
         
-        rt<smtype, n_in, l_in> X_flat; // n,l layout
+        rt<smtype, n_in, l_in, ducks::rt_layout::col> X_flat; // n,l layout
         rt<smtype, n_out, l_out> GY_flat; // n,l layout
         rt<smtype,l_out,l_in, ducks::rt_layout::col> W_flat;
         load(W_flat, *weight_mat);
@@ -175,8 +175,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
 
             // // GA += GY (n,L)^T * X (n,l)
-            // // row, col, col, row mismatch
-            // mma_AtB(GW_flat, GY_flat, X_flat, GW_flat);
+            // // row, col, col, row mismatch -> transpose GY
+            mma_AtB(GW_flat, transpose(GY_flat), X_flat, GW_flat);
 
             /////
             flat_to_tile<IN::C, k_in>(GX, GX_flat);
