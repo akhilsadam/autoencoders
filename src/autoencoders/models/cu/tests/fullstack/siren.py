@@ -22,7 +22,7 @@ def _test_nn_basic_siren():
     
     f = lambda c: torch.stack(
         [
-            torch.sin(4*c[:,0]),# + 0.5*torch.cos(c[:,1]),
+            torch.sin(4*c[:,0]) + 0.5 * (c[:,1]),
             torch.sin(2*c[:,0] - 3*c[:,1]),# - 0.5*torch.cos(c[:,0] + 4*c[:,1]),
             torch.sin(-3*c[:,0] + c[:,1])# + 0.5
         ], dim=1
