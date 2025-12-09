@@ -17,6 +17,9 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
     static constexpr uint32_t k_in = 4; // template this
     static constexpr uint32_t k_out = 4; // half of k_in
+
+
+
     static constexpr uint32_t l_in = IN::C * k_in * k_in;
     static constexpr uint32_t l_out = OUT::C * k_out * k_out;
     static constexpr uint32_t n_in = IN::N_WT / l_in;
@@ -98,7 +101,9 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         typename IN::reg_array X;
         typename OUT::reg_array Y;
         rt<ftype, n_in, l_in> X_flat; // n,l layout
-        rt<ftype, n_out, l_out> Y_flat; // n,l layout
+        rt<ftype, n_out, l_out> Y_flat, ZY_flat; // n,l layout
+
+        zero(ZY_flat);
 
         // typename IN::reg_wp X;
         // typename OUT::reg_wp Y;
@@ -128,7 +133,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             tile_to_flat<IN::C, k_in>(X_flat, X);
 
             // Y (n,L) <- X (n,l) * W (L,l)^T
-            mma_ABt(Y_flat, X_flat, W_flat);  
+            mma_ABt(Y_flat, X_flat, W_flat, ZY_flat);  
 
             flat_to_tile<IN::C, k_in>(Y, Y_flat);
             for (int c = 0; c < OUT::C; ++c) 
@@ -160,8 +165,11 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         rt<ftype, n_out, l_out> GY_flat; // n,l layout
 
         rt<ftype,l_out,l_in> W_flat, GW_flat;
-        zero(GW_flat);
         load(W_flat, *weight_mat);
+
+        zero(GX_flat);
+        zero(GW_flat);
+
 
         // ftype w = weight[0];
         // ftype reg_grad_w = 0.0f;
@@ -180,8 +188,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
             /////
             
-            // GX (n,l) <- GY (n,L) * W (L,l)
-            mma_AB(GX_flat, GY_flat, W_flat);  
+            // GX (n,l) += GY (n,L) * W (L,l)
+            mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
 
             // GA += GY (n,L)^T * X (n,l)
             mma_AtB(GW_flat, GY_flat, X_flat, GW_flat);
