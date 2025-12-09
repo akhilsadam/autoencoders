@@ -22,8 +22,8 @@ def _test_nn_basic_siren():
     
     f = lambda c: torch.stack(
         [
-            torch.sin(4*c[:,0]),# + 0.5*torch.cos(c[:,1]),
-            torch.sin(2*c[:,0] - 3*c[:,1]),# - 0.5*torch.cos(c[:,0] + 4*c[:,1]),
+            torch.sin(4*c[:,0]) + 0.5*torch.cos(c[:,1]),
+            torch.sin(2*c[:,0] - 3*c[:,1]) - 0.5*torch.cos(c[:,0] + 4*c[:,1]),
             torch.sin(-3*c[:,0] + c[:,1]) + 0.5
         ], dim=1
     )
@@ -38,7 +38,7 @@ def _test_nn_basic_siren():
         
     mem_pointer = 0
     mem_pointer = nn_siren.train(x, y, mem_pointer, 1) # warmup quirk
-    for i in range(10):
+    for i in range(100):
         # load new data too every iteration, technically
         
         t = time()
@@ -66,28 +66,30 @@ def _test_nn_basic_siren():
     # print("Signal after eval:", signal)
     # print(f"SNR: {10 * torch.log10(signal / error).item():.2f} dB")
     
-    
-    train_T = torch.tensor(train_T) / 100.0
-    eval_T = torch.tensor(eval_T) / 100.0
+    ms = 1000
+    train_T = ms * torch.tensor(train_T) / 100.0
+    eval_T = ms * torch.tensor(eval_T) / 100.0
     
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(1,4, figsize=(16,4))
     ax[0].hist(train_T, bins=50)
-    ax[0].set_title("Train [s] per Iteration")
+    ax[0].set_title("Train [ms] per 1K it")
+    ax[0].set_xlabel("Time [ms]")
     ax[0].set_ylabel("Count")
-    ax[1].set_xlabel("Time [s]")
+    ax[1].set_xlabel("Time [ms]")
     ax[1].hist(eval_T, bins=50)
-    ax[1].set_title("Eval [s] per Iteration")
-    ax[1].set_xlabel("Time [s]")
+    ax[1].set_title("Eval [ms] per 1K it")
+    ax[1].set_ylabel("Count")
+    ax[1].set_xlabel("Time [ms]")
     ax[2].plot(MSE_T)
     ax[2].set_ylabel("MSE")
     ax[2].set_xlabel("Iteration")
     ax[2].set_yscale("log")
-    ax[2].set_title("MSE over Iterations")
+    ax[2].set_title("MSE")
     ax[3].plot(SNR_T)
-    ax[3].set_ylabel("SNR (log10 (signal/error)) [dB]")
+    ax[3].set_ylabel(r"SNR $log_{10}(\frac{signal}{error})$ [dB]")
     ax[3].set_xlabel("Iteration")
-    ax[3].set_title("SNR over Iterations (dB)")
+    ax[3].set_title("SNR (dB)")
     plt.savefig("siren_performance.png")
     plt.close(fig)
     
