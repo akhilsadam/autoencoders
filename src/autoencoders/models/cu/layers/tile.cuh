@@ -125,6 +125,8 @@ using namespace kittens;
     struct CHW{
         static constexpr int32_t C = _C;
 
+        using TT = TileType;
+
         // static constexpr int32_t pack_factor = 2;
         static constexpr int2 Wp = {TileType::W.x, TileType::W.y}; // packed warp
 

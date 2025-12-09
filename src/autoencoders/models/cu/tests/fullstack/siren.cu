@@ -7,17 +7,19 @@ using namespace kittens;
 #include "loss.cuh"
 #include "opt.cuh"
 // #include "modules/scale.cuh"
-#include "modules/pixel_down.cuh"
+// #include "modules/pixel_down.cuh"
+#include "modules/chan.cuh"
 #include "util/bind_w_return.cuh"
 
 template<class L>
-using network = module_chain<L, SGD, ScaleModule>;
-// using network = module_chain<L, SGD, PixelDown>;
+using network = module_chain<L, SGD,
+ ModuleSpec<ChannelModuleBase, ChannelTransformBase<3>>
+>;
 
 using Loss = MSELoss;
 
 
-PYBIND11_MODULE(sanity, m) {
+PYBIND11_MODULE(siren, m) {
     m.doc() = "nn test python module";
     py::bind_function<basic_eval<network,Loss>>(m, "eval", &train_data::x, &train_data::y, &train_data::weight_mem_ptr, &train_data::iterations);
     py::bind_function_with_return<basic_train<network,Loss>>(m, "train", &train_data::x, &train_data::y, &train_data::weight_mem_ptr, &train_data::iterations);

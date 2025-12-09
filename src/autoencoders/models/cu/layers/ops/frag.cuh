@@ -23,6 +23,22 @@ __device__ static inline void frag_dot(ftype &dst, const T &A, const T &B) {
 }
 
 template<ducks::rt::all T> // T2, w, h can be inferred from dst as long as op is specialized
+__device__ static inline void frag_sum(ftype &dst, const T &A) {
+    #pragma unroll
+    for(int i = 0; i < A.height; i++) {
+        #pragma unroll
+        for(int j = 0; j < A.width; j++) {
+            #pragma unroll
+            for(int k = 0; k < A.packed_per_tile; k++) {
+                dst += A.tiles[i][j].data[k].x
+                     + A.tiles[i][j].data[k].y;
+            }
+        }
+    }
+}
+
+
+template<ducks::rt::all T> // T2, w, h can be inferred from dst as long as op is specialized
 __device__ static inline void debug_mult(T &A, const T &B, ftype &w) {
     if (threadIdx.x==0)
     {
@@ -74,31 +90,36 @@ template<int32_t c_in, int32_t k_in, ducks::rt::all T, ducks::rt::all U>
 __device__ static inline void cast_tile_to_flat(U &A_flat, const T (&A)[c_in]) {
 
     const int r = A[0].rows;
-    printf("Tile rows: %d\n", r);
+    const int c = A[0].cols;
+    const int elem = A[0].elements_per_thread;
         
-    const int y_tiles = A[0].height / k_in;
-    const int x_tiles = A[0].width / k_in;
+    const int y_tiles = r / k_in;
+    const int x_tiles = c / k_in;
+
+    // assuming A[0].height and A[0].width are both 1!
+    // assuming row major input (so last index is fastest, or pack)
 
     #pragma unroll
     for (int c = 0; c < c_in; ++c) {
-        #pragma unroll
-        for(int j = 0; j < A[0].height; j++) {
-            #pragma unroll
-            for(int i = 0; i < A[0].width; i++) {
-                // make 4x4 blocks from 16x16 input
+            
+        // #pragma unroll
+        // for(int k = 0; k < A[0].packed_per_tile; k++) {
 
-                int n = (j / k_in) * x_tiles + (i / k_in);
-                int l = c * k_in * k_in + (j % k_in) * k_in + (i % k_in);
+        //     auto q0 = blockDim.x * (k * 2) + threadIdx.x;
+        //     auto q1 = blockDim.x * (k * 2 + 1) + threadIdx.x; /// assuming all threads work coalesced
 
-                printf("n,l: %d,%d\n", n, l);
+        //     auto u = __float2bfloat16(A[c].tiles[0][0].data[k].x);
+        //     auto v = __float2bfloat16(A[c].tiles[0][0].data[k].y);
 
-                #pragma unroll
-                for(int k = 0; k < A[0].packed_per_tile; k++) {
-                    A_flat.tiles[n][l].data[k].x = __float2bfloat16(A[c].tiles[j][i].data[k].x);
-                    A_flat.tiles[n][l].data[k].y = __float2bfloat16(A[c].tiles[j][i].data[k].y);
-                }
-            }
-        }
+
+        //     int n = (j / k_in) * x_tiles + (i / k_in);
+        //     int l = c * k_in * k_in + (j % k_in) * k_in + (i % k_in);
+        //     printf("n,l: %d,%d\n", n, l);
+
+        //     // now warp sync to redistribute
+        //     A_flat.tiles[0][0].data[].x = 
+        //     A_flat.tiles[0][0].data[].y = 
+        // }
     }
 }
 
