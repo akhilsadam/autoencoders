@@ -52,6 +52,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         weight_mat = &al.template allocate<wtile_mat>();
         grad_weight_mat = &al.template allocate<wtile_mat, NUM_WORKERS>();
         // unfortunately, need one per warp...
+        if (warpid() == 0)
+            zero(weight_mat[0]);
     }
 
     __device__ __forceinline__
