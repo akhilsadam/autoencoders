@@ -1,6 +1,9 @@
 #include "kittens.cuh"
 using namespace kittens;
 
+#ifndef SCAN_CUH_INCLUDED
+#define SCAN_CUH_INCLUDED
+
 constexpr unsigned int warp_size = kittens::WARP_THREADS;
 constexpr unsigned int warp_size_p2 = 5;
 
@@ -147,3 +150,4 @@ __device__ __forceinline__ void atomic_store(T& refval, T& val) {
 } 
 
 // namespace scan
+#endif
