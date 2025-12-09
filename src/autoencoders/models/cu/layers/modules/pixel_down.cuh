@@ -104,8 +104,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // typename OUT::reg_wp Y;
         
         // ftype w = weight[0];
-        // rt<ftype,l_out,l_in> W_flat;
-        // load(W_flat, *weight_mat);
+        rt<ftype,l_out,l_in> W_flat;
+        load(W_flat, *weight_mat);
 
 
         if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
