@@ -88,7 +88,8 @@ struct SirenModuleBase : public module<_IN, Transform, Opt> {
                 load(X[c], this->x[0][ij.y][ij.x][c]);
             }
 
-            // Y = X * w
+            // A = X * w
+            // Y = sin(A)
             for (int oc = 0; oc < OUT::C; ++oc) 
             {
                 zero(Y[oc]);
@@ -117,7 +118,7 @@ struct SirenModuleBase : public module<_IN, Transform, Opt> {
     // ------------------ bwd() ----------------------
     __device__ __forceinline__ void bwd() {
         typename IN::reg_array GX, X;
-        typename OUT::reg_array GY;
+        typename OUT::reg_array GY, A;
 
         wmat w;
         wmat reg_grad_w;
@@ -141,10 +142,24 @@ struct SirenModuleBase : public module<_IN, Transform, Opt> {
             {
                 load(X[c], this->x[0][ij.y][ij.x][c]);
             }
+
+            // recompute fwd for activation values
+            // A = X * w
+            for (int oc = 0; oc < OUT::C; ++oc) 
+            {
+                zero(A[oc]);
+                for (int ic = 0; ic < IN::C; ++ic) 
+                {   
+                    // Y[oc] += X[ic] * w[oc][ic] + w[oc][IN::C]; // bias
+                    scalar_fma_map(A[oc], X[ic], w[oc][ic], A[oc]);
+                }
+                bin_map<base_ops::sum>(A[oc], A[oc], w[oc][IN::C]); // bias
+            }
+
             for (int c = 0; c < OUT::C; ++c)    
             {   
                 load(GY[c], this->grad_y[0][ij.y][ij.x][c]);
-                act_sine_bwd(GY[c], X[c], GY[c]); // inplace activation backward
+                act_sine_bwd(GY[c], A[c], GY[c]); // inplace activation backward
             }
 
             // GX = GY * W^T
