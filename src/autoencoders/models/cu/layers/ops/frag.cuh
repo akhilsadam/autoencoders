@@ -60,15 +60,6 @@ __device__ static inline void tile_to_flat(U &A_flat, const T (&A)[c_in]) {
                 int n = (j / k_in) * x_tiles + (i / k_in);
                 int l = c * k_in * k_in + (j % k_in) * k_in + (i % k_in);
 
-
-            if (threadIdx.x == 0 && blockIdx.x==0 && blockIdx.y==0 && blockIdx.z==0) {
-                printf("DEBUG dims: A.h=%d A.w=%d k_in=%d packed=%d\n",
-                    A[0].height, A[0].width, k_in, A[0].packed_per_tile);
-                if (yi < 0 || yi >= A[0].height|| xi < 0 || xi >= A[0].width) {
-                    printf("OUT OF RANGE debug indexes yi=%d xi=%d\n", yi, xi);
-                }
-            }
-
                 #pragma unroll
                 for(int k = 0; k < A[0].packed_per_tile; k++) {
                     A_flat.tiles[n][l].data[k].x = A[c].tiles[j][i].data[k].x;
@@ -96,6 +87,22 @@ __device__ static inline void cast_tile_to_flat(U &A_flat, const T (&A)[c_in]) {
                 int n = (j / k_in) * x_tiles + (i / k_in);
                 int l = c * k_in * k_in + (j % k_in) * k_in + (i % k_in);
 
+
+            if (threadIdx.x == 0 && blockIdx.x==0 && blockIdx.y==0 && blockIdx.z==0) {
+                printf("DEBUG dims: A.h=%d A.w=%d k_in=%d packed=%d\n",
+                    A[0].height, A[0].width, k_in, A[0].packed_per_tile);
+                if (yi < 0 || yi >= A[0].height|| xi < 0 || xi >= A[0].width) {
+                    printf("OUT OF RANGE debug indexes yi=%d xi=%d\n", yi, xi);
+                }
+            }
+
+            if (threadIdx.x==0 && blockIdx.x==0 && blockIdx.y==0 && blockIdx.z==0) {
+                int y_tiles = A[0].height / k_in;
+                int x_tiles = A[0].width / k_in;
+                printf("tile check: A.h=%d A.w=%d k_in=%d -> y_tiles=%d x_tiles=%d => product=%d (n_in=%d)\n",
+                    A[0].height, A[0].width, k_in, y_tiles, x_tiles, y_tiles*x_tiles, n_in);
+            }
+            
                 #pragma unroll
                 for(int k = 0; k < A[0].packed_per_tile; k++) {
                     A_flat.tiles[n][l].data[k].x = __float2bfloat16(A[c].tiles[j][i].data[k].x);
