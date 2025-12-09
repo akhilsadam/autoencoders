@@ -1,6 +1,8 @@
 #include "kittens.cuh"
 using namespace kittens;
 
+#include <cuda_fp16.h>
+
 // #include "ops/vectorization.cuh"
 // partial ops that need to be collected with a scan across the warp
 #ifndef FRAG_CUH_INCLUDED
@@ -89,8 +91,8 @@ __device__ static inline void cast_tile_to_flat(U &A_flat, const T (&A)[c_in]) {
 
                 #pragma unroll
                 for(int k = 0; k < A[0].packed_per_tile; k++) {
-                    A_flat.tiles[n][l].data[k].x = __bfloat162float(A[c].tiles[j][i].data[k].x);
-                    A_flat.tiles[n][l].data[k].y = __bfloat162float(A[c].tiles[j][i].data[k].y);
+                    A_flat.tiles[n][l].data[k].x = __float2bfloat16(A[c].tiles[j][i].data[k].x);
+                    A_flat.tiles[n][l].data[k].y = __float2bfloat16(A[c].tiles[j][i].data[k].y);
                 }
             }
         }
