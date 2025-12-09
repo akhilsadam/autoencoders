@@ -109,7 +109,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             {
                 load(X[c], this->x[0][ij.y][ij.x][c]);
             }
-            cast_tile_to_flat<smtype, IN::C, k_in>(X_flat, X);
+            cast_tile_to_flat<IN::C, k_in>(X_flat, X);
 
             // Y (n,L) <- X (n,l) * W (L,l)^T
             // row, row, row, row
@@ -165,8 +165,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
                 load(X[c], this->x[0][ij.y][ij.x][c]);
                 load(GY[c], this->grad_y[0][ij.y][ij.x][c]);
             }
-            cast_tile_to_flat<smtype, IN::C, k_in>(X_flat, X);
-            cast_tile_to_flat<smtype, IN::C, k_in>(GY_flat, GY);
+            cast_tile_to_flat<IN::C, k_in>(X_flat, X);
+            cast_tile_to_flat<IN::C, k_in>(GY_flat, GY);
 
             /////
             

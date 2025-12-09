@@ -70,7 +70,7 @@ __device__ static inline void tile_to_flat(U &A_flat, const T (&A)[c_in]) {
     }
 }
 
-template<typename Z, int32_t c_in, int32_t k_in, ducks::rt::all T, ducks::rt::all U>
+template<int32_t c_in, int32_t k_in, ducks::rt::all T, ducks::rt::all U>
 __device__ static inline void cast_tile_to_flat(U &A_flat, const T (&A)[c_in]) {
         
     const int y_tiles = A[0].height / k_in;
@@ -89,8 +89,8 @@ __device__ static inline void cast_tile_to_flat(U &A_flat, const T (&A)[c_in]) {
 
                 #pragma unroll
                 for(int k = 0; k < A[0].packed_per_tile; k++) {
-                    A_flat.tiles[n][l].data[k].x = static_cast<Z>(A[c].tiles[j][i].data[k].x);
-                    A_flat.tiles[n][l].data[k].y = static_cast<Z>(A[c].tiles[j][i].data[k].y);
+                    A_flat.tiles[n][l].data[k].x = convertor.template convert<smtype, ftype>(A[c].tiles[j][i].data[k].x);
+                    A_flat.tiles[n][l].data[k].y = convertor.template convert<smtype, ftype>(A[c].tiles[j][i].data[k].y);
                 }
             }
         }
