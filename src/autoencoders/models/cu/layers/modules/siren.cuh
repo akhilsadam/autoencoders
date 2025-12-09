@@ -41,26 +41,50 @@ struct SirenModuleBase : public module<_IN, Transform, Opt> {
         // syncthreads happens outside automatically
         weight = &shm_weight;
         grad_weight = &shm_grad_weight;
+
+        // zero weight init
+        if (threadIdx.x == 0)
+        {
+            for (int oc = 0; oc < OUT::C; ++oc) {
+                for (int ic = 0; ic < IN::C; ++ic) {
+                    weight[0][oc][ic] = 0.0f;
+                }
+                weight[0][oc][IN::C] = 0.0f; // bias
+            }
+
+            for (int oc = 0; oc < OUT::C; ++oc) {
+                weight[0][oc][oc] = 1.0f; // bias
+            }
+        }
+
     }
 
 
     __device__ __forceinline__
-    void __load_weights__(uint64_t mem_ptr) {
+    void __load_weights__(uint64_t mem_ptr) 
+    {
         // g_weight = reinterpret_cast<wgl*>(mem_ptr);
         // load(*weight, *g_weight, {0,0,0,0});
         g_weight = reinterpret_cast<wgl*>(mem_ptr);
-        for (int oc = 0; oc < OUT::C; ++oc) {
-            for (int ic = 0; ic < IN::C + 1; ++ic) {
-                weight[0][oc][ic] = (*g_weight)[oc][ic];
+        if (threadIdx.x == 0)
+        {
+            for (int oc = 0; oc < OUT::C; ++oc) {
+                for (int ic = 0; ic < IN::C + 1; ++ic) {
+                    weight[0][oc][ic] = (*g_weight)[oc][ic];
+                }
             }
         }
     }
 
     __device__ __forceinline__
-    void __save_weights__() {
-        for (int oc = 0; oc < OUT::C; ++oc) {
-            for (int ic = 0; ic < IN::C + 1; ++ic) {
-                (*g_weight)[oc][ic] = weight[0][oc][ic];
+    void __save_weights__() 
+    {
+        if (threadIdx.x == 0)
+        {
+            for (int oc = 0; oc < OUT::C; ++oc) {
+                for (int ic = 0; ic < IN::C + 1; ++ic) {
+                    (*g_weight)[oc][ic] = weight[0][oc][ic];
+                }
             }
         }
     }

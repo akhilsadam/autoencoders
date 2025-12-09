@@ -40,26 +40,36 @@ struct ChannelModuleBase : public module<_IN, Transform, Opt> {
     }
 
 
+
     __device__ __forceinline__
-    void __load_weights__(uint64_t mem_ptr) {
+    void __load_weights__(uint64_t mem_ptr)
+    {
         // g_weight = reinterpret_cast<wgl*>(mem_ptr);
         // load(*weight, *g_weight, {0,0,0,0});
         g_weight = reinterpret_cast<wgl*>(mem_ptr);
-        for (int oc = 0; oc < OUT::C; ++oc) {
-            for (int ic = 0; ic < IN::C + 1; ++ic) {
-                weight[0][oc][ic] = (*g_weight)[oc][ic];
+        if (threadIdx.x == 0)
+        {
+            for (int oc = 0; oc < OUT::C; ++oc) {
+                for (int ic = 0; ic < IN::C + 1; ++ic) {
+                    weight[0][oc][ic] = (*g_weight)[oc][ic];
+                }
             }
         }
     }
 
     __device__ __forceinline__
-    void __save_weights__() {
-        for (int oc = 0; oc < OUT::C; ++oc) {
-            for (int ic = 0; ic < IN::C + 1; ++ic) {
-                (*g_weight)[oc][ic] = weight[0][oc][ic];
+    void __save_weights__() 
+    {
+        if (threadIdx.x == 0)
+        {
+            for (int oc = 0; oc < OUT::C; ++oc) {
+                for (int ic = 0; ic < IN::C + 1; ++ic) {
+                    (*g_weight)[oc][ic] = weight[0][oc][ic];
+                }
             }
         }
     }
+
 
     // ------------------ fwd() ----------------------
     __device__ __forceinline__ void fwd() {
