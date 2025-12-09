@@ -194,7 +194,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             
             // GX (n,l) += GY (n,L) * W (L,l)
             // row, row, col, row
-            mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
+            // mma_AB(GX_flat, GY_flat, W_flat, GX_flat);  
 
             // // GA += GY (n,L)^T * X (n,l)
             // // row, col, col, row mismatch
