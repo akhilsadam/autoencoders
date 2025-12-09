@@ -142,8 +142,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         typename IN::reg_array GX, X;
         typename OUT::reg_array GY;
         rt<ftype, n_in, l_in> GX_flat;
-        rt<ftype, n_in, l_in> X_flat; // n,l layout
-        rt<ftype, n_out, l_out> GY_flat; // n,l layout
+        rt<smtype, n_in, l_in> X_flat; // n,l layout
+        rt<smtype, n_out, l_out> GY_flat; // n,l layout
 
         rt<ftype,l_out,l_in, ducks::rt_layout::col> W_flat;
         rt<ftype,l_out,l_in> GW_flat;
