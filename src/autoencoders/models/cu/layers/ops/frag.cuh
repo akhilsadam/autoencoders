@@ -208,5 +208,28 @@ __device__ static inline void aligned_store_to_gl(qtype* dst_ptr, const ST &src)
 }
 
 
+template<typename op, ducks::rt::all T>
+__device__ static inline void inplace_bin_map(const T &lhs, const T &rhs) {
+    #pragma unroll
+    for(int i = 0; i < dst.height; i++) {
+        #pragma unroll
+        for(int j = 0; j < dst.width; j++) {
+            #pragma unroll
+            for(int k = 0; k < dst.packed_per_tile; k++) {
+                op::template op<typename T::dtype>(lhs.tiles[i][j].data[k], rhs.tiles[i][j].data[k]);
+            }
+        }
+    }
+}
+
+template<typename op, ducks::rt::all R, ducks::st::all T>
+__device__ static inline void inplace_bin_map_st(const T &lhs, T &rhs) {
+    R l, r;
+    load(l, lhs);
+    load(r, rhs);
+    inplace_bin_map<op>(l, r);
+    store(lhs, l);
+}
+
 
 #endif // FRAG_CUH_INCLUDED

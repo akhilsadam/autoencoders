@@ -62,7 +62,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
 
         weight_mat = &al.template allocate<wtile_mat>();
-        grad_weight_mat = &al.template allocate<wtile_mat>();
+        grad_weight_mat = &al.template allocate<wtile_mat, NUM_WORKERS>();
+        // unfortunately, need one per warp...
 
 
     }
@@ -123,13 +124,6 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
             __syncwarp();
 
-            // for (int c = 0; c < IN::C; ++c) 
-            // {
-            //     load(X, this->x[0][ij.y][ij.x][c]);
-            //     bin_map<base_ops::mul>(Y, X, w);
-            //     store(this->y[0][ij.y][ij.x][c], Y);
-            //     __syncwarp();
-            // }
         }
         
     }
@@ -145,11 +139,11 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         rt<smtype, n_in, l_in, ducks::rt_layout::col> X_flat; // n,l layout
         rt<smtype, n_out, l_out> GY_flat; // n,l layout
         rt<smtype, n_out, l_out, ducks::rt_layout::col> GY_flat_col; // n,l layout
-        rt<smtype,l_out,l_in, ducks::rt_layout::col> W_flat;
+        rt<smtype, l_out, l_in, ducks::rt_layout::col> W_flat;
         load(W_flat, *weight_mat);
 
         rt<ftype, n_in, l_in> GX_flat;
-        rt<ftype,l_out,l_in> GW_flat;
+        rt<ftype, l_out, l_in> GW_flat;
         zero(GX_flat);
         zero(GW_flat);
 
@@ -193,19 +187,27 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         }
 
-        // accumulate gradient (parallel scan) across warps
-        // frag_collect collects fragments across lanes in a warp
-        // scan::frag_collect(reg_grad_w); 
-        // scan::atomic_store(grad_weight[0], reg_grad_w);
-
+        // accumulate gradient (TODO parallel scan) across warps
+        // for now serial + slow add 
+        store(grad_weight_mat[warpid()], GW_flat);
+        __syncthreads();
+        if (warpid() == 0) {
+            for (int w = 1; w < NUM_WORKERS; ++w)
+            {
+                add(grad_weight_mat[0], grad_weight_mat[0], grad_weight_mat[w]);
+            }
+        }
+        
         // if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
         // {
         //     printf("grad weight: %f\n", grad_weight[0]);
         //     // printf("N_in: %d, l_in: %d, N_out: %d, l_out: %d\n", n_in, l_in, n_out, l_out);
         // }
 
-        // // Apply SGD update 
-        // Opt::update(weight[0], grad_weight[0]);
+        // Apply SGD update 
+        if (warpid() == 0){
+            inplace_bin_map_st<Opt::update, rt<smtype, l_out, l_in>>(weight_mat[0], grad_weight_mat[0]);
+        }
     }
 };
 
