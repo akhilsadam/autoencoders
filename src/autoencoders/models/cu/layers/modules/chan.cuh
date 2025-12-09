@@ -19,7 +19,7 @@ struct ChannelModuleBase : public module<_IN, Transform, Opt> {
     wmat* weight;        // pointer to shared memory
     wmat* grad_weight;   // pointer to shared memory for gradient
 
-    static constexpr size_t weight_bytes = sizeof(ftype);
+    static constexpr size_t weight_bytes = sizeof(wmat);
 
     // ------------------ weights ----------------------
     template <typename T>
@@ -45,12 +45,20 @@ struct ChannelModuleBase : public module<_IN, Transform, Opt> {
         // g_weight = reinterpret_cast<wgl*>(mem_ptr);
         // load(*weight, *g_weight, {0,0,0,0});
         g_weight = reinterpret_cast<wgl*>(mem_ptr);
-        weight[0] = *g_weight;
+        for (int oc = 0; oc < OUT::C; ++oc) {
+            for (int ic = 0; ic < IN::C + 1; ++ic) {
+                weight[0][oc][ic] = (*g_weight)[oc][ic];
+            }
+        }
     }
 
     __device__ __forceinline__
     void __save_weights__() {
-        *g_weight = weight[0];
+        for (int oc = 0; oc < OUT::C; ++oc) {
+            for (int ic = 0; ic < IN::C + 1; ++ic) {
+                (*g_weight)[oc][ic] = weight[0][oc][ic];
+            }
+        }
     }
 
     // ------------------ fwd() ----------------------
