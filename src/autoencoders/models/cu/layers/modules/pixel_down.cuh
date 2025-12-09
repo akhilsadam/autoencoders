@@ -35,8 +35,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     // wtile* grad_weight;   // pointer to shared memory for gradient
 
 
-    using wtile_mat = st<ftype,l_out,l_in>;
-    ftype* g_weight_mat;          // pointer to global memory    
+    using wtile_mat = st<smtype,l_out,l_in>;
+    smtype* g_weight_mat;          // pointer to global memory    
     wtile_mat* weight_mat;        // pointer to shared memory
     wtile_mat* grad_weight_mat;   // pointer to shared memory for gradient
 
@@ -86,14 +86,14 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // }
 
         g_weight_mat = reinterpret_cast<ftype*>(mem_ptr);
-        aligned_load_to_st<l_in, wtile_mat>(weight_mat[0], g_weight_mat);
+        aligned_load_to_st<smtype, l_in, wtile_mat>(weight_mat[0], g_weight_mat);
 
     
     }
 
     __device__ __forceinline__
     void __save_weights__() {
-        aligned_store_to_gl<l_out, wtile_mat>(g_weight_mat, weight_mat[0]);
+        aligned_store_to_gl<smtype, l_out, wtile_mat>(g_weight_mat, weight_mat[0]);
     }
 
     // ------------------ fwd() ----------------------
@@ -111,7 +111,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         
         // ftype w = weight[0];
 
-        rt<ftype,l_out,l_in> W_flat;
+        rt<smtype,l_out,l_in> W_flat;
         load(W_flat, *weight_mat);
 
 
@@ -131,7 +131,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             {
                 load(X[c], this->x[0][ij.y][ij.x][c]);
             }
-            tile_to_flat<IN::C, k_in>(X_flat, X);
+            cast_tile_to_flat<IN::C, k_in>(X_flat, X);
 
             // Y (n,L) <- X (n,l) * W (L,l)^T
             // row, row, row, row
@@ -187,8 +187,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
                 load(X[c], this->x[0][ij.y][ij.x][c]);
                 load(GY[c], this->grad_y[0][ij.y][ij.x][c]);
             }
-            tile_to_flat<IN::C, k_in>(X_flat, X);
-            tile_to_flat<IN::C, k_in>(GY_flat, GY);
+            cast_tile_to_flat<IN::C, k_in>(X_flat, X);
+            cast_tile_to_flat<IN::C, k_in>(GY_flat, GY);
 
             /////
             
