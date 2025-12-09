@@ -227,7 +227,7 @@ __device__ static inline void inplace_bin_map_st(T &lhs, T &rhs) {
     R l, r;
     load(l, lhs);
     load(r, rhs);
-    inplace_bin_map<op>(l, r);
+    // inplace_bin_map<op>(l, r);
     store(lhs, l);
     store(rhs, r);
 }
