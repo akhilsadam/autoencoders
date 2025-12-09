@@ -76,10 +76,6 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         // g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
         // g_weight_mat[0].raw_ptr = reinterpret_cast<ftype*>(mem_ptr);
-
-        g_weight_mat = &make_gl<gl<ftype,1,1,l_out,l_in>>(
-            mem_ptr,
-            1, 1, l_out, l_in);
         
         
         // if (threadIdx.x == 0)
@@ -87,6 +83,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         //     printf("pointer %p %p -> %p\n", mem_ptr, g_weight_mat, weight_mat);
         // }
 
+        g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
         load(weight_mat[0], g_weight_mat[0], {0,0,0,0});
         if (threadIdx.x == 0)
         {
