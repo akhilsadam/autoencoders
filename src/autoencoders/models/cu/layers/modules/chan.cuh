@@ -87,7 +87,7 @@ struct ChannelModuleBase : public module<_IN, Transform, Opt> {
                     // Y[oc] += X[ic] * w[oc][ic] + w[oc][IN::C]; // bias
                     scalar_fma_map(Y[oc], X[ic], w[oc][ic], Y[oc]);
                 }
-                bin_map<base_ops::sum>(Y[oc], w[oc][IN::C]); // bias
+                bin_map<base_ops::sum>(Y[oc], Y[oc], w[oc][IN::C]); // bias
             }
   
 
