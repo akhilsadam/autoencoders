@@ -101,7 +101,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         typename IN::reg_array X;
         typename OUT::reg_array Y;
         rt<ftype, n_in, l_in> X_flat; // n,l layout
-        rt<ftype, n_out, l_out> Y_flat, ZY_flat; // n,l layout
+        rt<ftype, n_out, l_out> Y_flat;
+        rt<ftype, n_out, l_out> ZY_flat; // n,l layout
 
         zero(ZY_flat);
 
@@ -110,7 +111,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         
         // ftype w = weight[0];
 
-        rt<ftype,l_out,l_in> W_flat;
+        rt<ftype,l_out,l_in,ducks::rt_layout::col> W_flat;
         load(W_flat, *weight_mat);
 
 
@@ -161,10 +162,12 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         typename IN::reg_array GX, X;
         typename OUT::reg_array GY;
-        rt<ftype, n_in, l_in> GX_flat, X_flat; // n,l layout
+        rt<ftype, n_in, l_in> GX_flat;
+        rt<ftype, n_in, l_in, ducks::rt_layout::col> X_flat; // n,l layout
         rt<ftype, n_out, l_out> GY_flat; // n,l layout
 
-        rt<ftype,l_out,l_in> W_flat, GW_flat;
+        rt<ftype,l_out,l_in,ducks::rt_layout::col> W_flat;
+        rt<ftype,l_out,l_in> GW_flat;
         load(W_flat, *weight_mat);
 
         zero(GX_flat);
