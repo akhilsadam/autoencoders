@@ -89,8 +89,8 @@ __device__ static inline void cast_tile_to_flat(U &A_flat, const T (&A)[c_in]) {
 
                 #pragma unroll
                 for(int k = 0; k < A[0].packed_per_tile; k++) {
-                    A_flat.tiles[n][l].data[k].x = base_types::convertor.template convert<smtype, ftype>(A[c].tiles[j][i].data[k].x);
-                    A_flat.tiles[n][l].data[k].y = base_types::convertor.template convert<smtype, ftype>(A[c].tiles[j][i].data[k].y);
+                    A_flat.tiles[n][l].data[k].x = base_types::convertor<smtype, ftype>::convert(A[c].tiles[j][i].data[k].x);
+                    A_flat.tiles[n][l].data[k].y = base_types::convertor<smtype, ftype>::convert(A[c].tiles[j][i].data[k].y);
                 }
             }
         }
