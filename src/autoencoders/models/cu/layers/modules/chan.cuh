@@ -171,7 +171,7 @@ struct ChannelModuleBase : public module<_IN, Transform, Opt> {
             for (int ic = 0; ic < IN::C + 1; ++ic)
             {
                 scan::frag_collect(reg_grad_w[oc][ic]);
-                scan::atomic_store(grad_weight[0][oc][ic], reg_grad_w);
+                scan::atomic_store(grad_weight[0][oc][ic], reg_grad_w[oc][ic]);
                 // Apply SGD update
                 if(threadIdx.x == 0) 
                 {
