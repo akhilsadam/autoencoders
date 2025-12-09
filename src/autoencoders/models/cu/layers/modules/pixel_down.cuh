@@ -90,7 +90,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
     __device__ __forceinline__
     void __save_weights__() {
-        aligned_store_to_gl<l_out, ftype>(g_weight_mat, weight_mat[0]);
+        aligned_store_to_gl<l_out, wtile_mat>(g_weight_mat, weight_mat[0]);
     }
 
     // ------------------ fwd() ----------------------
