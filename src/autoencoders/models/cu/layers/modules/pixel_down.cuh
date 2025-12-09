@@ -36,9 +36,10 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
 
     using wtile_mat = st<smtype,l_out,l_in>;
+    using wmarray = wtile_mat[NUM_WORKERS];
     smtype* g_weight_mat;          // pointer to global memory    
     wtile_mat* weight_mat;        // pointer to shared memory
-    wtile_mat* grad_weight_mat[NUM_WORKERS];   // pointer to shared memory for gradient
+    wmarray* grad_weight_mat;   // pointer to shared memory for gradient
 
     // static constexpr uint32_t n_weights = 1;
     static constexpr uint32_t n_weights = (l_out * l_in);
@@ -189,12 +190,12 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         // accumulate gradient (TODO parallel scan) across warps
         // for now serial + slow add 
-        store(grad_weight_mat[warpid()], GW_flat);
+        store(grad_weight_mat[0][warpid()], GW_flat);
         __syncthreads();
         if (warpid() == 0) {
             for (int w = 1; w < NUM_WORKERS; ++w)
             {
-                add(grad_weight_mat[0], grad_weight_mat[0], grad_weight_mat[w]);
+                add(grad_weight_mat[0][0], grad_weight_mat[0][0], grad_weight_mat[0][w]);
             }
         }
         
@@ -206,7 +207,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         // Apply SGD update 
         if (warpid() == 0){
-            inplace_bin_map_st<Opt::update, rt<smtype, l_out, l_in>>(weight_mat[0], grad_weight_mat[0]);
+            inplace_bin_map_st<Opt::update, rt<smtype, l_out, l_in>>(weight_mat[0], grad_weight_mat[0][0]);
         }
     }
 };
