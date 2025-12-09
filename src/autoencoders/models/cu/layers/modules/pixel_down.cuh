@@ -123,13 +123,13 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
                     val_hat += __bfloat162float_rn(X_flat.tiles[yi][u].data[0].x * W_flat.tiles[xi][u].data[0].x);
                 }
 
-                printf("\n")
+                printf("\n");
                 for (int u=0; u < l_in; u++){
                     // float x_val = __bfloat162float_rn(X_flat.tiles[yi][u].data[0].x);
                     float w_val = __bfloat162float_rn(W_flat.tiles[xi][u].data[0].x);
                     printf("%f ", w_val);
                 }
-                printf("\n")
+                printf("\n");
                 float err = val_hat - Y_flat.tiles[yi][xi].data[0].x;
                 // if (abs(err) > 0.1f){
                     printf("FWD Mma err at y=%d,x=%d: %f (val_hat: %f, val: %f)\n", yi, xi, err, val_hat, Y_flat.tiles[yi][xi].data[0].x);
