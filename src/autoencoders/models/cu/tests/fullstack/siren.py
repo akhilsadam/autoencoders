@@ -7,6 +7,7 @@ from time import time
 from cu.compile import compile
 nn_siren = compile(
     kernel=os.path.join(os.path.dirname(__file__), "siren.cu"),
+    LEARNING_RATE=1e-4,
 )
 ##
 # compiled?
@@ -19,7 +20,7 @@ def _test_nn_basic_siren():
     
     f = lambda c: torch.stack(
         [
-            torch.sin(4*c[:,0] + 2*c[:,1]) + 0.5*torch.cos(3*c[:,0] - c[:,1]),
+            torch.sin(4*c[:,0]) + 0.5*torch.cos(c[:,1]),
             torch.sin(2*c[:,0] - 3*c[:,1]) - 0.5*torch.cos(c[:,0] + 4*c[:,1]),
             torch.sin(-3*c[:,0] + c[:,1]) + 0.5
         ], dim=1
@@ -70,12 +71,20 @@ def _test_nn_basic_siren():
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(1,4, figsize=(16,4))
     ax[0].hist(train_T, bins=50)
-    ax[0].set_title("Train Time per Iteration")
+    ax[0].set_title("Train [s] per Iteration")
+    ax[0].set_ylabel("Count")
+    ax[1].set_xlabel("Time [s]")
     ax[1].hist(eval_T, bins=50)
-    ax[1].set_title("Eval Time per Iteration")
+    ax[1].set_title("Eval [s] per Iteration")
+    ax[1].set_xlabel("Time [s]")
     ax[2].plot(MSE_T)
+    ax[2].set_ylabel("MSE")
+    ax[2].set_xlabel("Iteration")
+    ax[2].set_yscale("log")
     ax[2].set_title("MSE over Iterations")
     ax[3].plot(SNR_T)
+    ax[3].set_ylabel("SNR (log10 (signal/error)) [dB]")
+    ax[3].set_xlabel("Iteration")
     ax[3].set_title("SNR over Iterations (dB)")
     plt.savefig("siren_performance.png")
     plt.close(fig)
