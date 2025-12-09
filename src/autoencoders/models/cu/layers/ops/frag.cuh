@@ -99,6 +99,58 @@ __device__ static inline void flat_to_tile(T (&A)[c_in], const U &A_flat) {
 
 
 
+// template<ducks::rt::all A,  ducks::st::all T>
+// __device__ static inline void to_st(T &S, ftype &w) {
+//     constexpr int n = A.height * A.width
+
+//     // float4 loads
+//     constexpr int words = (A.packed_per_tile * 2 * sizeof(ftype) + sizeof(float4) - 1) / sizeof(float4);
+
+//     for (int u = threadIdx.x; u < A.height * A.width; u += blockDim.x) 
+//     {
+//         int j = u / A.width;
+//         int i = u % A.width;
+
+//         // load vectorized
+//         float4 vec_load[words] = {};
+
+//             #pragma unroll
+//             for(int k = 0; k < A.packed_per_tile; k++) 
+//             {
+//                 A.tiles[j][i].data[k].x = B.tiles[j][i].data[k].x * w;
+//                 A.tiles[j][i].data[k].y = B.tiles[j][i].data[k].y * w;
+//             }
+//     }
+// }
+
+
+template<ducks::st::all ST, int N_THREADS=kittens::WARP_THREADS>
+__device__ static inline void load_to_st(ST &dst, ftype* src_ptr) {
+
+    using T = typename ST::dtype;
+    const int row_stride = src.template stride<2>(); // axis is 2 by default
+    // we can handle this many rows each time we run a memcpy_async
+    constexpr int elem_per_memcpy = sizeof(float4)/sizeof(typename ST::dtype);
+    constexpr int memcpy_per_row = ST::cols / elem_per_memcpy;
+    constexpr int total_calls = (ST::height*ST::width * kittens::TILE_ROW_DIM<T>*kittens::TILE_COL_DIM<T> + N_THREADS*elem_per_memcpy-1) / (N_THREADS*elem_per_memcpy); // round up
+    constexpr int total_rows = ST::height*ST::width;
+
+    uint32_t dst_ptr = static_cast<uint32_t>(__cvta_generic_to_shared(&dst.data[0]));
+    int laneid = threadIdx.x % N_THREADS;
+
+    #pragma unroll
+    for(int i = 0; i < total_calls; i++) {
+
+        int load_idx = i * N_THREADS + laneid;
+        
+        int row = load_idx / memcpy_per_row;
+        int col = (load_idx*elem_per_memcpy) % dst.cols;
+
+        float4 tmp;
+        move<float4>::ldg(tmp, (float4*)&src_ptr[row*row_stride + col]);
+        move<float4>::sts(dst.idx(dst_ptr, {row, col}), tmp);
+    }
+}
 
 
 #endif // FRAG_CUH_INCLUDED

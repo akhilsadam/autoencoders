@@ -32,9 +32,8 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     // wtile* grad_weight;   // pointer to shared memory for gradient
 
 
-    using wgl_mat = gl<ftype,1,1,l_out,l_in>; // weight for matmul
     using wtile_mat = st<ftype,l_out,l_in>;
-    wgl_mat* g_weight_mat;        // pointer to global memory    
+    ftype* g_weight_mat;          // pointer to global memory    
     wtile_mat* weight_mat;        // pointer to shared memory
     wtile_mat* grad_weight_mat;   // pointer to shared memory for gradient
 
@@ -84,11 +83,9 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // }
 
         g_weight_mat = reinterpret_cast<wgl_mat*>(mem_ptr);
-        load(weight_mat[0], g_weight_mat[0], {0,0,0,0});
-        if (threadIdx.x == 0)
-        {
-            printf("loaded pointer %p -> %p\n", g_weight_mat, weight_mat);
-        }
+        load_to_st<wtile_mat>(weight_mat[0], g_weight_mat);
+
+    
     }
 
     __device__ __forceinline__
