@@ -100,12 +100,12 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
             // Y (n,L) = X (n,l) * W (L,l)^T
             // // row, row, row, row
-            // zero(Y_flat);
-            // zero(ZY_flat);
-            // mma_ABt(Y_flat, X_flat, W_flat, ZY_flat);  
+            zero(Y_flat);
+            zero(ZY_flat);
+            mma_ABt(Y_flat, X_flat, W_flat, ZY_flat);  
 
-            // flat_to_tile<OUT::C, k_out>(Y, Y_flat);  // Fixed: should use OUT::C and k_out
-            cast_flat_to_tile<OUT::C, k_out>(Y, X_flat);  // Fixed: should use OUT::C and k_out
+            flat_to_tile<OUT::C, k_out>(Y, Y_flat);  // Fixed: should use OUT::C and k_out
+            // cast_flat_to_tile<OUT::C, k_out>(Y, X_flat);  // Fixed: should use OUT::C and k_out
 
             for (int c = 0; c < OUT::C; ++c) 
             {

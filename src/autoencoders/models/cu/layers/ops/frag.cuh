@@ -87,6 +87,8 @@ __device__ static inline void cast_tile_to_flat(U &A_flat, const T (&A)[c_in]) {
                 int n = (j / k_in) * x_tiles + (i / k_in);
                 int l = c * k_in * k_in + (j % k_in) * k_in + (i % k_in);
 
+            printf("n,l: %d,%d\n", n, l);
+
 
             int xi = 3;
             int yi = 4;
