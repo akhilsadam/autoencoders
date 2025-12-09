@@ -85,7 +85,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         //     printf("pointer %p %p -> %p\n", mem_ptr, g_weight_mat, weight_mat);
         // }
 
-        g_weight_mat = reinterpret_cast<ftype*>(mem_ptr);
+        g_weight_mat = reinterpret_cast<smtype*>(mem_ptr);
         aligned_load_to_st<smtype, l_in, wtile_mat>(weight_mat[0], g_weight_mat);
 
     
@@ -101,18 +101,13 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         typename IN::reg_array X;
         typename OUT::reg_array Y;
         rt<smtype, n_in, l_in> X_flat; // n,l layout
-        rt<ftype, n_out, l_out> Y_flat;
-        rt<ftype, n_out, l_out> ZY_flat; // n,l layout
-
-        zero(ZY_flat);
-
-        // typename IN::reg_wp X;
-        // typename OUT::reg_wp Y;
-        
-        // ftype w = weight[0];
 
         rt<smtype,l_out,l_in> W_flat;
         load(W_flat, *weight_mat);
+
+        rt<ftype, n_out, l_out> Y_flat;
+        rt<ftype, n_out, l_out> ZY_flat; // n,l layout
+        zero(ZY_flat);
 
 
         if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0) 
