@@ -104,6 +104,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         // typename OUT::reg_wp Y;
         
         // ftype w = weight[0];
+
         rt<ftype,l_out,l_in> W_flat;
         load(W_flat, *weight_mat);
 
@@ -125,12 +126,11 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
                 load(X[c], this->x[0][ij.y][ij.x][c]);
             }
             tile_to_flat<IN::C, k_in>(X_flat, X);
-            
-            /////
-            // debug_mult(Y_flat, X_flat, w); // Y.data[i] = X.data[i] * w;
-            /////
 
-            flat_to_tile<IN::C, k_in>(Y, X_flat);
+            // Y (n,L) <- X (n,l) * W (L,l)^T
+            mma_ABt(Y_flat, X_flat, W_flat);  
+
+            flat_to_tile<IN::C, k_in>(Y, Y_flat);
             for (int c = 0; c < OUT::C; ++c) 
             {
                 store(this->y[0][ij.y][ij.x][c], Y[c]);
@@ -159,6 +159,10 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
         rt<ftype, n_in, l_in> GX_flat, X_flat; // n,l layout
         rt<ftype, n_out, l_out> GY_flat; // n,l layout
 
+        rt<ftype,l_out,l_in> W_flat, GW_flat;
+        zero(GW_flat);
+        load(W_flat, *weight_mat);
+
         // ftype w = weight[0];
         // ftype reg_grad_w = 0.0f;
 
@@ -176,16 +180,11 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
             /////
             
-            // both of these below ops are NaN producing (explodes) individually
-            // bin_map<base_ops::mul>(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
-            // frag_dot(reg_grad_w, GY_flat, X_flat); // reg_grad_w
+            // GX (n,l) <- GY (n,L) * W (L,l)
+            mma_AB(GX_flat, GY_flat, W_flat);  
 
-            // debug_mult(GX_flat, GY_flat, w); // GX.data[i] = GY.data[i] * w;
-            
-            // for (int c = 0; c < IN::C; ++c) 
-            // {
-            //     frag_dot(reg_grad_w, GY[c], X[c]);
-            // }
+            // GA += GY (n,L)^T * X (n,l)
+            mma_AtB(GW_flat, GY_flat, X_flat, GW_flat);
 
             /////
             flat_to_tile<IN::C, k_in>(GX, GX_flat);
