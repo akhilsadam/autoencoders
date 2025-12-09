@@ -119,7 +119,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
                 int xi = 3;
                 float val_hat = 0.0f;
                 for(int u=0; u < l_in; u++){
-                    val_hat += static_cast<float>(X_flat.tiles[0][u].data[0].x) * static_cast<float>(W_flat.tiles[ci * k_out * k_out + yi * k_out + xi][u].data[0].x);
+                    val_hat += __bf162float(X_flat.tiles[0][u].data[0].x) * __bf162float(W_flat.tiles[ci * k_out * k_out + yi * k_out + xi][u].data[0].x);
                 }
 
                 float err = val_hat - Y_flat.tiles[0][ci * k_out * k_out + yi * k_out + xi].data[0].x;
