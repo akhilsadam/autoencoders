@@ -38,7 +38,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     using wtile_mat = st<smtype,l_out,l_in>;
     smtype* g_weight_mat;          // pointer to global memory    
     wtile_mat* weight_mat;        // pointer to shared memory
-    wtile_mat* grad_weight_mat;   // pointer to shared memory for gradient
+    wtile_mat* grad_weight_mat[NUM_WORKERS];   // pointer to shared memory for gradient
 
     // static constexpr uint32_t n_weights = 1;
     static constexpr uint32_t n_weights = (l_out * l_in);
