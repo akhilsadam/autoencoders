@@ -13,10 +13,9 @@ nn_siren = compile(
 print("Network compiled:", nn_siren is not None)
 
 def _test_nn_basic_siren():
-    cx = torch.linspace(-1.0, 1.0, steps=32)
-    cy = torch.linspace(-1.0, 1.0, steps=32)
-    xv, yv = torch.meshgrid(cx, cy, indexing='ij')
-    x = torch.stack([xv, yv], dim=0).unsqueeze(0).cuda()  # Shape: (1, 2, 32, 32)
+    cx = torch.linspace(-1.0, 1.0, steps=32)[None, :].repeat(32, 1)
+    cy = torch.linspace(-1.0, 1.0, steps=32)[:, None].repeat(1, 32)
+    x = torch.stack([cx, cy, cx], dim=0).unsqueeze(0).cuda()  # Shape: (1, 2, 32, 32)
     
     f = lambda c: torch.sin(4*c[:,0] + 2*c[:,1]) + 0.5*torch.cos(3*c[:,0] - c[:,1])
     
