@@ -142,6 +142,33 @@ __device__ static inline void flat_to_tile(T (&A)[c_in], const U &A_flat) {
     }
 }
 
+template<int32_t c_in, int32_t k_in, ducks::rt::all T, ducks::rt::all U>
+__device__ static inline void cast_flat_to_tile(T (&A)[c_in], const U &A_flat) {
+        
+    const int y_tiles = A[0].height / k_in;
+    const int x_tiles = A[0].width / k_in;
+
+    #pragma unroll
+    for (int c = 0; c < c_in; ++c) {
+        #pragma unroll
+        for(int j = 0; j < A[0].height; j++) {
+            #pragma unroll
+            for(int i = 0; i < A[0].width; i++) {
+                // make 4x4 blocks from 16x16 input
+
+                int n = (j / k_in) * x_tiles + (i / k_in);
+                int l = c * k_in * k_in + (j % k_in) * k_in + (i % k_in);
+
+                #pragma unroll
+                for(int k = 0; k < A[0].packed_per_tile; k++) {
+                    A[c].tiles[j][i].data[k].x = __bfloat162float(A_flat.tiles[n][l].data[k].x);
+                    A[c].tiles[j][i].data[k].y = __bfloat162float(A_flat.tiles[n][l].data[k].y);
+                }
+            }
+        }
+    }
+}
+
 
 
 // template<ducks::rt::all A,  ducks::st::all T>

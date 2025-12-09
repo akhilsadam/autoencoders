@@ -104,7 +104,9 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
             // zero(ZY_flat);
             // mma_ABt(Y_flat, X_flat, W_flat, ZY_flat);  
 
-            flat_to_tile<OUT::C, k_out>(Y, X_flat);  // Fixed: should use OUT::C and k_out
+            // flat_to_tile<OUT::C, k_out>(Y, Y_flat);  // Fixed: should use OUT::C and k_out
+            cast_flat_to_tile<OUT::C, k_out>(Y, X_flat);  // Fixed: should use OUT::C and k_out
+
             for (int c = 0; c < OUT::C; ++c) 
             {
                 store(this->y[0][ij.y][ij.x][c], Y[c]);
