@@ -15,17 +15,21 @@ print("Network compiled:", nn_sanity is not None)
 def _test_nn_sanity():
         # return nn.train
         
-    x = torch.randn(1, 3, 32, 32).cuda()
-    y = x * 2.78
+
+    f = lambda x: x * 2.78
     yhat = torch.zeros_like(y)
         
     mem_pointer = 0
     mem_pointer = nn_sanity.train(x, y, mem_pointer, 1) # warmup quirk
     for i in range(100):
         # load new data too every iteration, technically
+        x = torch.randn(1, 3, 32, 32).cuda()
+        y = f(x)
         mem_pointer = nn_sanity.train(x, y, mem_pointer, 1000)
         # print("Mem pointer after training:", mem_pointer)
 
+    x = torch.randn(1, 3, 32, 32).cuda()
+    y = f(x)
     nn_sanity.eval(x, yhat, mem_pointer, 0)
     # print("Output after eval:", yhat)
     error = torch.mean((y - yhat) ** 2)
