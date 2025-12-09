@@ -207,7 +207,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
 
         // Apply SGD update 
         if (warpid() == 0){
-            inplace_bin_map_st<Opt::update, rt<smtype, l_out, l_in>>(weight_mat[0], grad_weight_mat[0][0]);
+            update_bin_map_st<Opt, rt<smtype, l_out, l_in>>(weight_mat[0], grad_weight_mat[0][0]);
         }
     }
 };

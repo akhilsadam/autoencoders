@@ -209,25 +209,25 @@ __device__ static inline void aligned_store_to_gl(qtype* dst_ptr, const ST &src)
 
 
 template<typename op, ducks::rt::all T>
-__device__ static inline void inplace_bin_map(T &lhs, T &rhs) {
+__device__ static inline void update_bin_map(T &lhs, T &rhs) {
     #pragma unroll
     for(int i = 0; i < lhs.height; i++) {
         #pragma unroll
         for(int j = 0; j < lhs.width; j++) {
             #pragma unroll
             for(int k = 0; k < lhs.packed_per_tile; k++) {
-                op::template op<typename T::dtype>(lhs.tiles[i][j].data[k], rhs.tiles[i][j].data[k]);
+                op::template update<typename T::dtype>(lhs.tiles[i][j].data[k], rhs.tiles[i][j].data[k]);
             }
         }
     }
 }
 
 template<typename op, ducks::rt::all R, ducks::st::all T>
-__device__ static inline void inplace_bin_map_st(T &lhs, T &rhs) {
+__device__ static inline void update_bin_map_st(T &lhs, T &rhs) {
     R l, r;
     load(l, lhs);
     load(r, rhs);
-    // inplace_bin_map<op>(l, r);
+    update_bin_map<op>(l, r);
     store(lhs, l);
     store(rhs, r);
 }
