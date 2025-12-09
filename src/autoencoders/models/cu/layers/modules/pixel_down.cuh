@@ -100,7 +100,7 @@ struct PixelDNModule : public module<_IN, Transform, Opt> {
     __device__ __forceinline__ void fwd() {
         typename IN::reg_array X;
         typename OUT::reg_array Y;
-        rt<ftype, n_in, l_in> X_flat; // n,l layout
+        rt<smtype, n_in, l_in> X_flat; // n,l layout
         rt<ftype, n_out, l_out> Y_flat;
         rt<ftype, n_out, l_out> ZY_flat; // n,l layout
 
