@@ -98,7 +98,7 @@ def _test_nn_basic_siren():
         eval_T.append(ms * evalT / s)
         
         fig,ax = plt.subplots(1,3, figsize=(12,4))
-        ax[0].imshow(x[0,:3].permute(1,2,0).cpu().numpy())
+        ax[0].imshow(g(x)[0,:3].permute(1,2,0).cpu().numpy())
         ax[0].set_title("Input")
         ax[1].imshow(y[0,:3].permute(1,2,0).cpu().numpy())
         ax[1].set_title("Target")
