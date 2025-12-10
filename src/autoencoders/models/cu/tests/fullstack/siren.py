@@ -121,7 +121,8 @@ def _test_nn_basic_siren():
 
     fig, ax = plt.subplots(1,3, figsize=(18,6))
     for i in range(len(Bs)):
-        x = Bs[i] * np.arange(N//b)
+        b = Bs[i]
+        x = (N//b) * np.arange(b)
         ax[0].plot(x, MSE[i], label=f"B={Bs[i]}")
     ax[0].set_title("MSE")
     ax[0].set_xlabel("iteration")
