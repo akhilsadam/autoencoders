@@ -43,9 +43,9 @@ def _test_nn_basic_siren():
     train_T = []
     eval_T = []
     MSE = []
-    Bs = [1, 10, 20, 50, 100, 200, 500]
+    Bs = [1, 10, 20, 50, 100, 200]
 
-    N = 100 * 1000
+    N = 1000 * 1000
     for b in Bs:
         s = N // b
         
@@ -139,6 +139,7 @@ def _test_nn_basic_siren():
     ax[1].legend()
     
     ax[2].plot(Bs, train_perc, label="Train %")
+    ax[2].set_xscale("log")
     ax[2].set_title("Train Time Percentage")
     ax[2].set_xlabel("Number of Batches")
     ax[2].set_ylabel("Percentage [%]")
