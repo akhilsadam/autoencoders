@@ -64,14 +64,17 @@ def _test_nn_basic_siren():
             q = torch.rand_like(x).cuda() * 2.0 - 1.0 # New random input
             xs = g(q)
             ys = f(q)      
+            torch.cuda.synchronize()
             t0 = time()
             dataT += (t0 - t)
             
             mem_pointer = nn_siren.train(xs, ys, mem_pointer, s)
+            torch.cuda.synchronize()
             t1 = time()
             trainT += (t1 - t0)
             
             nn_siren.eval(g(x), yhat, mem_pointer, 0)
+            torch.cuda.synchronize()
             t2 = time() - t1
             evalT += t2
             
