@@ -4,16 +4,16 @@ from torch import nn
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
-from cu.compile import compile
-nn_sanity = compile(
-    kernel=os.path.join(os.path.dirname(__file__), "sanity.cu"),
-)
-##
-# compiled?
-print("Network compiled:", nn_sanity is not None)
 
 def _test_nn_sanity():
         # return nn.train
+    from cu.compile import compile
+    nn_sanity = compile(
+        kernel=os.path.join(os.path.dirname(__file__), "sanity.cu"),
+    )
+    ##
+    # compiled?
+    print("Network compiled:", nn_sanity is not None)
         
 
     f = lambda x: x * 2.78
