@@ -15,7 +15,7 @@ def _test_nn_sanity():
     # compiled?
     print("Network compiled:", nn_sanity is not None)
         
-    nx = 64
+    nx = 32
 
     f = lambda x: x * 2.78
     x = torch.randn(1, 3, nx, nx).cuda()
