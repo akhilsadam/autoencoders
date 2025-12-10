@@ -19,8 +19,9 @@ print("Network compiled:", nn_siren is not None)
 
 
 def _test_nn_basic_siren():
-    cx = torch.linspace(-1.0, 1.0, steps=32)[None, :].repeat(32, 1)
-    cy = torch.linspace(-1.0, 1.0, steps=32)[:, None].repeat(1, 32)
+    nx = 64
+    cx = torch.linspace(-1.0, 1.0, steps=nx)[None, :].repeat(nx, 1)
+    cy = torch.linspace(-1.0, 1.0, steps=nx)[:, None].repeat(1, nx)
     x = torch.stack([cx, cy], dim=0).unsqueeze(0).cuda()  # Shape: (1, 2, 32, 32)
     g = lambda c: torch.stack(
         [c[:,0], c[:,1], c[:,0]], dim=1)
@@ -147,7 +148,7 @@ def _test_nn_basic_siren():
     ax[2].set_xlabel("Number of Batches")
     ax[2].set_ylabel("Percentage [%]")
     
-    plt.savefig("siren_performance.png")
+    plt.savefig("siren_vary_batch.png")
     plt.close(fig)
         
 # def _test_nn_basic_siren():
