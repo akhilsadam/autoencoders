@@ -8,7 +8,6 @@ os.environ['CC'] = 'gcc'
 os.environ['CXX'] = 'g++'
 os.environ['TRITON_BACKEND'] = 'cuda'
 # important for helion (else finds nvc, not nvcc)
-
 # Workaround for CUDA issues 
 
 
@@ -189,4 +188,5 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
+    print("Torch version:", torch.__version__)
     main()

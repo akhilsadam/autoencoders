@@ -7,6 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AUTOENCODERS_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 PACKAGES_DIR="${AUTOENCODERS_ROOT}/packages"
 PYTHON_PATH="${1}"
+FORCE_REINSTALL="${2:-false}"
 
 # Convert relative path to absolute if needed
 if [[ ! "$PYTHON_PATH" = /* ]]; then
@@ -24,7 +25,12 @@ while read -r name url; do
         echo "📦 Installing ${name}..."
         cd "${PACKAGES_DIR}/${name}" && uv pip install -e . --python "${PYTHON_PATH}"
     else
-        echo "✓ ${name} already exists (skipping)"
+        echo "✓ ${name} already exists, pulling latest..."
+        cd "${PACKAGES_DIR}/${name}" && git pull
+        if [ "$FORCE_REINSTALL" = "true" ]; then
+            echo "📦 Reinstalling ${name}..."
+            uv pip install -e . --python "${PYTHON_PATH}"
+        fi
     fi
 done < "${SCRIPT_DIR}/package_requirements.txt"
 

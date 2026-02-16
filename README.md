@@ -16,6 +16,8 @@ Also set your data cache directory in bashrc or equivalent:
 export AUTOENCODERS_DATA_ROOT=/path/to/cache
 ```
 
+Finally, if you get CUDA errors, check that you are in the correct venv (or reload just in case).
+
 Note HuggingFace is only needed for special models and datasets.
 Occasionally, `make install` may not install all the requirements. To manually install, source the venv and run:
 
