@@ -10,6 +10,12 @@
     huggingface-cli login
     ```
 
+Also set your data cache directory in bashrc or equivalent:
+
+```bash
+export AUTOENCODERS_DATA_ROOT=/path/to/cache
+```
+
 Note HuggingFace is only needed for special models and datasets.
 Occasionally, `make install` may not install all the requirements. To manually install, source the venv and run:
 

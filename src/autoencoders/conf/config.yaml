@@ -6,7 +6,7 @@ defaults:
 seed: 42
 
 paths:
-  data_root: ${oc.env:DATA_ROOT, ./data}
+  data_root: ${oc.env:AUTOENCODERS_DATA_ROOT, ./data}
   artifacts_root: ${hydra:run.dir}/artifacts
 
 run:
