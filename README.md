@@ -31,3 +31,9 @@ Note if you are running on Engaging, there is a CUDA 13 mismatch that may requir
     ```bash
     source src/install/cuda-13-compat.sh
     ```
+
+And their FFMPEG doesn't have libx264 so we build our own:
+
+    ```bash
+    source src/install/ffmpeg-libx264-compat.sh
+    ```
