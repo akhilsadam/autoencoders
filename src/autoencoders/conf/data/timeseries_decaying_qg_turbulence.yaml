@@ -1,0 +1,23 @@
+name: timeseries_decaying_qg_turbulence
+
+params:
+  root: ${paths.data_root}/timeseries_decaying_qg_turbulence
+  batch_size: 32
+  num_workers: 4
+  seed: ${seed}
+  version: 1
+  
+  # QG simulation parameters
+  img_size: 256
+  sim_batch: 1
+  sim_time: 60.0
+  sim_steps: 100
+  dt: 0.001
+  data_wavenumbers: [10.0, 32.0]
+  
+  # Time series parameters
+  train_memory_length: 20
+  train_predict_length: 20
+  test_memory_length: 20
+  test_predict_length: 20
+  downsample_factor: 1

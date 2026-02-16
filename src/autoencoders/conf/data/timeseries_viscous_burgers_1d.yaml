@@ -1,0 +1,19 @@
+name: timeseries_viscous_burgers_1d
+
+params:
+  root: ${paths.data_root}/timeseries_viscous_burgers_1d
+  batch_size: 32
+  num_workers: 4
+  seed: ${seed}
+  version: 1
+  
+  # Physics parameters
+  Re: 1000.0      # Reynolds number
+  T: 6.0          # Total simulation time
+  
+  # Time series parameters
+  train_memory_length: 20
+  train_predict_length: 20
+  test_memory_length: 20
+  test_predict_length: 20
+  downsample_factor: 1

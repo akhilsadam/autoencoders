@@ -1,0 +1,21 @@
+name: timeseries_delay_2d
+
+params:
+  root: ${paths.data_root}/timeseries_delay_2d
+  batch_size: 32
+  num_workers: 4
+  seed: ${seed}
+  version: 1
+  
+  # System parameters
+  w: 256          # Grid width
+  T: 25.0         # Total simulation time
+  R: 0.8          # Rotation parameter
+  c: 0.2          # Convection parameter
+  
+  # Time series parameters
+  train_memory_length: 20
+  train_predict_length: 20
+  test_memory_length: 20
+  test_predict_length: 20
+  downsample_factor: 1
