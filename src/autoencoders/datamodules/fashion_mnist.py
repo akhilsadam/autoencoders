@@ -6,9 +6,8 @@ from pathlib import Path
 from typing import Tuple
 
 import torch
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import datasets, transforms
-
 
 @dataclass
 class FashionMNISTConfig:
@@ -33,7 +32,7 @@ def build_dataloaders(cfg: FashionMNISTConfig) -> Tuple[DataLoader, DataLoader]:
     train_dataset, val_dataset = random_split(
         dataset, [len(dataset) - val_split, val_split], generator=generator
     )
-
+    
     train_loader = DataLoader(
         train_dataset,
         batch_size=cfg.batch_size,

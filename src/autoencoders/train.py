@@ -18,7 +18,6 @@ import pytorch_lightning as pl
 import torch
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
-from pytorch_lightning.loggers import WandbLogger
 from torchvision.utils import save_image
 import wandb
 
@@ -26,9 +25,17 @@ from . import get_default_config, get_model
 from .data import build_dataloaders
 os.environ.setdefault("WANDB_MODE", "online")
 
-from .util import sec_id # sec_id resolver registration (OmegaConf)
-from .util import gitinfo # gitinfo resolver registration (OmegaConf)
-from .trainer import create_trainer
+# Use Mura's Hydra utilities (replaces custom util.sec_id and util.gitinfo)
+from mura.hydra import (
+    register_resolvers,
+    compute_git_info,
+    EnhancedGitCallback,
+    create_wandb_logger,
+    create_trainer_with_defaults,
+)
+
+# Register Mura resolvers (gitinfo, sec_id)
+register_resolvers()
 
 # torch.set_float32_matmul_precision('high') # obsolete
 torch.backends.cudnn.conv.fp32_precision = 'tf32'
@@ -44,20 +51,27 @@ def _prepare_model(cfg: DictConfig) -> pl.LightningModule:
     return get_model(cfg.model.name, params)
 
 
-def _create_logger(cfg: DictConfig) -> WandbLogger:
-    wandb_cfg = OmegaConf.to_container(cfg.wandb, resolve=True)
-    kwargs = {k: v for k, v in wandb_cfg.items() if v not in (None, "")}
-    
-    # add data and model name to run_name and tags
+def _create_logger(cfg: DictConfig) -> pl.loggers.Logger:
+    """Create WandB logger using Mura utilities."""
+    # Add data and model name to run_name and tags
     cfg.run.name = f"{cfg.data.name}-{cfg.model.name}-{cfg.run.get('name','')}"
     if "tags" in cfg.run and isinstance(cfg.run.tags, list):
         cfg.run.tags = cfg.run.tags + [cfg.data.name, cfg.model.name]
     
-    kwargs['name'] = cfg.run.name
-    kwargs['tags'] = cfg.run.tags
-
-    logger = WandbLogger(**kwargs, log_model=False)
-    logger.experiment.config.update(OmegaConf.to_container(cfg, resolve=True, enum_to_str=True))    
+    # Update wandb config with run name/tags
+    cfg.wandb.name = cfg.run.name
+    cfg.wandb.tags = cfg.run.tags
+    
+    # Use Mura's logger factory with git info
+    git_info = compute_git_info()
+    logger = create_wandb_logger(
+        cfg.wandb,
+        git_info=git_info,
+        version_id=cfg.git.get('short_msg', 'unknown')
+    )
+    
+    # Log full config
+    logger.experiment.config.update(OmegaConf.to_container(cfg, resolve=True, enum_to_str=True))
     return logger
 
 
@@ -84,9 +98,15 @@ def _save_reconstructions(model: pl.LightningModule, dataloader: torch.utils.dat
 
 def _save_info_files(cfg: DictConfig, output_dir: str) -> None:
     """Save config and git info to output directory."""
+    # Save original config with interpolations
     cfg_path = os.path.join(output_dir, "config.yaml")
     with open(cfg_path, "w") as f:
         f.write(OmegaConf.to_yaml(cfg))
+    
+    # Save resolved config with all values expanded
+    cfg_resolved_path = os.path.join(output_dir, "config_resolved.yaml")
+    with open(cfg_resolved_path, "w") as f:
+        f.write(OmegaConf.to_yaml(cfg, resolve=True))
         
     repo = Repo(search_parent_directories=True)
     if repo.is_dirty():
@@ -131,8 +151,7 @@ def main(cfg: DictConfig) -> None:
     
     model = _prepare_model(cfg)
     logger = _create_logger(cfg)
-    logger.experiment.config["git_sha"] = cfg.git.sha
-    logger.experiment.config["git_dirty"] = cfg.git.dirty
+    # Git info is already set by Mura's create_wandb_logger
     print(f"Git SHA: {cfg.git.sha}, Dirty: {cfg.git.dirty}")
     
     dirs = _artifact_dirs(cfg)
@@ -150,8 +169,13 @@ def main(cfg: DictConfig) -> None:
         auto_insert_metric_name=False,
     )
     lr_cb = LearningRateMonitor(logging_interval="epoch")
+    git_cb = EnhancedGitCallback()  # Mura's enhanced git tracking
 
-    trainer = create_trainer(cfg.trainer, logger=logger, callbacks=[checkpoint_cb, lr_cb])
+    trainer = create_trainer_with_defaults(
+        cfg.trainer,
+        logger=logger,
+        callbacks=[checkpoint_cb, lr_cb, git_cb]
+    )
 
     trainer.fit(model, train_loader, val_loader)
     trainer.save_checkpoint(os.path.join(dirs["checkpoints"], "last.ckpt"))

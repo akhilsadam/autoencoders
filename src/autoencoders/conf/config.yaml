@@ -14,7 +14,7 @@ run:
   tags: [autoencoder, baseline]
 
 wandb:
-  project: autoencoder-dev
+  project: ml-dev
   entity: null
   group: hydra
   mode: online

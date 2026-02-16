@@ -23,8 +23,14 @@ hydra-core
 datasets
 pybind11
 helion
+nvidia-ml-py
 # for change tracking with LLMs
 packaging
 transformers 
 accelerate
 # mamba-ssm[causal-conv1d]
+
+# Local packages (install with -e from parent ml directory)
+# These should be installed separately before autoencoders
+# mura @ file://../mura
+# qg @ file://../qg

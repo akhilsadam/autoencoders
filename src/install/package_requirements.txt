@@ -1,0 +1,5 @@
+# External package requirements
+# Format: repo_name git@github.com:user/repo.git
+
+mura git@github.com:akhilsadam/mura.git
+qg git@github.com:akhilsadam/qg.git

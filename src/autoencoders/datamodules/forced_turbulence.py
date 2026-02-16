@@ -1,0 +1,186 @@
+"""Data utilities for forced QG turbulence."""
+from __future__ import annotations
+
+import os
+import hashlib
+import json
+from dataclasses import dataclass, asdict
+from pathlib import Path
+from typing import Tuple
+from datetime import datetime
+
+import torch
+import numpy as np
+from torch.utils.data import DataLoader, Dataset, random_split, TensorDataset
+from omegaconf import OmegaConf
+
+
+class _TensorDatasetNoTuple(Dataset):
+    """Wrapper that returns tensors directly without wrapping in tuples."""
+    def __init__(self, tensor):
+        self.tensor = tensor
+    
+    def __len__(self):
+        return len(self.tensor)
+    
+    def __getitem__(self, idx):
+        return self.tensor[idx]
+
+
+@dataclass
+class ForcedTurbulenceConfig:
+    """Configuration for forced QG turbulence dataloaders."""
+    root: str
+    Lx: float = 2 * np.pi
+    Ly: float = 2 * np.pi
+    grid_size: int = 128
+    num_samples: int = 100
+    time_steps: int = 200
+    save_rate: int = 10
+    dt: float = 0.001
+    spinup_frames: int = 50  # Number of initial frames to skip
+    
+    # Physics parameters (from forced_turbulence scenario)
+    mu: float = 0.02       # Linear drag
+    nu: float = 1.025e-4   # Viscosity
+    B: float = 1.0         # Beta plane
+    ic_energy: float = 0.0
+    ic_wavenumbers: Tuple[float, float] = (3.0, 5.0)
+    
+    # Forcing parameters
+    forcing_A: float = -0.1
+    forcing_B: float = 2.0
+    forcing_C: float = 0.0
+    forcing_D: float = 0.1
+    forcing_E: float = 2.0
+    forcing_F: float = 0.0
+    
+    batch_size: int = 32
+    num_workers: int = 4
+    val_split: int = 20
+    seed: int = 42
+    version: int = 1
+
+
+def _get_version_hash(cfg: ForcedTurbulenceConfig) -> str:
+    """Generate hash of config parameters for versioning."""
+    config_dict = asdict(cfg)
+    # Exclude paths and non-physics parameters
+    exclude_keys = {'root', 'batch_size', 'num_workers', 'seed', 'version', 'val_split'}
+    physics_dict = {k: v for k, v in config_dict.items() if k not in exclude_keys}
+    config_str = json.dumps(physics_dict, sort_keys=True)
+    return hashlib.md5(config_str.encode()).hexdigest()[:8]
+
+
+def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoader]:
+    """Build train and validation dataloaders for forced turbulence."""
+    from hydra import compose, initialize_config_dir
+    from hydra.core.global_hydra import GlobalHydra
+    from qg import QG
+    
+    # Create versioned cache directory
+    version_hash = _get_version_hash(cfg)
+    timestamp = datetime.now().strftime('%Y%m%d')
+    version_dir = f"v{cfg.version}_{timestamp}_{version_hash}"
+    cache_path = os.path.join(cfg.root, version_dir)
+    os.makedirs(cache_path, exist_ok=True)
+    
+    # Save config for reproducibility
+    config_path = os.path.join(cache_path, 'config.yaml')
+    if not os.path.exists(config_path):
+        with open(config_path, 'w') as f:
+            OmegaConf.save(cfg, f)
+    
+    save_path = os.path.join(cache_path, 'forced_turbulence_data.npy')
+    
+    def generate_data():
+        """Generate forced turbulence dataset using QG solver."""
+        # Initialize QG config from forced_turbulence scenario
+        qg_config_dir = Path(__file__).parents[3] / "packages" / "qg" / "src" / "qg" / "conf"
+        
+        # Clear GlobalHydra if already initialized
+        GlobalHydra.instance().clear()
+        
+        with initialize_config_dir(version_base='1.3', config_dir=str(qg_config_dir)):
+            qg_cfg = compose(config_name='config', overrides=['scenario=forced_turbulence'])
+            
+            # Override with our parameters
+            qg_cfg.qg.grid.Nx = cfg.grid_size
+            qg_cfg.qg.grid.Ny = cfg.grid_size
+            qg_cfg.qg.grid.Lx = cfg.Lx
+            qg_cfg.qg.grid.Ly = cfg.Ly
+            qg_cfg.qg.time.dt = cfg.dt
+            qg_cfg.qg.time.save_rate = cfg.save_rate
+            qg_cfg.qg.time.T = cfg.time_steps * cfg.dt
+            qg_cfg.qg.ic.n_batch = cfg.num_samples
+            qg_cfg.qg.ic.energy = cfg.ic_energy
+            qg_cfg.qg.ic.wavenumbers = list(cfg.ic_wavenumbers)
+            qg_cfg.qg.pde.mu = cfg.mu
+            qg_cfg.qg.pde.nu = cfg.nu
+            qg_cfg.qg.pde.B = cfg.B
+            qg_cfg.qg.forcing.A = cfg.forcing_A
+            qg_cfg.qg.forcing.B = cfg.forcing_B
+            qg_cfg.qg.forcing.C = cfg.forcing_C
+            qg_cfg.qg.forcing.D = cfg.forcing_D
+            qg_cfg.qg.forcing.E = cfg.forcing_E
+            qg_cfg.qg.forcing.F = cfg.forcing_F
+            
+            # Don't pass logger - let QG use default
+            qg_solver = QG(qg_cfg.qg)
+            # Run simulation with visualization - saves videos and plots
+            result = qg_solver.solve(
+                save_path=cache_path,
+                name='forced_turbulence',
+                clamp=0.3
+            )
+            
+            # Skip spinup period and take all remaining frames
+            # result shape: [batch, time, channels, H, W]
+            vorticity = result[:, cfg.spinup_frames:, 0:1, :, :]  # [batch, time-spinup, 1, H, W]
+            
+            # Reshape to treat each timestep as a separate sample
+            # [batch, time-spinup, 1, H, W] -> [batch*(time-spinup), 1, H, W]
+            batch_size, n_frames, channels, height, width = vorticity.shape
+            vorticity = vorticity.reshape(batch_size * n_frames, channels, height, width)
+            
+            np.save(save_path, vorticity.cpu().numpy())
+            return vorticity
+        
+        # Re-initialize the original Hydra context after generating data
+        GlobalHydra.instance().clear()
+    
+    # Load or generate data
+    if not os.path.exists(save_path):
+        dataset_tensor = generate_data()
+    else:
+        dataset_tensor = torch.from_numpy(np.load(save_path)).to(torch.float32)
+    
+    dataset = TensorDataset(dataset_tensor)
+            
+    # Split into train and validation
+    val_split = cfg.val_split
+    if val_split >= len(dataset):
+        raise ValueError("Validation split must be smaller than dataset size")
+    
+    generator = torch.Generator().manual_seed(cfg.seed)
+    train_dataset, val_dataset = random_split(
+        dataset, [len(dataset) - val_split, val_split], generator=generator
+    )
+    
+    # Create dataloaders
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=cfg.batch_size,
+        shuffle=True,
+        num_workers=cfg.num_workers,
+        pin_memory=True,
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=cfg.batch_size,
+        shuffle=False,
+        num_workers=cfg.num_workers,
+        pin_memory=True,
+    )
+    
+    return train_loader, val_loader

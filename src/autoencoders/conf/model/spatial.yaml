@@ -1,0 +1,8 @@
+name: spatial
+params:
+  in_channels: 1
+  lift_steps: 3
+  encode_layers: 3
+  patch_size: 16
+  factor: 2
+  learning_rate: 1e-4

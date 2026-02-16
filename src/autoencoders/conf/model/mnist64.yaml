@@ -1,5 +1,5 @@
 name: mnist
 params:
-  img_size: 28
+  img_size: 64
   latent_dim: 32
   learning_rate: 1e-3

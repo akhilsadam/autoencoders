@@ -1,7 +1,7 @@
 [project]
 name = "autoencoders"
-version = "0.1.0"
-description = ""
+version = "0.2.0"
+description = "Autoencoders with QG dataset generation and Mura utilities"
 authors = [
     {name = "Akhil Sadam", email = "sadam.akhil@gmail.com"}
 ]

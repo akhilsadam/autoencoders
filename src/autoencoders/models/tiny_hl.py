@@ -79,9 +79,9 @@ class TinyHLAutoencoder(pl.LightningModule):
             nn.Linear(latent_dim, 32 * 7 * 7),
             nn.Unflatten(1, (32, 7, 7)),
             ReLU(),
-            nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, y_padding=1),
+            nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, output_padding=1),
             ReLU(),
-            nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, y_padding=1),
+            nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, output_padding=1),
             nn.Sigmoid(),
         )
         self.criterion = nn.MSELoss()

@@ -13,6 +13,7 @@ from torch import nn
 @dataclass
 class Config:
     """Default hyperparameters for autoencoder."""
+    
     latent_dim: int = 32
     learning_rate: float = 1e-3
 
@@ -25,6 +26,7 @@ class MNISTAutoencoder(pl.LightningModule):
     
         latent_dim = config['latent_dim']
         self.learning_rate = config['learning_rate']
+        p4 = config.get('img_size', 28) // 4  # Assuming input images are 28x28, adjust if different
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=2, padding=1),
@@ -32,12 +34,12 @@ class MNISTAutoencoder(pl.LightningModule):
             nn.Conv2d(16, 32, 3, stride=2, padding=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(32 * 7 * 7, latent_dim),
+            nn.Linear(32 * p4 * p4, latent_dim),
         )
         self.decoder = nn.Sequential(
-            nn.Linear(latent_dim, 32 * 7 * 7),
+            nn.Linear(latent_dim, 32 * p4 * p4),
             nn.ReLU(),
-            nn.Unflatten(1, (32, 7, 7)),
+            nn.Unflatten(1, (32, p4, p4)),
             nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, output_padding=1),
             nn.ReLU(),
             nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, output_padding=1),
@@ -49,15 +51,15 @@ class MNISTAutoencoder(pl.LightningModule):
         z = self.encoder(x)
         return self.decoder(z)
 
-    def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], _: int) -> torch.Tensor:
-        x, _ = batch
+    def training_step(self, batch: torch.Tensor, _: int) -> torch.Tensor:
+        x = batch[0] # allows for possibly more (y)
         x_hat = self.forward(x)
         loss = self.criterion(x_hat, x)
         self.log("train_loss", loss, prog_bar=True)
         return loss
 
-    def validation_step(self, batch: Tuple[torch.Tensor, torch.Tensor], _: int) -> None:
-        x, _ = batch
+    def validation_step(self, batch: torch.Tensor, _: int) -> None:
+        x = batch[0]
         x_hat = self.forward(x)
         val_loss = self.criterion(x_hat, x)
         self.log("val_loss", val_loss, prog_bar=True)
