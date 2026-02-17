@@ -74,10 +74,6 @@ def _get_version_hash(cfg: ForcedTurbulenceConfig) -> str:
 
 def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoader]:
     """Build train and validation dataloaders for forced turbulence."""
-    from hydra import compose, initialize_config_dir
-    from hydra.core.global_hydra import GlobalHydra
-    from qg import QG
-    
     # Create versioned cache directory
     version_hash = _get_version_hash(cfg)
     timestamp = datetime.now().strftime('%Y%m%d')
@@ -95,6 +91,11 @@ def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoad
     
     def generate_data():
         """Generate forced turbulence dataset using QG solver."""
+        # Import only when generating (slow on network filesystem)
+        from hydra import compose, initialize_config_dir
+        from hydra.core.global_hydra import GlobalHydra
+        from qg import QG
+        
         # Initialize QG config from forced_turbulence scenario
         qg_config_dir = Path(__file__).parents[3] / "packages" / "qg" / "src" / "qg" / "conf"
         
