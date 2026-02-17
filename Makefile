@@ -68,7 +68,7 @@ train-mnist: install
 		data=fashion_mnist \
 		model=mnist \
 		trainer.accelerator=cpu \
-		trainer.max_epochs=2
+		trainer.max_epochs=0
 
 train-smallqg: install
 	source "$(VENV)/bin/activate" && \
