@@ -1,4 +1,4 @@
-name: fplane_turbulence
+name: forced_turbulence
 params:
   root: ${paths.data_root}/fplane_turbulence
   version: 1
