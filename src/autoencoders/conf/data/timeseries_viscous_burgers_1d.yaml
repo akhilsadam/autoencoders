@@ -1,4 +1,5 @@
 name: timeseries_viscous_burgers_1d
+fullname: timeseries_viscous_burgers_1d
 
 params:
   root: ${paths.data_root}/timeseries_viscous_burgers_1d

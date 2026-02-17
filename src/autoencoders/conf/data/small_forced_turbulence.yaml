@@ -1,4 +1,6 @@
 name: forced_turbulence
+fullname: small_forced_turbulence
+
 params:
   root: ${paths.data_root}/small_forced_turbulence
   version: 1
