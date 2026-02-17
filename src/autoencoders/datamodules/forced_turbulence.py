@@ -89,6 +89,9 @@ def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoad
     
     save_path = os.path.join(cache_path, 'forced_turbulence_data.npy')
     
+    print(f"Looking for cached data at: {save_path}")
+    print(f"Cache exists: {os.path.exists(save_path)}")
+    
     def generate_data():
         """Generate forced turbulence dataset using QG solver."""
         # Import only when generating (slow on network filesystem)
@@ -152,11 +155,18 @@ def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoad
     
     # Load or generate data
     if not os.path.exists(save_path):
+        print("Generating new data...")
         dataset_tensor = generate_data()
     else:
+        print(f"Loading cached data from {save_path}...")
+        file_size_mb = os.path.getsize(save_path) / (1024**2)
+        print(f"File size: {file_size_mb:.1f} MB")
         dataset_tensor = torch.from_numpy(np.load(save_path)).to(torch.float32)
+        print(f"Data loaded: {dataset_tensor.shape}")
     
+    print("Creating TensorDataset...")
     dataset = TensorDataset(dataset_tensor)
+    print(f"Dataset size: {len(dataset)} samples")
             
     # Split into train and validation
     val_split = cfg.val_split
