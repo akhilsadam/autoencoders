@@ -55,14 +55,14 @@ class SpatialAutoencoder(pl.LightningModule):
     def training_step(self, batch: torch.Tensor, _: int) -> torch.Tensor:
         x = batch[0]  # allows for possibly more (y)
         x_hat = self.forward(x)
-        loss = self.criterion(x_hat, x)
+        loss = self.criterion(x_hat, x) / self.criterion(x, torch.mean(x, dim=(-2, -1), keepdim=True))  # relative MSE
         self.log("train_loss", loss, prog_bar=True)
         return loss
     
     def validation_step(self, batch: torch.Tensor, _: int) -> None:
         x = batch[0]
         x_hat = self.forward(x)
-        val_loss = self.criterion(x_hat, x)
+        val_loss = self.criterion(x_hat, x) / self.criterion(x, torch.mean(x, dim=(-2, -1), keepdim=True))  # relative MSE
         self.log("val_loss", val_loss, prog_bar=True)
     
     def configure_optimizers(self) -> torch.optim.Optimizer:
