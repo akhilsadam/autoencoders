@@ -156,14 +156,20 @@ def _log_wandb_artifacts(cfg: DictConfig, logger: WandbLogger, dirs: Dict[str, s
 @hydra.main(version_base="1.3", config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     pl.seed_everything(cfg.seed)
+    print("Building dataloaders...")
     train_loader, val_loader = build_dataloaders(cfg.data)
+    print(f"Dataloaders ready: {len(train_loader)} train batches, {len(val_loader)} val batches")
     
     # Determine rank for distributed setups
     rank = 0
     if torch.distributed.is_initialized():
         rank = torch.distributed.get_rank()
     
+    print("Preparing model...")
     model = _prepare_model(cfg)
+    print("Model ready")
+    
+    print("Creating logger...")
     logger = _create_logger(cfg)
     # Git info is already set by Mura's create_wandb_logger
     print(f"Git SHA: {cfg.git.sha}, Dirty: {cfg.git.dirty}")
