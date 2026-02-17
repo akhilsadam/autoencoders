@@ -161,8 +161,17 @@ def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoad
         print(f"Loading cached data from {save_path}...")
         file_size_mb = os.path.getsize(save_path) / (1024**2)
         print(f"File size: {file_size_mb:.1f} MB")
-        dataset_tensor = torch.from_numpy(np.load(save_path)).to(torch.float32)
-        print(f"Data loaded: {dataset_tensor.shape}")
+        # dataset_tensor = torch.from_numpy(np.load(save_path)).to(torch.float32)
+        # print(f"Data loaded: {dataset_tensor.shape}")
+
+        # Use memory mapping for large files to avoid loading entire file into RAM
+        print("Using memory-mapped array (mmap_mode='r')...")
+        data_np = np.load(save_path, mmap_mode='r')
+        print(f"Data shape: {data_np.shape}, dtype: {data_np.dtype}")
+        
+        # Convert to torch tensor (this is lazy and won't load all data at once)
+        dataset_tensor = torch.from_numpy(data_np).float()
+        print(f"Tensor created (memory-mapped)")
     
     print("Creating TensorDataset...")
     dataset = TensorDataset(dataset_tensor)
