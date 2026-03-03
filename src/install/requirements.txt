@@ -24,6 +24,8 @@ datasets
 pybind11
 helion
 nvidia-ml-py
+timm
+diffusers
 # for change tracking with LLMs
 packaging
 transformers 
