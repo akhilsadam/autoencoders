@@ -1,4 +1,6 @@
 name: aesthetic4k
+fullname: aesthetic4k
+
 params:
   batch_size: 32
   num_workers: 2

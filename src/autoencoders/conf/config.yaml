@@ -37,7 +37,7 @@ git:
 
 hydra:
   run:
-    dir: runs/${data.name}/${model.name}/${sec_id:}_${git.short_msg}
+    dir: runs/${data.fullname}/${model.name}/${sec_id:}_${git.short_msg}
   job:
     config:
       override_dirname:

@@ -1,4 +1,5 @@
 name: fashion_mnist
+fullname: fashion_mnist
 params:
   root: ${paths.data_root}/fashion_mnist
   batch_size: 64

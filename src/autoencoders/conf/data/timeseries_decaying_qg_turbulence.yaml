@@ -1,4 +1,5 @@
 name: timeseries_decaying_qg_turbulence
+fullname: timeseries_decaying_qg_turbulence
 
 params:
   root: ${paths.data_root}/timeseries_decaying_qg_turbulence

@@ -1,4 +1,5 @@
 name: qg_turbulence
+fullname: qg_turbulence
 
 params:
   batch_size: 32

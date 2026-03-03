@@ -1,4 +1,5 @@
 name: timeseries_delay_2d
+fullname: timeseries_delay_2d
 
 params:
   root: ${paths.data_root}/timeseries_delay_2d
