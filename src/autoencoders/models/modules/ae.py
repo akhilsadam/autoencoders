@@ -25,22 +25,27 @@ class AE(nn.Module):
         return x_hat
     
 class BasicSpatialAutoencoder(AE):
-    def __init__(self, in_dim, lift_steps=3, encode_layers=3, p=16, factor=2):
+    def __init__(self, in_dim, lift_steps=3, encode_layers=3, p=16, att_layers=3, factor=2):
         super().__init__()
 
         mlist = []
 
         if lift_steps > 0:
-            for i in range(lift_steps):
-                mlist.append(PixelLayer(factor))
-                in_dim = in_dim * (factor**2)
-    
-            mlist.append(PatchAttLayer(in_dim, p=p, layers=3))
+            # for i in range(lift_steps):
+            #     mlist.append(PixelLayer(factor))
+            #     in_dim = in_dim * (factor**2)
+            mlist.append(PixelLayer(factor**lift_steps))
+            in_dim = in_dim * ((factor**2)**lift_steps)
+                
+            mlist.append(PatchAttLayer(in_dim, p=p, layers=att_layers))
 
-            for i in range(lift_steps):
-                mlist.append(PixelLayer(factor, reverse=True))
-                in_dim = in_dim // (factor**2)
-
+            # for i in range(lift_steps):
+            #     mlist.append(PixelLayer(factor, reverse=True))
+            #     in_dim = in_dim // (factor**2)
+            
+            mlist.append(PixelLayer(factor**lift_steps, reverse=True))
+            in_dim = in_dim // ((factor**2)**lift_steps)
+            
         for i in range(encode_layers):
             mlist.append(
                 SpatialLayer(in_dim, factor=factor),
