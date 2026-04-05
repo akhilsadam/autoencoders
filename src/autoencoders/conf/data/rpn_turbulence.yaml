@@ -2,12 +2,12 @@ name: rpn_turbulence
 fullname: rpn_turbulence
 params:
   root: ${paths.data_root}/rpn_turbulence
-  version: 1
+  version: 2 # now we don't randomly generate...
   grid_size: 512
   Lx: 12.566370614359172  # 4*pi
   Ly: 12.566370614359172  # 4*pi
   num_samples: 4 # not as many since we have more pdes
-  time_steps: 200000
+  time_steps: 100000
   save_rate: 200
   dt: 0.001
   spinup_frames: 100
@@ -16,8 +16,8 @@ params:
   mu: 0.02
   nu: 1.025e-4
   B: 1.0
-  ic_energy: 0.001 # some tiny randomness 
-  ic_wavenumbers: [3.0, 5.0]
+  ic_energy: 0.005 # some tiny randomness 
+  ic_wavenumbers: [3.0, 10.0]
   
   # Forcing parameters
   forcing_A: -0.1
@@ -31,3 +31,291 @@ params:
   num_workers: 16
   val_split: 20
   seed: 42
+
+  n_train: 60
+  n_test: 9
+
+  rpns: [
+    [ # TESTING # OOD # signs are flipped on purpose to give different directions
+        # Charney-Hasegawa-Mima equation — plasma/atmosphere analog,
+        # adds a dispersive term (q - psi) that gives Rossby/drift waves.
+        # dq/dt = -J(psi, q) + beta * d(psi)/dx
+        # where q = lap(psi) - psi (modified potential vorticity)
+        "q psi jacobian psi dx 1.2 * +",
+
+        # Quasi-geostrophic with bottom topography h(x,y) = sin(x)cos(y).
+        # The topographic term acts like a background PV gradient.
+        # dq/dt = -J(psi, q + h) = -J(psi,q) - J(psi, h)
+        # J(psi, h) ~ u * dh/dx + v * dh/dy = u*cos(2x)cos(3y) - v*sin(2x)sin(3y)
+        "q psi jacobian neg u x 2 * cos * y 3 * cos * neg + v x 2 * sin * y 3 * sin * +",
+
+        # Salmon's geostrophic turbulence with surface buoyancy.
+        # Surface QG: dq/dt = -J(psi, q) where q = sqrt(-lap) psi (nonlocal),
+        # approximated here with invlap giving a shallower energy spectrum.
+        # dq/dt = -J(psi, q) + nu * lap(q) - r * invlap(q)
+        "q psi jacobian neg q lap 0.00012 * + q invlap 0.013 * neg +",
+
+        # Hasegawa-Wakatani plasma turbulence —
+        # couples vorticity q to density n via parallel conductivity c.
+        # dq/dt = -J(psi, q) + c*(n - psi) + nu*lap(q)
+        # here we use psi as a proxy for n (single-field approximation):
+        # dq/dt = -J(psi,q) + c*(psi - q) + nu*lap(q)
+        "q psi jacobian neg psi q - 0.0015 * + q lap 0.014 * +",
+
+        # Standard Eulerian QG.
+        # dq/dt = -J(psi, q)
+        "q psi jacobian",
+
+        # QG with (hyper)diffusion — classic turbulence setup.
+        # dq/dt = J(psi, q) + nu*lap(q)
+        "q psi jacobian neg + q lap 0.001 * + q lap lap 0.01 * +",
+
+        # Forced QG (double gyre wind stress) — should produce recognizable gyre pattern.
+        # dq/dt = -J(psi, q) + nu*lap(q) + F(x,y)
+        "q psi jacobian neg q lap 0.001 * + x sin y cos * 0.1 * +",
+        "q lap 0.00001 * x y * cos - q psi jacobian +",
+
+        # Pure vorticity diffusion — trivially stable, result should decay to zero.
+        # dq/dt = nu*lap(q)
+        "q lap 0.0017 *",
+    ],
+    # [],
+    [   # Train # simpler examples
+        # Advection / Transport
+        "q u v grad + * neg",
+        "q psi jacobian neg",
+        "q u dx * v dy * + neg",
+        "q psi jacobian q lap 0.001 * +",
+        "q psi jacobian q lap 0.0001 * + neg",
+        "q u dx * neg",
+        "q v dy * neg",
+        "q u dx * v dy * + neg q lap 0.01 * +",
+        "q u dx * v dy * + neg q lap 0.001 * +",
+        "q u dx * v dy * + neg q lap 0.0001 * +",
+        "q psi jacobian q lap 0.00001 * +",
+        "q psi jacobian u dx * +",
+        "q psi jacobian v dy * +",
+        "q psi jacobian u dx * v dy * + +",
+
+        # Diffusion
+        "q lap 0.01 *",
+        "q lap 0.001 *",
+        "q lap 0.0001 *",
+        "q lap 0.0001 * q 0.01 * neg +",
+        "q lap 0.001 * q 0.001 * +",
+        "q lap 0.01 * q 0.1 * +",
+
+        ## "q lap 0.01 * q square neg +", # too boring
+        ## "q lap 0.001 * q cube neg +", # overflow
+        ## "q lap 0.001 * q neg + q cube +", # exploded of course
+        ## "q lap 0.0001 * q square +", # exploded, of course
+
+        # # Diffusion + Reaction
+        # "q lap 0.003 * q 1 q - * q 0.5 - * 0.1 * +",  # gentler Allen-Cahn
+        # "q lap 0.003 * q 0.2 * + q cube neg +",       # Ginzburg-Landau
+        # "q lap 0.01 * q + q cube neg +",              # GL with extra diffusion
+
+        ## "q lap 0.003 * q 0.1 * +",
+        ## "q lap 0.003 * q 1 q - * +", # cool! exploded
+        ### TODO check these later
+        # "q lap 0.003 * q square 1 q - * +",
+        # "q lap 0.003 * q square 1 q - square * +",
+        # "q lap 0.003 * q 1 q - * q neg + +",
+        # "q lap 0.003 * q tanh +",
+        # "q lap 0.01 * q neg q cube + +",
+        # "q lap 0.01 * q q square 1 - * +",
+        # "q lap 0.001 * q 1 q - * 0.1 * +",
+        # "q lap 0.001 * q square 1 q - * 0.1 * +",
+        # "q lap 0.003 * q 0.5 * 1 q - * +",
+        # "q lap 0.001 * q neg q square + +",
+        # "q lap 0.001 * q tanh neg +",
+        # "q lap 0.001 * q sin +",
+        # "q lap 0.003 * q neg q cube 0.1 * + +",
+        # "q lap 0.001 * q 1 q - * q 0.1 * neg + +",
+
+        # Pi-MFM
+        # advection
+        "q dx neg 0.5 *",
+        "q dy neg 0.5 *",
+        "q dx 0.4 *",
+        "q dy neg 0.6 *",
+        # diffusion (one-sided)
+        "q dx dx 0.003 *",
+        "q dx dx 0.002 *",
+        "q dx dy 0.004 *",
+        # cons.laws
+        "q cube 0.3 * dx neg q lap 0.001 * +",
+        "q cube 0.4 * dx neg q lap 0.002 * +",
+        "q cube 0.2 * dx neg q lap 0.01 * +",
+        # burgers
+        "q square 0.5 * dx neg q lap 0.01 * +",
+
+
+
+        # # QG Turbulence / Geostrophic
+        "q psi jacobian",
+        "q psi jacobian q lap 0.0001 * +",
+        "q psi jacobian psi lap 0.001 * +",
+        "q psi jacobian q lap 1e-05 * + psi lap 0.0001 * +",
+        "q psi jacobian q 0.1 * +",
+        "q u * dx q v * dy + neg q lap 0.001 * +",
+        "psi lap neg psi jacobian",
+        "q psi jacobian q lap 0.001 * + q 0.01 * neg +",
+        "q psi jacobian q lap 0.0001 * + psi 0.001 * neg +",
+        "q psi jacobian psi lap 0.0001 * + q 0.01 * neg +",
+        "q psi jacobian q lap 0.001 * + psi lap 0.0001 * +",
+        #### check these later
+        # "q psi jacobian q lap 0.0001 * + q lap 0.0001 * lap +",
+        # "q psi jacobian u v grad dot 0.01 * +",
+        # "q psi jacobian psi lap neg 0.001 * +",
+        # "q psi jacobian q psi + lap 0.0001 * +",
+        # "q psi jacobian q lap 0.001 * + q psi jacobian 0.01 * +",
+
+        # # Double Gyre / Forced Flow
+        "q psi jacobian x sin 0.1 * +",
+        "q psi jacobian y cos 0.1 * +",
+        "q psi jacobian x sin y cos * 0.5 * +",
+        "q psi jacobian x 2 * sin 0.1 * + q lap 0.01 * +",
+        "q psi jacobian x sin y sin + 0.05 * +",
+        "q u * dx q v * dy + neg x sin y cos * 0.1 * +",
+
+        "q psi jacobian x sin y * 0.1 * + q lap 0.0001 * +",
+        "q psi jacobian y sin x * 0.1 * + q lap 0.0001 * +",
+        "q psi jacobian x x * sin y x * sin * 0.05 * + q lap 0.001 * +",
+        "q psi jacobian neg x y * cos y x + cos * 0.001 * + q lap 0.0002 * +",
+
+        ### check these later
+        # "q psi jacobian y 0.5 * sin 0.1 * + q lap 0.0001 * +",
+        # "q psi jacobian x sin 0.01 * + q lap 0.001 * +",
+        # "q psi jacobian x sin y cos * 0.1 * + q lap 0.0001 * +",
+        # "q psi jacobian x 2 * sin y 2 * cos * 0.1 * + q lap 0.001 * +",
+        # "q psi jacobian x sin 0.1 * + y cos 0.1 * + q lap 0.001 * +",
+
+        # # Vorticity / Navier-Stokes-like
+        # "q psi jacobian q lap 0.01 * + q 0.1 * neg +",
+        # "q u dx * neg v q dy * neg + q lap 0.001 * +",
+        # "psi lap psi jacobian + psi lap 0.001 * +",
+        # "q lap 0.001 * q psi jacobian neg +",
+        # "u dx v dy + neg q lap 0.01 * +",
+        # "q psi jacobian neg q lap 0.0001 * + x sin 0.01 * +",
+        # "q psi jacobian neg u v grad dot 0.01 * + q lap 0.001 * +",
+        # "q psi jacobian q lap 0.001 * + u dx 0.01 * +",
+        # "q psi jacobian q lap 0.001 * + v dy 0.01 * +",
+        # "u q dx * neg v q dy * neg + q lap 0.001 * +",
+        # "q psi jacobian neg psi lap 0.001 * + q 0.01 * neg +",
+
+        # # Conservation Laws
+        # "q square 0.5 * dx neg",
+        # "q cube 0.333 * dx neg",
+        # "q sin dx neg",
+        # "q square 0.5 * dx neg q lap 0.01 * +",
+        # "q cube 0.333 * dx neg q lap 0.01 * +",
+        # "q sin dx neg q lap 0.01 * +",
+        # "q square 0.5 * dx neg q square 0.5 * dy neg +",
+        # "u square 0.5 * dx neg v square 0.5 * dy neg +",
+        # "q square 0.5 * dx neg q lap 0.001 * +",
+        # "q cube 0.333 * dx neg q lap 0.001 * +",
+        # "q sin dx neg q lap 0.001 * +",
+        # "q square 0.5 * dx neg q square 0.5 * dy neg + q lap 0.001 * +",
+        # "q cube 0.333 * dx neg q lap 0.0001 * +",
+        # "q square 0.5 * dx neg q cube 0.333 * dy neg +",
+
+        # # Wave-like
+        # "q lap 1.0 * neg",
+        # "psi lap neg",
+        # "q lap q * neg",
+        # "q square lap neg",
+        # "q lap 0.5 * q neg +",
+        # "psi lap psi neg +",
+        # "q lap q square * neg",
+        # "q lap neg q sin +",
+        # "q lap q * neg q lap 0.001 * +",
+        # "q lap 1.0 * neg q 0.01 * neg +",
+        # "q lap q * neg q 0.1 * +",
+        # "psi lap neg psi 0.1 * neg +",
+        # "q lap 0.5 * neg q square +",
+        # "q lap q * 0.5 * neg q lap 0.001 * +",
+
+        # # Klein-Gordon / Sine-Gordon
+        # "q lap q neg +",
+        # "q lap q neg + q sin neg +",
+        # "q lap q neg + q cube neg +",
+        # "q lap q neg + q tanh neg +",
+        # "q lap 0.1 * q neg + q sin +",
+        # "psi lap psi square 0.5 * neg + psi sin +",
+        # "q lap q neg + q q square 1 - * +",
+        # "q lap q neg + q 0.01 * +",
+        # "q lap q neg + q sin 0.1 * +",
+        # "q lap 0.01 * q neg + q sin +",
+        # "q lap q neg + q tanh 0.5 * +",
+        # "q lap q neg + q cube 0.1 * neg +",
+        # "q lap 0.1 * q neg + q cube neg +",
+        # "q lap q neg + q sin neg + q lap 0.001 * +",
+        # "q lap q square * neg q sin +",
+
+        # # Rossby Waves
+        # "q psi jacobian q dx 0.1 * +",
+        # "q psi jacobian psi dx 0.1 * +",
+        # "q psi jacobian q dx 0.01 * + q lap 0.0001 * +",
+        # "q psi jacobian psi dx 0.05 * + psi lap 0.001 * +",
+        # "q psi jacobian y cos 0.1 * + q lap 0.0001 * +",
+        # "q psi jacobian psi dy 0.1 * neg +",
+        # "q psi jacobian q dx 0.1 * + x sin 0.01 * +",
+        # "q psi jacobian q dx 0.05 * + q lap 0.0001 * +",
+        # "q psi jacobian psi dx 0.1 * + q lap 0.0001 * +",
+        # "q psi jacobian q dx 0.1 * + y cos 0.05 * + q lap 0.0001 * +",
+        # "q psi jacobian q dx 0.1 * + psi dx 0.01 * + q lap 0.0001 * +",
+        # "q psi jacobian psi dx 0.1 * + psi lap 0.001 * + q 0.01 * neg +",
+
+        # # Ekman / Damped
+        # "q psi jacobian q 0.1 * neg +",
+        # "q psi jacobian q 0.01 * neg + q lap 0.001 * +",
+        # "q psi jacobian psi 0.1 * neg + q lap 0.0001 * +",
+        # "q u dx * v dy * + neg q 0.05 * neg + q lap 0.001 * +",
+        # "q psi jacobian q sqrt neg + q lap 0.001 * +",
+        # "q psi jacobian q abs neg + q lap 0.001 * +",
+        # "q psi jacobian q tanh neg +",
+        # "q psi jacobian q 0.1 * neg + psi lap 0.001 * +",
+        # "q psi jacobian q 0.01 * neg + x sin 0.01 * + q lap 0.0001 * +",
+        # "q psi jacobian q tanh neg + q lap 0.001 * +",
+        # "q psi jacobian q abs 0.05 * neg + q lap 0.0001 * +",
+        # "q psi jacobian q 0.05 * neg + y cos 0.05 * + q lap 0.0001 * +",
+
+        # # Bottle / Spherical Harmonics-inspired
+        # "q lap q psi jacobian +",
+        # "q lap q psi jacobian + x cos 0.1 * +",
+        # "q lap q psi jacobian + y sin 0.1 * +",
+        # "q lap 0.001 * q psi jacobian + x sin y cos * 0.05 * +",
+        # "q lap q * 0.01 * q psi jacobian +",
+        # "q lap 0.001 * psi lap 0.0001 * + q psi jacobian +",
+        # "q lap q * neg q psi jacobian + x cos y cos * 0.1 * +",
+        # "q square lap 0.001 * q psi jacobian +",
+        # "q lap q psi jacobian + x sin y sin + 0.05 * +",
+        # "q lap q psi jacobian + x 2 * sin 0.05 * +",
+        # "q lap q psi jacobian + y 2 * cos 0.05 * +",
+        # "q lap 0.001 * q psi jacobian + x sin y * 0.05 * +",
+        # "q lap q psi jacobian + x cos y sin * 0.1 * + q lap 0.0001 * +",
+
+        # # Mixed / Nonlinear
+        # "q square psi jacobian q lap 0.001 * +",
+        # "q psi jacobian q psi + lap 0.001 * +",
+        # "u q dx * v q dy * + neg q lap 0.001 * +",
+        # "q psi jacobian q square 0.01 * neg + q lap 0.0001 * +",
+        # "q tanh psi jacobian q lap 0.001 * +",
+        # "q sin psi jacobian q lap 0.001 * +",
+        # "q psi jacobian q cube 0.001 * neg + q lap 0.0001 * +",
+        # "q psi jacobian q psi jacobian + 0.5 * q lap 0.001 * +",
+        # "q psi jacobian q square 0.001 * + q lap 0.0001 * +",
+        # "q psi jacobian q tanh 0.01 * + q lap 0.001 * +",
+        # "q psi jacobian q sin 0.01 * + q lap 0.001 * +",
+        # "q psi jacobian q abs 0.01 * + q lap 0.0001 * +",
+        # "q psi jacobian q lap 0.001 * + q square 0.001 * neg +",
+        # "q psi jacobian psi square 0.001 * neg + q lap 0.0001 * +",
+        # "q psi jacobian q psi * 0.001 * neg + q lap 0.0001 * +",
+        # "u q * dx neg v q * dy neg + q lap 0.001 * +",
+        # "q psi jacobian q exp neg + q lap 0.001 * +",
+        # "q psi jacobian q lap 0.001 * + psi q jacobian 0.01 * +",
+        # "q psi jacobian neg q lap 0.001 * + q sin 0.01 * +",
+        # "q psi jacobian q lap 0.001 * + u v + 0.01 * neg +",
+    ]
+  ]

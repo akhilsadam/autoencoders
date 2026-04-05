@@ -61,6 +61,10 @@ class RPNTurbulenceConfig:
     val_split: int = 20
     seed: int = 42
     version: int = 1
+    
+    n_train: int = 100
+    n_test: int = 10
+    rpns: list = ([], []) # Optional
 
 
 def _get_version_hash(cfg: RPNTurbulenceConfig) -> str:
@@ -93,7 +97,7 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
     print(f"Looking for cached data at: {save_path(0)}")
     print(f"Cache exists: {os.path.exists(save_path(0))}")
     
-    n_datasets = 400
+    n_datasets = cfg.n_train + cfg.n_test
     
     def generate_data():
         """Generate rpn turbulence dataset using QG solver."""
@@ -110,77 +114,81 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
         
         
         ### generate RPNs
-        from qg.solver.opt.operator.rpn import batch_rpn_gen
-        rpns = batch_rpn_gen(batch_size=n_datasets * 5, max_depth=5, max_nodes=20)
-        # overgenerate and filter as needed?
-        print(f"Generated RPNs: {rpns}")
+        if len(cfg.rpns) > 0:
+            rpns = cfg.rpns[0][:cfg.n_test] + cfg.rpns[1][:cfg.n_train]  # Use provided RPNs, split into test and train
+        else:
+            from qg.solver.opt.operator.rpn import batch_rpn_gen
+            rpns = batch_rpn_gen(batch_size=n_datasets * 5, max_depth=5, max_nodes=20)
+            # overgenerate and filter as needed?
+            print(f"Generated RPNs: {rpns}")
         
-        with open(os.path.join(cache_path, 'rpns.txt'), 'w') as f:   
-            i = 0     
-            for j, rpn in tqdm(enumerate(rpns)):   
-                if i < n_datasets:     
-                    try:
-                        with initialize_config_dir(version_base='1.3', config_dir=str(qg_config_dir)):
-                            qg_cfg = compose(config_name='config', overrides=['scenario=forced_turbulence'])
-                            
-                            # Override with our parameters
-                            qg_cfg.qg.grid.Nx = cfg.grid_size
-                            qg_cfg.qg.grid.Ny = cfg.grid_size
-                            qg_cfg.qg.grid.Lx = cfg.Lx
-                            qg_cfg.qg.grid.Ly = cfg.Ly
-                            qg_cfg.qg.time.dt = cfg.dt
-                            qg_cfg.qg.time.save_rate = cfg.save_rate
-                            qg_cfg.qg.time.T = cfg.time_steps * cfg.dt
-                            qg_cfg.qg.ic.n_batch = cfg.num_samples
-                            qg_cfg.qg.ic.energy = cfg.ic_energy
-                            qg_cfg.qg.ic.wavenumbers = list(cfg.ic_wavenumbers)
-                            qg_cfg.qg.pde.mu = cfg.mu
-                            qg_cfg.qg.pde.nu = cfg.nu
-                            qg_cfg.qg.pde.B = cfg.B
-                            qg_cfg.qg.forcing.A = cfg.forcing_A
-                            qg_cfg.qg.forcing.B = cfg.forcing_B
-                            qg_cfg.qg.forcing.C = cfg.forcing_C
-                            qg_cfg.qg.forcing.D = cfg.forcing_D
-                            qg_cfg.qg.forcing.E = cfg.forcing_E
-                            qg_cfg.qg.forcing.F = cfg.forcing_F
-                            
-                            qg_cfg.qg.pde.rpn = rpn  # Pass RPN expression to config for use in solver
-                            
-                            # Don't pass logger - let QG use default
-                            qg_solver = QG(qg_cfg.qg)
-                            # Run simulation with visualization - saves videos and plots
-                            result = qg_solver.solve(
-                                save_path=cache_path,
-                                name=f'rpn_turbulence_{i}',
-                                clamp=0.3,
-                                nan_check=True,
-                                lim_check=100.0,
-                            )
-                            
-                            variance = torch.mean(torch.var(result[:,:,0:1,...], dim=[-2,-1]))
-                            if variance < 0.1:
-                                print(f"Warning: Low variance ({variance:.2e}) in vorticity for RPN {j}: {rpn}")
-                                raise ValueError("Low variance in generated data, skipping this RPN")
-                            
-                            # Skip spinup period and take all remaining frames
-                            # result shape: [batch, time, channels, H, W]
-                            vorticity = result[:, cfg.spinup_frames:, 0:1, :, :]  # [batch, time-spinup, 1, H, W]
-                            
-                            # Reshape to treat each timestep as a separate sample
-                            # [batch, time-spinup, 1, H, W] -> [batch*(time-spinup), 1, H, W]
-                            batch_size, n_frames, channels, height, width = vorticity.shape
-                            vorticity = vorticity.reshape(batch_size * n_frames, channels, height, width)
-                            
-                            np.save(save_path(i), vorticity.cpu().numpy())
-                            
+        
+        i = 0     
+        for j, rpn in tqdm(enumerate(rpns)):   
+            if i < n_datasets:     
+                try:
+                    with initialize_config_dir(version_base='1.3', config_dir=str(qg_config_dir)):
+                        qg_cfg = compose(config_name='config', overrides=['scenario=forced_turbulence'])
+                        
+                        # Override with our parameters
+                        qg_cfg.qg.grid.Nx = cfg.grid_size
+                        qg_cfg.qg.grid.Ny = cfg.grid_size
+                        qg_cfg.qg.grid.Lx = cfg.Lx
+                        qg_cfg.qg.grid.Ly = cfg.Ly
+                        qg_cfg.qg.time.dt = cfg.dt
+                        qg_cfg.qg.time.save_rate = cfg.save_rate
+                        qg_cfg.qg.time.T = cfg.time_steps * cfg.dt
+                        qg_cfg.qg.ic.n_batch = cfg.num_samples
+                        qg_cfg.qg.ic.energy = cfg.ic_energy
+                        qg_cfg.qg.ic.wavenumbers = list(cfg.ic_wavenumbers)
+                        qg_cfg.qg.pde.mu = cfg.mu
+                        qg_cfg.qg.pde.nu = cfg.nu
+                        qg_cfg.qg.pde.B = cfg.B
+                        qg_cfg.qg.forcing.A = cfg.forcing_A
+                        qg_cfg.qg.forcing.B = cfg.forcing_B
+                        qg_cfg.qg.forcing.C = cfg.forcing_C
+                        qg_cfg.qg.forcing.D = cfg.forcing_D
+                        qg_cfg.qg.forcing.E = cfg.forcing_E
+                        qg_cfg.qg.forcing.F = cfg.forcing_F
+                        
+                        qg_cfg.qg.pde.rpn = rpn  # Pass RPN expression to config for use in solver
+                        
+                        # Don't pass logger - let QG use default
+                        qg_solver = QG(qg_cfg.qg)
+                        # Run simulation with visualization - saves videos and plots
+                        result = qg_solver.solve(
+                            save_path=cache_path,
+                            name=f'rpn_turbulence_{i}',
+                            clamp=0.3,
+                            nan_check=True,
+                            lim_check=100.0,
+                        )
+                        
+                        variance = torch.mean(torch.var(result[:,:,0:1,...], dim=[-2,-1]))
+                        if variance < 0.1:
+                            print(f"Warning: Low variance ({variance:.2e}) in vorticity for RPN {j}: {rpn}")
+                            raise ValueError("Low variance in generated data, skipping this RPN")
+                        
+                        # Skip spinup period and take all remaining frames
+                        # result shape: [batch, time, channels, H, W]
+                        vorticity = result[:, cfg.spinup_frames:, 0:1, :, :]  # [batch, time-spinup, 1, H, W]
+                        
+                        # Reshape to treat each timestep as a separate sample
+                        # [batch, time-spinup, 1, H, W] -> [batch*(time-spinup), 1, H, W]
+                        batch_size, n_frames, channels, height, width = vorticity.shape
+                        vorticity = vorticity.reshape(batch_size * n_frames, channels, height, width)
+                        
+                        np.save(save_path(i), vorticity.cpu().numpy())
+                        
+                        with open(os.path.join(cache_path, 'rpns.txt'), 'a') as f: 
                             f.write(rpn)
                             if i < n_datasets - 1:
                                 f.write('\n')
                             i += 1
-                            
-                    except Exception as e:
-                        print(f"Error generating data for RPN {j}: {rpn}")
-                        print(f"Exception: {e}")
+                        
+                except Exception as e:
+                    print(f"Error generating data for RPN {j}: {rpn}")
+                    print(f"Exception: {e}")
             
             # Re-initialize the original Hydra context after generating data
             GlobalHydra.instance().clear()
