@@ -85,6 +85,13 @@ train-qgae: install
 		model=spatial \
 		trainer.max_epochs=200
 
+train-rpnae: install
+	source "$(VENV)/bin/activate" && \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+		data=rpn_turbulence \
+		model=spatial \
+		trainer.max_epochs=200
+
 # ========================================
 # Cleanup
 # ========================================
