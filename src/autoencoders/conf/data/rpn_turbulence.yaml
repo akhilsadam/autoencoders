@@ -7,7 +7,7 @@ params:
   Lx: 12.566370614359172  # 4*pi
   Ly: 12.566370614359172  # 4*pi
   num_samples: 4 # not as many since we have more pdes
-  time_steps: 100000
+  time_steps: 200000
   save_rate: 200
   dt: 0.001
   spinup_frames: 100
