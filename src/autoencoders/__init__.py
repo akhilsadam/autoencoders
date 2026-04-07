@@ -6,29 +6,47 @@ from pytorch_lightning import LightningModule
 # from .models.mnist import MNISTAutoencoder, Config as MNISTConfig
 
 import importlib
-import pkgutil
+import pkgutil, os
 
 # Dynamically discover all model classes and configs in models submodule
 from . import models
 
 AUTOENCODER_REGISTRY: Dict[str, Dict[str, Any]] = {}
-for loader, module_name, is_pkg in pkgutil.iter_modules(models.__path__):
-    mod = importlib.import_module(f".models.{module_name}", package=__name__)
-    # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
-    model_cls = None
-    config_cls = None
-    for attr in dir(mod):
-        obj = getattr(mod, attr)
-        if isinstance(obj, type):
-            if attr.lower().endswith("autoencoder"):
-                model_cls = obj
-            elif attr.lower().endswith("config"):
-                config_cls = obj
-    if model_cls and config_cls:
-        AUTOENCODER_REGISTRY[module_name] = {
-            "model_class": model_cls,
-            "default_config": config_cls(),
-        }
+
+print("Discovering autoencoders in the 'models' submodule...")
+
+for module_name in os.listdir(os.path.join(os.path.dirname(__file__), "models")):
+
+    # Only look into subpackages starting with "project"
+    if not module_name.startswith("project"):
+        continue
+
+    package = importlib.import_module(f".models.{module_name}", package=__name__)
+
+    # Second level: models/project*/<modules>
+    for _, submodule_name, _ in pkgutil.iter_modules(package.__path__):
+        full_name = f".models.{module_name}.{submodule_name}"
+        mod = importlib.import_module(full_name, package=__name__)
+
+        model_cls = None
+        config_cls = None
+
+        for attr in dir(mod):
+            obj = getattr(mod, attr)
+            if isinstance(obj, type):
+                name = attr.lower()
+                if name.endswith("autoencoder") or name.endswith("diffusion"):
+                    model_cls = obj
+                elif name.endswith("config"):
+                    config_cls = obj
+
+        if model_cls and config_cls:
+            key = f"{module_name}.{submodule_name}"
+            # print(f"Registering network '{key}' with model class '{model_cls.__name__}' and config '{config_cls.__name__}'")
+            AUTOENCODER_REGISTRY[key] = {
+                "model_class": model_cls,
+                "default_config": config_cls(),
+            }
 
 def list_autoencoders() -> Tuple[str, ...]:
     """Return all registered autoencoder keys."""

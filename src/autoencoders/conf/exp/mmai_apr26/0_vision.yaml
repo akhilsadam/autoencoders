@@ -1,0 +1,15 @@
+# @package _global_
+# exp/mmai_apr26/0_vision.yaml
+
+defaults:
+  - override /model: mmai_apr26/operator_diffusion
+  - override /data: singlestep_small_forced_turbulence
+
+project: mmai_apr26
+
+run:
+  tags: [diffusion, mmai, 0-vision, baseline]
+
+hydra:
+  run:
+    dir: runs/${wandb.project}/0-vision/${data.fullname}/${model.name}/${sec_id:}_${git.short_msg}

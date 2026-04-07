@@ -41,14 +41,15 @@ register_resolvers()
 torch.backends.cudnn.conv.fp32_precision = 'tf32'
 
 def _prepare_model(cfg: DictConfig) -> pl.LightningModule:
-    default_cfg = get_default_config(cfg.model.name)
+    name = f'project_{cfg.project}.{cfg.model.name}'
+    default_cfg = get_default_config(name)
     params: Dict[str, Any] = asdict(default_cfg)
 
     if cfg.model.get("params"):
         overrides = OmegaConf.to_container(cfg.model.params, resolve=True)
         params.update(overrides)  # type: ignore[arg-type]
 
-    return get_model(cfg.model.name, params)
+    return get_model(name, params)
 
 
 def _create_logger(cfg: DictConfig) -> pl.loggers.Logger:
@@ -80,9 +81,11 @@ def _artifact_dirs(cfg: DictConfig) -> Dict[str, str]:
     artifacts_root = str(cfg.paths.artifacts_root)
     checkpoints = os.path.join(artifacts_root, "checkpoints")
     reconstructions = os.path.join(artifacts_root, "reconstructions")
-    for path in (artifacts_root, checkpoints, reconstructions):
+    output = os.path.join(artifacts_root, "output")
+    
+    for path in (artifacts_root, checkpoints, reconstructions, output):
         os.makedirs(path, exist_ok=True)
-    return {"root": artifacts_root, "checkpoints": checkpoints, "reconstructions": reconstructions}
+    return {"root": artifacts_root, "checkpoints": checkpoints, "reconstructions": reconstructions, "output": output}
 
 
 def _save_reconstructions(model: pl.LightningModule, dataloader: torch.utils.data.DataLoader, output_dir: str) -> None:
@@ -157,8 +160,13 @@ def _log_wandb_artifacts(cfg: DictConfig, logger: WandbLogger, dirs: Dict[str, s
 def main(cfg: DictConfig) -> None:
     pl.seed_everything(cfg.seed)
     print("Building dataloaders...")
-    train_loader, val_loader = build_dataloaders(cfg.data)
+    loaders = build_dataloaders(cfg.data)
+    train_loader, val_loader = loaders[:2]
+    test_assistant = loaders[2] if len(loaders) > 2 else val_loader
+        
     print(f"Dataloaders ready: {len(train_loader)} train batches, {len(val_loader)} val batches")
+    
+    # print(cfg)
     
     # Determine rank for distributed setups
     rank = 0
@@ -203,6 +211,10 @@ def main(cfg: DictConfig) -> None:
     device = trainer.strategy.root_device
     if rank == 0:
         model.to(device)
+        model.eval()
+        
+        model.metrics(test_assistant, [dirs["reconstructions"], dirs["output"]])  # compute metrics on test set if available
+        
         _save_reconstructions(model, val_loader, dirs["reconstructions"])
         _log_wandb_artifacts(cfg, logger, dirs)
 

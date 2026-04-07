@@ -1,7 +1,10 @@
 defaults:
-  - model: mnist
-  - data: fashion_mnist
   - _self_
+  - model: null
+  - data: null
+  - exp: mnist
+  
+project: null
 
 seed: 42
 
@@ -14,7 +17,7 @@ run:
   tags: [autoencoder, baseline]
 
 wandb:
-  project: ml-dev
+  project: ${project}
   entity: null
   group: hydra
   mode: online

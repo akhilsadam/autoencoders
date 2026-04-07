@@ -8,7 +8,7 @@ import pytorch_lightning as pl
 import torch
 from torch import nn
 
-from .modules.ae import BasicSpatialAutoencoder
+from autoencoders.models.modules.ae import BasicSpatialAutoencoder
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 

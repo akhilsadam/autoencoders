@@ -1,0 +1,8 @@
+# @package _global_
+# experiment/mnist.yaml
+
+defaults:
+  - override /model: develop/mnist
+  - override /data: fashion_mnist
+
+project: develop

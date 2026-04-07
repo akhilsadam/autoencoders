@@ -9,8 +9,8 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from .modules.ae import BasicSpatialAutoencoder
-from .modules.spatial import SpatialLayer
+from autoencoders.models.modules.ae import BasicSpatialAutoencoder
+from autoencoders.models.modules.spatial import SpatialLayer
 
 # Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
 
@@ -78,7 +78,7 @@ class SimpleDiffusionTransformer(nn.Module):
         return z_out
 
 
-class SpatialDiffusionAutoencoder(pl.LightningModule):
+class SpatialDiffusion(pl.LightningModule):
     """Latent diffusion model using spatial autoencoder + diffusion transformer."""
     
     def __init__(self, config: Config) -> None:

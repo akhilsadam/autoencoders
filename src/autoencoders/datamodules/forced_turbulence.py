@@ -71,15 +71,24 @@ def _get_version_hash(cfg: ForcedTurbulenceConfig) -> str:
     config_str = json.dumps(physics_dict, sort_keys=True)
     return hashlib.md5(config_str.encode()).hexdigest()[:8]
 
-
-def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoader]:
+def get_dataset(cfg: ForcedTurbulenceConfig) -> torch.Tensor:
     """Build train and validation dataloaders for forced turbulence."""
     # Create versioned cache directory
     version_hash = _get_version_hash(cfg)
     timestamp = datetime.now().strftime('%Y%m%d')
-    version_dir = f"v{cfg.version}_{timestamp}_{version_hash}"
-    cache_path = os.path.join(cfg.root, version_dir)
-    os.makedirs(cache_path, exist_ok=True)
+    
+    cache_path = None
+    for folder in os.listdir(cfg.root):
+        if folder.startswith(f"v{cfg.version}") and folder.endswith(f"_{version_hash}"):
+            version_dir = folder
+            cache_path = os.path.join(cfg.root, folder)
+            print(f"Found existing cache directory: {cache_path}")
+            break
+    
+    if cache_path is None:
+        version_dir = f"v{cfg.version}_{timestamp}_{version_hash}"
+        cache_path = os.path.join(cfg.root, version_dir)
+        os.makedirs(cache_path, exist_ok=True)
     
     # Save config for reproducibility
     config_path = os.path.join(cache_path, 'config.yaml')
@@ -172,7 +181,11 @@ def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoad
         # # Convert to torch tensor (this is lazy and won't load all data at once)
         # dataset_tensor = torch.from_numpy(data_np).float()
         # print(f"Tensor created (memory-mapped)")
-    
+        
+    return dataset_tensor
+
+def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoader]:
+    dataset_tensor = get_dataset(cfg)
     print("Creating TensorDataset...")
     dataset = TensorDataset(dataset_tensor)
     print(f"Dataset size: {len(dataset)} samples")

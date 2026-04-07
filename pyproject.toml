@@ -35,5 +35,5 @@ python_functions = ["_test_*"]
 [tool.uv.extra-build-dependencies]
 causal-conv1d = ["packaging"]
 
-[tool.setuptools.dynamic]
-dependencies = { file = ["src/install/requirements.txt"] }
+# [tool.setuptools.dynamic]
+# dependencies = { file = ["src/install/requirements.txt"] }

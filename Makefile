@@ -51,6 +51,7 @@ install-autoencoders:
 	@echo "📦 Installing autoencoders..."
 	$(UV) pip install -r $(INSTALL)/requirements.txt --python $(PYTHON)
 	$(MAKE) py3-conf
+	$(UV) pip install -e . --python $(PYTHON)
 
 py3-conf:
 	-ln -sf $(BASE_PYDIR)/python3-config $(VENV)/bin/python3-config
@@ -65,8 +66,6 @@ train: install
 train-mnist: install
 	source "$(VENV)/bin/activate" && \
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
-		data=fashion_mnist \
-		model=mnist \
 		trainer.accelerator=cpu \
 		trainer.max_epochs=0
 
@@ -90,6 +89,21 @@ train-rpnae: install
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
 		data=rpn_turbulence \
 		model=spatial \
+		trainer.max_epochs=200
+
+
+### =========================== MMAI APR26 ============================
+
+train-diffusion: install
+	source "$(VENV)/bin/activate" && \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+		exp=mmai_apr26/diffusion \
+		trainer.max_epochs=2
+
+train-operator-diffusion: install
+	source "$(VENV)/bin/activate" && \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+		exp=mmai_apr26/0_vision \
 		trainer.max_epochs=200
 
 # ========================================

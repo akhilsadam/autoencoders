@@ -1,0 +1,17 @@
+# @package _global_
+# exp/mmai_apr26/diffusion.yaml
+
+defaults:
+  - override /model: mmai_apr26/diffusion
+  - override /data: singlestep_small_forced_turbulence
+
+project: mmai_apr26
+wandb:
+  project: ml-dev # quick folder
+
+run:
+  tags: [diffusion, baseline, wip]
+
+hydra:
+  run:
+    dir: runs/${wandb.project}/diffusion/${data.fullname}/${model.name}/${sec_id:}_${git.short_msg}
