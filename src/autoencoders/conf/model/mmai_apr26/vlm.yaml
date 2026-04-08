@@ -1,0 +1,29 @@
+name: vlm
+params:
+
+    in_channels: 1
+    condition_channels: 1
+    shape: [512, 512]
+    
+    # AE architecture
+    k: 8                    # pixel shuffle factor
+    sdim: 2                 # spatial coord dims
+    tdim: 16                # time embedding dims
+    siren_width: null       # defaults to in_dim if None
+    siren_layers: 5
+    siren_w: 5.0
+    encode_layers: 3
+    
+    # Sampler / schedule
+    steps: 25
+    sampler: 'AB2CN'        # 'Euler', 'AB2', 'AB2CN'
+    L: 1.0                # domain half-length for coords / deriv
+  
+
+    seq_len: 100
+    embed_dim: 32
+    proj_dim: 96
+    rules: False
+    
+    # Training
+    learning_rate: 1e-4
