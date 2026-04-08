@@ -27,6 +27,8 @@ from .load_timeseries_small import load_data, TimeSeriesDataset, Normalize
 # language / other datasets
 from .rpn_encoder import RPNEncoderConfig, build_dataloaders as build_rpn_enc
 
+# multimodal
+from .rpn_textvision import RPNETConfig, build_dataloaders as build_rpnet
 
 DataLoaderPair = Tuple[DataLoader, DataLoader]
 
@@ -52,6 +54,7 @@ DATASET_REGISTRY: Dict[str, DatasetEntry] = {
     "timeseries_viscous_burgers_1d": DatasetEntry(config_cls=TimeseriesViscousBurgers1DConfig, builder=build_timeseries_viscous_burgers_1d),
     
     "rpn_encoder": DatasetEntry(config_cls=RPNEncoderConfig, builder=build_rpn_enc),
+    "rpn_textvision": DatasetEntry(config_cls=RPNETConfig, builder=build_rpnet)
 }
 
 
