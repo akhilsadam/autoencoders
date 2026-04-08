@@ -96,7 +96,7 @@ class Diffusion(pl.LightningModule):
 
     # ── Core primitives ───────────────────────────────────────────────────
 
-    def denoise(self, x: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+    def denoise(self, x: torch.Tensor, t: torch.Tensor, c: torch.Tensor = None) -> torch.Tensor:
         z = self.ae.encoder(x)
         
         z_in = z
@@ -174,4 +174,4 @@ class Diffusion(pl.LightningModule):
         MX.generation(self, val_loader, dirs)
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
-        return torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
+        return torch.optim.Adam(self.parameters(), lr=self.learning_rate)

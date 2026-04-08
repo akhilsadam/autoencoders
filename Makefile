@@ -98,13 +98,19 @@ train-diffusion: install
 	source "$(VENV)/bin/activate" && \
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
 		exp=mmai_apr26/diffusion \
-		trainer.max_epochs=2
+		trainer.max_epochs=200
 
 train-operator-diffusion: install
 	source "$(VENV)/bin/activate" && \
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
 		exp=mmai_apr26/0_vision \
-		trainer.max_epochs=200
+		trainer.max_epochs=2
+
+train-operator-basediffusion: install
+	source "$(VENV)/bin/activate" && \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+		exp=mmai_apr26/0_vision model=mmai_apr26/operator_pixart\
+		trainer.max_epochs=2
 
 # ========================================
 # Cleanup

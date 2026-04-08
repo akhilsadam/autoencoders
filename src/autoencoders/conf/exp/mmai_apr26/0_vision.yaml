@@ -6,6 +6,8 @@ defaults:
   - override /data: singlestep_small_forced_turbulence
 
 project: mmai_apr26
+wandb:
+  project: ml-dev # quick folder
 
 run:
   tags: [diffusion, mmai, 0-vision, baseline]

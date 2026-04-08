@@ -10,8 +10,8 @@ def dot(a,b):
     
 class Euler(nn.Module):
     @torch.compile
-    def step(self, net, x, i, t, dt):
-        v_pred = net.vel(net.denoise(x, t[i]), x, t[i])
+    def step(self, net, x, i, t, dt, c=None):
+        v_pred = net.vel(net.denoise(x, t[i], c=c), x, t[i])
         x = x + dt[i] * v_pred
         return x
 
@@ -43,9 +43,9 @@ class AB2(nn.Module):
         return [b0, b1]
         
     @torch.compile
-    def step(self, net, x, i, t, dt):
+    def step(self, net, x, i, t, dt, c=None):
         
-        v_pred = net.vel(net.denoise(x, t[i]), x, t[i])
+        v_pred = net.vel(net.denoise(x, t[i], c=c), x, t[i])
         v_pred_ab = self.cache({'v': v_pred, 'h': dt[i]})
         
         x = x + dt[i] * v_pred_ab # AB2 update
@@ -57,13 +57,13 @@ class AB2CN(AB2):
         super().__init__(level=level)
         
     @torch.compile
-    def step(self, net, x, i, t, dt):
+    def step(self, net, x, i, t, dt, c=None):
         
-        v_pred = net.vel(net.denoise(x, t[i]), x, t[i])
+        v_pred = net.vel(net.denoise(x, t[i], c=c), x, t[i])
         v_pred_ab = self.cache({'v': v_pred, 'h': dt[i]})
         
         x_plus_1 = x + dt[i] * v_pred_ab # AB2 update
-        v_plus_1 = net.vel(net.denoise(x_plus_1, t[i+1]), x, t[i]) 
+        v_plus_1 = net.vel(net.denoise(x_plus_1, t[i+1], c=c), x, t[i]) 
         # can't take forward v since that doesn't exist at final time
         # anyways, we want reverse v...so we can assume time is same
 

@@ -15,34 +15,34 @@ from torch.utils.data import DataLoader, Dataset, random_split, TensorDataset
 from omegaconf import OmegaConf
 
 from .forced_turbulence import ForcedTurbulenceConfig, get_dataset
+from .timeseries import TimeSeriesDataset
 
-class _TensorDatasetNoTuple(Dataset):
-    """Wrapper that returns tensors directly without wrapping in tuples."""
-    def __init__(self, tensor):
-        self.tensor = tensor
-    
-    def __len__(self):
-        return len(self.tensor)
-    
-    def __getitem__(self, idx):
-        return self.tensor[idx]
 
 def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoader]:
-    dataset_tensor = get_dataset(cfg)
-    
-    print("Creating TensorDataset...")
-    dataset = TensorDataset(dataset_tensor)
-    print(f"Dataset size: {len(dataset)} samples")
+    dataset_tensor = get_dataset(cfg, 'forced_turbulence.npy')[:, cfg.spinup_frames:, 0:1, :, :]
             
     # Split into train and validation
     val_split = cfg.val_split
-    if val_split >= len(dataset):
+    if val_split >= (dataset_tensor.shape[1]):
         raise ValueError("Validation split must be smaller than dataset size")
+
+    _train_dataset = dataset_tensor[:, :-val_split]
+    _val_dataset = dataset_tensor[:, -val_split:]
     
-    generator = torch.Generator().manual_seed(cfg.seed)
-    train_dataset, val_dataset = random_split(
-        dataset, [len(dataset) - val_split, val_split], generator=generator
+    train_dataset = TimeSeriesDataset(
+        data=_train_dataset,
+        seq_length=2,  # single-step prediction
     )
+    
+    val_dataset = TimeSeriesDataset(
+        data=_val_dataset,
+        seq_length=2,  # single-step prediction
+    )
+    
+    test_dataset = TimeSeriesDataset(
+        data=_val_dataset,
+        seq_length=16,  # single-step prediction
+    )    
     
     # Create dataloaders
     train_loader = DataLoader(
@@ -60,4 +60,12 @@ def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoad
         pin_memory=True,
     )
     
-    return train_loader, val_loader
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=cfg.batch_size,
+        shuffle=False,
+        num_workers=cfg.num_workers,
+        pin_memory=True,
+    )
+    
+    return train_loader, val_loader, test_loader

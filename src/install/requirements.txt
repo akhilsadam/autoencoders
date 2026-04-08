@@ -27,6 +27,7 @@ helion
 nvidia-ml-py
 timm
 diffusers
+peft
 # for change tracking with LLMs
 packaging
 transformers 

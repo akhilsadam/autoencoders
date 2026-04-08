@@ -32,7 +32,7 @@ def reconstruction_step(x, net, level=0.1):
     n = net.noise(x)
     x_hat = net.denoise(net.mix(x, n, t), t)
     # B Y C H W
-    loss = F.mse_loss(x_hat, x)
+    loss = F.mse_loss(x_hat, x) / F.mse_loss(x, x.mean(dim=(-2,-1), keepdim=True))
     stack = torch.stack([x, x_hat, x_hat - x], dim=1)  # B Y C H W
     return loss, stack
 

@@ -2,4 +2,5 @@ defaults:
   - small_forced_turbulence
   - _self_
 
-fullname: singlestep_forced_turbulence
+name: singlestep_forced_turbulence
+fullname: singlestep_small_forced_turbulence

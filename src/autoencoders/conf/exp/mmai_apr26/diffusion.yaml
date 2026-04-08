@@ -3,7 +3,7 @@
 
 defaults:
   - override /model: mmai_apr26/diffusion
-  - override /data: singlestep_small_forced_turbulence
+  - override /data: small_forced_turbulence
 
 project: mmai_apr26
 wandb:

@@ -1,4 +1,4 @@
-name: operator_diffusion
+name: operator_pixart
 params:
   in_channels: 1
   condition_channels: 1

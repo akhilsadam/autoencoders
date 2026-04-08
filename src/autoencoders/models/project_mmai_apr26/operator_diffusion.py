@@ -15,219 +15,169 @@ from torch import nn
 import torch.nn.functional as F
 
 from autoencoders.models.modules.ae import BasicSpatialAutoencoder
-from autoencoders.models.modules.spatial import SpatialLayer
+from autoencoders.models.modules.siren import Siren
+from autoencoders.models.modules.math.derivative import Derivative
+from autoencoders.models.modules.diffusion.samplers.flow_matching import samplers
+from autoencoders.models.modules.diffusion.embeddings import TimeEmbedding
+from autoencoders.models.modules.act import Tri
 
-# Convention: model class is named 'Autoencoder' or endswith 'Autoencoder', config is 'Config' or endswith 'Config'
+from autoencoders.metrics import conditional_image_diffusion as MX
 
+# ONLY SINGLE STEP right now
+# Convention: model class ends with 'Diffusion', config is 'Config' or endswith 'Config'
 @dataclass
 class Config:
-    """Default hyperparameters for spatial latent diffusion."""
-    
+    # Data
     in_channels: int = 1
-    lift_steps: int = 3
+    condition_channels: int = 1
+    shape: tuple = (512, 512)
+    
+    # AE architecture
+    k: int = 8                    # pixel shuffle factor
+    sdim: int = 2                 # spatial coord dims
+    tdim: int = 16                # time embedding dims
+    siren_width: int = None       # defaults to in_dim if None
+    siren_layers: int = 5
+    siren_w: float = 5.0
     encode_layers: int = 3
-    patch_size: int = 16
-    factor: int = 2
+    
+    # Sampler / schedule
+    steps: int = 25
+    sampler: str = 'AB2CN'        # 'Euler', 'AB2', 'AB2CN'
+    L: float = 1.0                # domain half-length for coords / deriv
+    
+    # Training
     learning_rate: float = 1e-4
-    
-    # Diffusion parameters
-    noise_schedule: str = "linear"  # linear, cosine
-    num_diffusion_steps: int = 10
-    min_noise: float = 1e-4
-    max_noise: float = 0.02
 
 
-class SimpleDiffusionTransformer(nn.Module):
-    """Simple denoising network using spatial layers for latent space."""
-    def __init__(self, latent_dim: int, num_layers: int = 3, factor: int = 2):
-        super().__init__()
-        self.latent_dim = latent_dim
-        
-        self.ae = BasicSpatialAutoencoder(
-            in_dim=in_dim,
-            lift_steps=0,
-            encode_layers=num_layers,
-            factor=factor,
-            scale=factor**2
-        )
-        
-        latent_dim = self.ae.latent_dim
-        
-        # Time embedding to modulate channels
-        self.time_embed = nn.Sequential(
-            nn.Linear(1, latent_dim),
-            nn.SiLU(),
-            nn.Linear(latent_dim, latent_dim)
-        )
-        
-        # Output projection
-        self.out_proj = nn.Conv2d(latent_dim, latent_dim, kernel_size=1)
-        
-    def forward(self, z_noisy: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
-        """Predict denoised latent given noisy latent and timestep.
-        
-        Args:
-            z_noisy: [B, C, H, W] noisy latent
-            t: [B] timesteps in [0, 1]
-        """
-        
-        z = self.ae.encoder(z_noisy)  # [B, latent_dim, H', W']
-        B, C, H, W = z.shape
-        
-        # Time embedding to modulate features
-        t_emb = self.time_embed(t.unsqueeze(-1))  # [B, C]
-        z = z + t_emb.view(B, C, 1, 1)
-        z = self.out_proj(z)
-        
-        z_out = self.ae.decoder(z)
-        return z_out
+class Diffusion(pl.LightningModule):
 
-
-class OperatorDiffusion(pl.LightningModule):
-    """Latent diffusion model using spatial autoencoder + diffusion transformer."""
-    
     def __init__(self, config: Config) -> None:
         super().__init__()
-        
         self.save_hyperparameters(config)
+
+        k = config['k']
+        sdim = config['sdim']
+        tdim = config['tdim']
+        dim = config['in_channels']
+        cdim = config['condition_channels']
+        self.cdim = cdim
         
-        in_channels = config['in_channels']
-        lift_steps = config['lift_steps']
-        encode_layers = config['encode_layers']
-        patch_size = config['patch_size']
-        factor = config['factor']
+        self.shape = config['shape']
+        self.L = config['L']
         self.learning_rate = config['learning_rate']
-        
-        # Autoencoder for latent space
-        self.ae = BasicSpatialAutoencoder(
-            in_dim=in_channels,
-            lift_steps=lift_steps,
-            encode_layers=encode_layers,
-            p=patch_size,
-            factor=factor
-        )
-        
-        # Get latent dimension from AE
-        latent_dim = self.ae.latent_dim
-        
-        # Diffusion denoiser
-        self.denoiser = SimpleDiffusionTransformer(
-            latent_dim=latent_dim,
-            num_layers=3,
-            factor=factor
-        )
-        
-        # Diffusion parameters
-        self.num_steps = config.get('num_diffusion_steps', 10)
-        self.min_noise = config.get('min_noise', 1e-4)
-        self.max_noise = config.get('max_noise', 0.02)
-            
+
+        self.k = k
+        self.shuffle = nn.PixelShuffle(k)
+        self.unshuffle = nn.PixelUnshuffle(k)
+
+        in_dim = (sdim + tdim + dim + cdim) * k ** 2
+        out_dim = dim * k ** 2
+        width = config['siren_width'] if config['siren_width'] is not None else in_dim
+
+        self.siren  = Siren(in_dim, out_dim, width=width,
+                            layers=config['siren_layers'],
+                            w=config['siren_w'], act=Tri, k=1)
+        self.ae = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])
+        self.t_emb = TimeEmbedding(tdim)
+
+        self.steps = config['steps']
+        self._init_buffers(self.shape, self.L)
         self.criterion = nn.MSELoss()
-    
-    def get_noise_schedule(self, t: torch.Tensor) -> torch.Tensor:
-        """Get noise level for timestep t in [0, 1]."""
-        # Linear schedule
-        return self.min_noise + (self.max_noise - self.min_noise) * t
-    
-    def mix_noise(self, x: torch.Tensor, e: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
-        """Mix clean latent x with noise e according to timestep t.
         
-        z = t * x + (1 - t) * e
-        """
-        t = t.view(-1, 1, 1, 1)
-        return t * x + (1 - t) * e
-    
-    def forward(self, x: torch.Tensor, num_steps: int = None) -> torch.Tensor:
-        """Generate sample through denoising process."""
-        if num_steps is None:
-            num_steps = self.num_steps
-            
-        with torch.no_grad():
-            # Get latent shape from encoder
-            z_shape = self.ae.encoder(x[:1]).shape
-            
-        # Start from pure noise
-        z = torch.randn(x.shape[0], *z_shape[1:], device=x.device)
+        self.sampler = samplers[config['sampler']]()
+
+    def _init_buffers(self, shape: tuple, L: float) -> None:
+        shape_sm = tuple(s // self.k for s in shape)
+        x  = torch.frac(torch.linspace(-L, L, shape_sm[-1]))
+        x  = x[:, None].expand(*shape_sm)
+        xy = torch.stack([x, x.mT], dim=0)[None, ...]
+        self.register_buffer('xy', xy)
+        self.deriv = Derivative(shape=shape_sm,
+                                L=tuple(L for _ in range(len(shape))))
+        self.register_buffer('t',  torch.linspace(0, 1, self.steps + 1))
+        self.register_buffer('dt', self.t[1:] - self.t[:-1])
+
+    # ── Core primitives ───────────────────────────────────────────────────
+
+    def denoise(self, x: torch.Tensor, t: torch.Tensor, c: torch.Tensor = None) -> torch.Tensor:
+        z = self.ae.encoder(x)
+        cz = self.ae.encoder(c)
         
-        # Denoise iteratively
-        dt = 1.0 / num_steps
-        for step in range(num_steps, 0, -1):
-            t = torch.full((x.shape[0],), step / num_steps, device=x.device)
-            
-            # Predict denoised latent directly
-            z_pred = self.denoiser(z, t)
-            
-            # Move towards prediction
-            z = z_pred
-            
-        # Decode to image space
-        with torch.no_grad():
-            x_recon = self.ae.decoder(z)
-            
-        return x_recon
-    
+        z_in = z
+        zx = torch.cat([
+            z,
+            cz,
+            self.xy.expand(z.shape[0], -1, *z.shape[2:]),
+            self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:]))
+        ], dim=1)
+        
+        z = self.shuffle(self.siren(self.unshuffle(zx)))
+        z = self.deriv.adv(z_in, z) + z_in
+        
+        return self.ae.decoder(z)
+
+    def noise(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.randn_like(x)
+
+    def mix(self, x: torch.Tensor, n: torch.Tensor,
+            t: torch.Tensor) -> torch.Tensor:
+        return x * t + n * (1 - t)
+
+    def vel(self, x_pred: torch.Tensor, x_n: torch.Tensor,
+            t: torch.Tensor) -> torch.Tensor:
+        return (x_pred - x_n) / (1 - t)
+
+    def loss(self, x: torch.Tensor, c: torch.Tensor) -> torch.Tensor:
+        
+        if x.shape != self.shape:
+            self.shape = x.shape[-2:]
+            self.L = x.shape[-1] * self.L / self.shape[-1]
+            self._init_buffers(self.shape, self.L)
+            self.to(x.device)
+        
+        t      = torch.rand(x.shape[0], device=x.device)[:, None, None, None]
+        n      = self.noise(x)
+        x_n    = self.mix(x, n, t)
+        v_pred = self.vel(self.denoise(x_n, t, c=c), x_n, t) * (1 - t)
+        v_true = self.vel(x,                    x_n, t) * (1 - t)
+        return self.criterion(v_pred, v_true)
+
+    # ── Generation ────────────────────────────────────────────────────────
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        t = torch.tensor(0.1, device=x.device)
+        n = self.noise(x)
+        return self.denoise(self.mix(x, n, t), t, c=n)
+
+    def latent(self, x: torch.Tensor) -> torch.Tensor:
+        return self.noise(x)
+
+    def gen(self, x: torch.Tensor, c: torch.Tensor, shape=None, L=None) -> torch.Tensor:
+        
+        if shape is not None and L is not None:
+            self._init_buffers(shape, L)
+            self.to(x.device)
+        
+        x_n = self.noise(x)
+        for i in range(self.steps):
+            x_n = self.sampler.step(self, x_n, i, self.t, self.dt, c=c)
+        return x_n
+
+    # ── Lightning ─────────────────────────────────────────────────────────
+
     def training_step(self, batch: torch.Tensor, _: int) -> torch.Tensor:
-        x = batch[0]
-        
-        # Encode to latent (clean)
-        z_clean = self.ae.encoder(x)
-        
-        # Sample random timesteps
-        t = torch.rand(z_clean.shape[0], device=z_clean.device)
-        
-        # Sample noise
-        e = torch.randn_like(z_clean)
-        
-        # Mix clean and noise: z = t * x + (1 - t) * e
-        z = self.mix_noise(z_clean, e, t)
-        
-        # Predict denoised latent
-        z_pred = self.denoiser(z, t)
-        
-        # Compute velocity from ground truth
-        t_clamped = torch.clamp(1 - t, 0.05, 1).view(-1, 1, 1, 1)
-        v = (z_clean - z) / t_clamped
-        
-        # Compute velocity from prediction
-        v_pred = (z_pred - z) / t_clamped
-        
-        # Loss: MSE between predicted and true velocity
-        loss = self.criterion(v_pred, v)
-        
-        self.log("train_loss", loss, prog_bar=True)
+        loss = self.loss(batch[:, 1], batch[:, 0]) 
+        self.log('train_loss', loss, prog_bar=True)
         return loss
-    
+
     def validation_step(self, batch: torch.Tensor, _: int) -> None:
-        x = batch[0]
+        self.log('val_loss', self.loss(batch[:, 1], batch[:, 0]), prog_bar=True)
         
-        # Encode to latent (clean)
-        with torch.no_grad():
-            z_clean = self.ae.encoder(x)
-        
-        # Sample random timesteps
-        t = torch.rand(z_clean.shape[0], device=z_clean.device)
-        
-        # Sample noise
-        e = torch.randn_like(z_clean)
-        
-        # Mix clean and noise
-        z = self.mix_noise(z_clean, e, t)
-        
-        # Predict denoised latent
-        z_pred = self.denoiser(z, t)
-        
-        # Compute velocity from ground truth
-        t_clamped = torch.clamp(1 - t, 0.05, 1).view(-1, 1, 1, 1)
-        v = (z_clean - z) / t_clamped
-        
-        # Compute velocity from prediction
-        v_pred = (z_pred - z) / t_clamped
-        
-        # Loss: MSE between predicted and true velocity
-        val_loss = self.criterion(v_pred, v)
-        
-        self.log("val_loss", val_loss, prog_bar=True)
-    
+    def metrics(self, assistant, dirs):
+        val_loader = assistant #
+        MX.reconstruction(self, val_loader, dirs)
+        # MX.generation(self, val_loader, dirs)
+
     def configure_optimizers(self) -> torch.optim.Optimizer:
-        # Optimize both autoencoder and denoiser parameters
-        return torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
+        return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
