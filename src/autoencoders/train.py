@@ -98,24 +98,27 @@ def _save_reconstructions(model: pl.LightningModule, dataloader: torch.utils.dat
     device = next(model.parameters()).device
     with torch.no_grad():
         for batch in dataloader:
-            inputs = batch[0].to(device)
-            recon = model(inputs).cpu()
-            inputs = inputs.cpu()
-            
-            # color image with cmap if single channel
-            if recon.shape[1] == 1:
-                cmap = draw.cmap
-                inputs = inputs.squeeze(1).numpy()
-                recon = recon.squeeze(1).numpy()
-                # normalize to [0,1] for colormap
-                inputs = (inputs - inputs.min()) / (inputs.max() - inputs.min() + 1e-8)
-                recon = (recon - recon.min()) / (recon.max() - recon.min() + 1e-8)
-                # cmap returns RGBA, take RGB and convert to tensor in CHW format
-                inputs = torch.from_numpy(cmap(inputs)[...,:3]).permute(0, 3, 1, 2).float()
-                recon = torch.from_numpy(cmap(recon)[...,:3]).permute(0, 3, 1, 2).float()
-            
-            save_image(inputs[:8], os.path.join(output_dir, "inputs.png"), nrow=4)
-            save_image(recon[:8], os.path.join(output_dir, "reconstructions.png"), nrow=4)
+            try:
+                inputs = batch[0].to(device)
+                recon = model(inputs).cpu()
+                inputs = inputs.cpu()
+                
+                # color image with cmap if single channel
+                if recon.shape[1] == 1:
+                    cmap = draw.cmap
+                    inputs = inputs.squeeze(1).numpy()
+                    recon = recon.squeeze(1).numpy()
+                    # normalize to [0,1] for colormap
+                    inputs = (inputs - inputs.min()) / (inputs.max() - inputs.min() + 1e-8)
+                    recon = (recon - recon.min()) / (recon.max() - recon.min() + 1e-8)
+                    # cmap returns RGBA, take RGB and convert to tensor in CHW format
+                    inputs = torch.from_numpy(cmap(inputs)[...,:3]).permute(0, 3, 1, 2).float()
+                    recon = torch.from_numpy(cmap(recon)[...,:3]).permute(0, 3, 1, 2).float()
+                
+                save_image(inputs[:8], os.path.join(output_dir, "inputs.png"), nrow=4)
+                save_image(recon[:8], os.path.join(output_dir, "reconstructions.png"), nrow=4)
+            except Exception as e:
+                print(e)
             break
 
 def _save_info_files(cfg: DictConfig, output_dir: str) -> None:
