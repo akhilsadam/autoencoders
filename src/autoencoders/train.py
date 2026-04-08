@@ -21,6 +21,11 @@ from torchvision.utils import save_image
 import wandb
 import jpcm.draw as draw
 
+
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+torch._dynamo.config.dynamic_shapes = False
+
 from . import get_default_config, get_model
 from .data import build_dataloaders
 os.environ.setdefault("WANDB_MODE", "online")
