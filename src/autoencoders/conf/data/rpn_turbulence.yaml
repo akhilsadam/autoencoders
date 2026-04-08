@@ -35,6 +35,9 @@ params:
   n_train: 60
   n_test: 9
 
+  seq_len: 2
+  test_seq_len: 16
+
   rpns: [
     [ # TESTING # OOD # signs are flipped on purpose to give different directions
         # Charney-Hasegawa-Mima equation — plasma/atmosphere analog,

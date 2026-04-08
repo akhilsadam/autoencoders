@@ -1,0 +1,17 @@
+# @package _global_
+# exp/mmai_apr26/2_vlm.yaml
+
+defaults:
+  - override /model: mmai_apr26/vlm
+  - override /data: rpn_textvision
+
+project: mmai_apr26
+wandb:
+  project: ml-dev # quick folder
+
+run:
+  tags: [mmai, 2-vlm, baseline]
+
+hydra:
+  run:
+    dir: runs/${wandb.project}/2-vlm/${data.fullname}/${model.name}/${sec_id:}_${git.short_msg}

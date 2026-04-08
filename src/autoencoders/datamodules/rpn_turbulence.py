@@ -16,17 +16,8 @@ from omegaconf import OmegaConf
 from tqdm import tqdm
 
 
-class _TensorDatasetNoTuple(Dataset):
-    """Wrapper that returns tensors directly without wrapping in tuples."""
-    def __init__(self, tensor):
-        self.tensor = tensor
-    
-    def __len__(self):
-        return len(self.tensor)
-    
-    def __getitem__(self, idx):
-        return self.tensor[idx]
-
+from .timeseries import TimeSeriesDataset, ConditionalDataset, conditional_collate
+from .cache import get_cache
 
 @dataclass
 class RPNTurbulenceConfig:
@@ -67,31 +58,10 @@ class RPNTurbulenceConfig:
     rpns: list = ([], []) # Optional
 
 
-def _get_version_hash(cfg: RPNTurbulenceConfig) -> str:
-    """Generate hash of config parameters for versioning."""
-    config_dict = asdict(cfg)
-    # Exclude paths and non-physics parameters
-    exclude_keys = {'root', 'batch_size', 'num_workers', 'seed', 'version', 'val_split'}
-    physics_dict = {k: v for k, v in config_dict.items() if k not in exclude_keys}
-    config_str = json.dumps(physics_dict, sort_keys=True)
-    return hashlib.md5(config_str.encode()).hexdigest()[:8]
-
-
 def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]:
     """Build train and validation dataloaders for forced turbulence."""
     # Create versioned cache directory
-    version_hash = _get_version_hash(cfg)
-    timestamp = datetime.now().strftime('%Y%m%d')
-    version_dir = f"v{cfg.version}_{timestamp}_{version_hash}"
-    cache_path = os.path.join(cfg.root, version_dir)
-    os.makedirs(cache_path, exist_ok=True)
-    
-    # Save config for reproducibility
-    config_path = os.path.join(cache_path, 'config.yaml')
-    if not os.path.exists(config_path):
-        with open(config_path, 'w') as f:
-            OmegaConf.save(cfg, f)
-    
+    cache_path = get_cache(cfg, extra_keys=['seq_len', 'test_seq_len'])
     save_path = lambda i : os.path.join(cache_path, f'rpn_turbulence_data_{i}.npy')
     
     print(f"Looking for cached data at: {save_path(0)}")
@@ -203,37 +173,44 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
     n_datasets = len(rpns)
     print(f"Number of datasets: {n_datasets}")
     
-    # TODO fix below to load all datasets and concatenate, currently just loads the first one for testing
-    
     print(f"Loading cached data from {save_path(0)}...")
     file_size_mb = os.path.getsize(save_path(0)) / (1024**2)
-    print(f"File size: {file_size_mb:.1f} MB")
-    dataset_tensor = torch.from_numpy(np.load(save_path(0))).to(torch.float32)
-    print(f"Data loaded: {dataset_tensor.shape}")
-
-    # # Use memory mapping for large files to avoid loading entire file into RAM
-    # print("Using memory-mapped array (mmap_mode='r')...")
-    # data_np = np.load(save_path, mmap_mode='r')
-    # print(f"Data shape: {data_np.shape}, dtype: {data_np.dtype}")
+    print(f"File size: {file_size_mb:.1f} MB across each of {n_datasets} datasets")
     
-    # # Convert to torch tensor (this is lazy and won't load all data at once)
-    # dataset_tensor = torch.from_numpy(data_np).float()
-    # print(f"Tensor created (memory-mapped)")
+    paths = [save_path(i) for i in range(n_datasets)]
+    ts = [
+        TimeSeriesDataset(
+            data = torch.from_numpy(np.load(path, mmap_mode='r')[:, cfg.spinup_frames+1:-1, 0:1, :, :]),
+            seq_length = cfg.seq_len
+        )
+        for path in paths
+    ]
     
-    print("Creating TensorDataset...")
-    dataset = TensorDataset(dataset_tensor)
-    print(f"Dataset size: {len(dataset)} samples")
-            
-    # Split into train and validation
-    val_split = cfg.val_split
-    if val_split >= len(dataset):
-        raise ValueError("Validation split must be smaller than dataset size")
-    
-    generator = torch.Generator().manual_seed(cfg.seed)
-    train_dataset, val_dataset = random_split(
-        dataset, [len(dataset) - val_split, val_split], generator=generator
+    train_dataset = ConditionalDataset(
+        ts[cfg.n_test:],
+        rpns[cfg.n_test:]
     )
     
+    
+    val_dataset = ConditionalDataset(
+        ts[:cfg.n_test],
+        rpns[:cfg.n_test]
+    )
+    
+    lts = [
+        TimeSeriesDataset(
+            data = torch.from_numpy(np.load(path, mmap_mode='r')[:, cfg.spinup_frames+1:-1, 0:1, :, :]),
+            seq_length = cfg.test_seq_len
+        )
+        for path in paths[:cfg.n_test]
+    ]
+    
+    pred_dataset = ConditionalDataset(
+        lts,
+        rpns[:cfg.n_test]
+    )
+    
+
     # Create dataloaders
     train_loader = DataLoader(
         train_dataset,
@@ -241,13 +218,26 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
         shuffle=True,
         num_workers=cfg.num_workers,
         pin_memory=True,
+        persistent_workers=True,
+        collate_fn=conditional_collate
     )
     val_loader = DataLoader(
         val_dataset,
         batch_size=cfg.batch_size,
         shuffle=False,
-        num_workers=cfg.num_workers,
+        num_workers=cfg.test_workers,
         pin_memory=True,
+        persistent_workers=True,
+        collate_fn=conditional_collate
     )
-    
-    return train_loader, val_loader
+    pred_loader = DataLoader(
+        pred_dataset,
+        batch_size=cfg.batch_size,
+        shuffle=False,
+        num_workers=cfg.test_workers,
+        pin_memory=True,
+        persistent_workers=True,
+        collate_fn=conditional_collate
+    )
+
+    return train_loader, val_loader, pred_loader

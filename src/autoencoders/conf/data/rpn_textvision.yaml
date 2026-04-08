@@ -1,0 +1,5 @@
+name: rpn_textvision
+fullname: rpn_textvision
+defaults:
+  - text_config@params.text_config: rpn_encoder
+  - vision_config@params.vision_config: rpn_turbulence

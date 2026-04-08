@@ -13,17 +13,17 @@ import numpy as np
 from torch.utils.data import DataLoader, Dataset, random_split, TensorDataset
 from omegaconf import OmegaConf
 
-def _get_version_hash(cfg) -> str:
+def _get_version_hash(cfg, extra_keys=[]) -> str:
     """Generate hash of config parameters for versioning."""
     config_dict = asdict(cfg)
     # Exclude paths and non-physics parameters
-    exclude_keys = {'root', 'batch_size', 'num_workers', 'test_workers', 'seed', 'version', 'val_split'}
+    exclude_keys = ['root', 'batch_size', 'num_workers', 'test_workers', 'seed', 'version', 'val_split', *extra_keys]
     physics_dict = {k: v for k, v in config_dict.items() if k not in exclude_keys}
     config_str = json.dumps(physics_dict, sort_keys=True)
     return hashlib.md5(config_str.encode()).hexdigest()[:8]
 
-def get_cache(cfg) -> str:
-    version_hash = _get_version_hash(cfg)
+def get_cache(cfg, extra_keys=[]) -> str:
+    version_hash = _get_version_hash(cfg, extra_keys=extra_keys)
     timestamp = datetime.now().strftime('%Y%m%d')
     
     cache_path = None

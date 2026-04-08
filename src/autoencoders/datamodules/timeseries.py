@@ -42,3 +42,42 @@ class TimeSeriesDataset(Dataset):
 
     def shape(self):
         return (len(self), self.seq_length, *self.data.shape[2:])
+    
+
+class ConditionalDataset(Dataset):
+    def __init__(self, datasets, labels):
+        """
+        datasets: list of Dataset objects (e.g., TimeSeriesDataset instances)
+        labels: list of labels (same length)
+        """
+        assert len(datasets) == len(labels)
+
+        self.datasets = datasets
+        self.labels = labels
+
+        self.lengths = [len(d) for d in datasets]
+        self.cum_lengths = torch.cumsum(
+            torch.tensor(self.lengths), dim=0
+        )
+
+    def __len__(self):
+        return int(self.cum_lengths[-1])
+
+    def _get_dataset_index(self, idx):
+        return int(torch.searchsorted(self.cum_lengths, idx, right=True))
+
+    def __getitem__(self, idx):
+        d_idx = self._get_dataset_index(idx)
+
+        prev_cum = 0 if d_idx == 0 else self.cum_lengths[d_idx - 1]
+        local_idx = idx - prev_cum
+
+        x = self.datasets[d_idx][local_idx]
+        label = self.labels[d_idx]
+
+        return label, x
+    
+def conditional_collate(batch):
+    labels, xs = zip(*batch)
+    xs = torch.stack(xs, dim=0)
+    return labels, xs
