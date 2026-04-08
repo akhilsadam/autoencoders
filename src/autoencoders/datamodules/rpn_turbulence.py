@@ -49,6 +49,7 @@ class RPNTurbulenceConfig:
     
     batch_size: int = 32
     num_workers: int = 4
+    test_workers: int = 4
     val_split: int = 20
     seed: int = 42
     version: int = 1
