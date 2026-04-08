@@ -52,7 +52,7 @@ class OptVLMDiffusion(pl.LightningModule):
 
     def validation_step(self, batch, step_id) -> None:
         rpn_batch, fused_batch = batch
-        rpn_loss = self.llm.validation_step(rpn_batch, step_id, logger=self)
+        self.llm.validation_step(rpn_batch, step_id, logger=self)
                 
         rpns, seq = fused_batch
         x = seq[:,0]
@@ -60,9 +60,6 @@ class OptVLMDiffusion(pl.LightningModule):
         latent = self.proj_latent(self.llm.encode(rpns))
         diffusion_loss = self.opt.loss(y, x, latent)
         self.log('val_diffusion_loss', diffusion_loss, prog_bar=True)
-        
-        loss = rpn_loss + diffusion_loss
-        return loss
         
     def metrics(self, assistant, dirs):
         pass
