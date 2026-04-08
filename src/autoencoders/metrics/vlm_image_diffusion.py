@@ -95,7 +95,7 @@ def quick_reconstruction(net, rpns, batch, dirs, info, **kwargs):
             stack = stack.detach().cpu()
             rplot(stack[0:4], dirs[0], f"surrogate_reco_batch_{info}_{iter:04d}.png")
             with open(os.path.join(dirs[0], f'rpns_{iter:04d}.txt'),'w') as f:
-                f.write(rpns)
+                f.write('\n'.join(rpns))
                 
     iter += 1
     
