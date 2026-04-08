@@ -2,12 +2,16 @@ from torch.utils.data import Dataset
 import torch
 
 class TimeSeriesDataset(Dataset):
-    def __init__(self, data, seq_length, downsample_factor=1):
+    def __init__(self, data, seq_length, stride=1, downsample_factor=1):
         self.data = data
         self.seq_length = seq_length
+        self.stride = stride
         self.downsample_factor = downsample_factor
         
-        self.t_len = self.data.shape[1] - self.seq_length
+        # effective temporal span of one sample
+        self.eff_len = (seq_length - 1) * stride + 1
+        
+        self.t_len = self.data.shape[1] - self.eff_len + 1
 
     def __len__(self):
         return self.t_len * self.data.shape[0]
@@ -16,7 +20,7 @@ class TimeSeriesDataset(Dataset):
         b = _idx // self.t_len
         idx = _idx % self.t_len
 
-        widths = self.data.shape[3:]  # spatial dims
+        widths = self.data.shape[3:]
         chan = self.data.shape[2]
 
         dwidths = [w // self.downsample_factor for w in widths]
@@ -29,9 +33,16 @@ class TimeSeriesDataset(Dataset):
             for _start, dw in zip(rand_start, dwidths)
         ]
 
+        # strided time indexing
+        time_indices = torch.arange(
+            idx,
+            idx + self.eff_len,
+            self.stride
+        )
+
         seq_slices = [
             slice(b, b + 1),
-            slice(idx, idx + self.seq_length),
+            time_indices,
             slice(0, chan),
             *_slices
         ]
@@ -42,7 +53,6 @@ class TimeSeriesDataset(Dataset):
 
     def shape(self):
         return (len(self), self.seq_length, *self.data.shape[2:])
-    
 
 class ConditionalDataset(Dataset):
     def __init__(self, datasets, labels):

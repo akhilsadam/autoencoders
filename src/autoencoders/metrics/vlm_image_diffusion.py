@@ -71,9 +71,9 @@ def reconstruction(net, loader, dirs):
             json.dump(data, f, indent=4)
         
 iter = 0        
-def quick_reconstruction(net, rpns, batch, dirs, info, **kwargs):
+def quick_reconstruction(net, rpns, batch, dirs, info, plot_rate=1, **kwargs):
     global iter
-    if iter % 5 == 0:
+    if iter % plot_rate == 0:
         with torch.no_grad():
             loss = 0.0
     

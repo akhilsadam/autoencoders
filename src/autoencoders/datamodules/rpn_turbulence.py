@@ -201,7 +201,8 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
     ts = [
         TimeSeriesDataset(
             data = d,
-            seq_length = cfg.seq_len
+            seq_length = cfg.seq_len,
+            stride=4
         )
         for d in npdata
     ]
@@ -220,7 +221,8 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
     lts = [
         TimeSeriesDataset(
             data = d,
-            seq_length = cfg.test_seq_len
+            seq_length = cfg.test_seq_len,
+            stride=4
         )
         for d in npdata[:cfg.n_test]
     ]

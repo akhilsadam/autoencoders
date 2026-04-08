@@ -31,17 +31,20 @@ def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoad
     
     train_dataset = TimeSeriesDataset(
         data=_train_dataset,
-        seq_length=2,  # single-step prediction
+        seq_length=2,  # single-step prediction,
+        stride=4
     )
     
     val_dataset = TimeSeriesDataset(
         data=_val_dataset,
         seq_length=2,  # single-step prediction
+        stride=4
     )
     
     test_dataset = TimeSeriesDataset(
         data=_val_dataset,
         seq_length=16,  # single-step prediction
+        stride=4
     )    
     
     # Create dataloaders
