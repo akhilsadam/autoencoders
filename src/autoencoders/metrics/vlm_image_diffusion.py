@@ -9,6 +9,8 @@ import numpy as np
 import jpcm.draw as draw
 cmap = draw.cmap
 
+import json
+
 from einops import rearrange
 
 from torchvision.utils import save_image
@@ -35,14 +37,18 @@ def reconstruction(net, loader, dirs, level=0.1):
         n = len(loader)
         results = []
         loss = 0.0
-        for batch in loader:
+        rpn_list = []
+        for fused_batch in loader:
+            rpns, batch = fused_batch 
             batch = batch.to(next(net.parameters()).device)
+            
+            latent = net.compute_latent(rpns)
             
             zloss = 0.0
             y_hats = []
             x = batch[:, 0]  # B C H W
             for i in range(batch.shape[1] - 1):                
-                y_hat = net.gen(x, x)
+                y_hat = net.gen(x, x, latent=latent)
                 y_hats.append(y_hat.detach())
                 # update
                 x = y_hat
@@ -54,13 +60,15 @@ def reconstruction(net, loader, dirs, level=0.1):
             stack = torch.stack([y, y_hat, y_hat - y], dim=1)  # P Y T C H W
 
             results.append(stack.detach().cpu())
+            rpn_list.append(rpns)
             loss += zloss.item() / n
         results = torch.stack(results, dim=0) # B P Y T C H W # B is batch time, P is pde, Y is type
         
         torch.save(results, os.path.join(dirs[1], "reconstructions.pt"))
         rplot(results[0], dirs[0], "surrogate_reco_batchfirst.png")
         rplot(results[-1], dirs[0], "surrogate_reco_batchlast.png")
-        
+        with open(os.path.join(dirs[0], f'rpns_saved.json'),'w') as f:
+            json.dump(data, f, indent=4)
         
 iter = 0        
 def quick_reconstruction(net, rpns, batch, dirs, info, **kwargs):
