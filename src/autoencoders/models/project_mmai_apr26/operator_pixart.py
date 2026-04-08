@@ -52,17 +52,18 @@ class PixArtDiffusion(Diffusion):
 
         # ---- Text conditioning ----
         if text_prompt is not None:
-            tokens = self.tokenizer(
-                text_prompt,
-                padding="max_length",
-                truncation=True,
-                max_length=120,
-                return_tensors="pt"
-            ).to(x.device)
-
-            text_emb = self.text_encoder(**tokens).last_hidden_state
+            text_prompt = '2D PDE fluid flow:' + text_prompt
         else:
-            text_emb = None
+            text_prompt = '2D PDE fluid flow:'
+            
+        tokens = self.tokenizer(
+            text_prompt,
+            padding="max_length",
+            truncation=True,
+            max_length=120,
+            return_tensors="pt"
+        ).to(x.device)
+        text_emb = self.text_encoder(**tokens).last_hidden_state
 
         # ---- PixArt forward (DiT) ----
         noise_pred = self.transformer(
