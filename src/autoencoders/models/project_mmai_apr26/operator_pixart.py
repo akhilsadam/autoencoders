@@ -8,6 +8,9 @@ from autoencoders.models.project_mmai_apr26.operator_diffusion import Diffusion
 class PixArtDiffusion(Diffusion):
     def __init__(self, config):
         super().__init__(config)
+        
+        del self.siren
+        del self.ae
 
         # ---- Load correct PixArt model ----
         pipe = PixArtAlphaPipeline.from_pretrained(
