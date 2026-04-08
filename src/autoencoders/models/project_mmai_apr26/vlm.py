@@ -75,7 +75,7 @@ class OptVLMDiffusion(pl.LightningModule):
         diffusion_loss = self.opt.loss(y, x, latent)
         self.log('val_diffusion_loss', diffusion_loss, prog_bar=True)
         
-        MX.quick_reconstruction(self, rpns, seq, '', self.dirs, latent=latent)
+        MX.quick_reconstruction(self, rpns, seq, self.dirs, '', latent=latent)
             
     def metrics(self, assistant):
         pass
