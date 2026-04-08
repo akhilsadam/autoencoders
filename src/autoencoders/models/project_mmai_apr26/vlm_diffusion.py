@@ -115,7 +115,7 @@ class Diffusion(pl.LightningModule):
         
         z_unshuf = self.unshuffle(zx)
         if latent is not None:
-            z_unshuf = s_unshuf + latent[:,:,None,None]
+            z_unshuf = z_unshuf + latent[:,:,None,None]
             
         z = self.shuffle(self.siren(z_unshuf))
         z = self.deriv.adv(z_in, z) + z_in
