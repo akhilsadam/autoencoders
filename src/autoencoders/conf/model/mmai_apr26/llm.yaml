@@ -1,0 +1,9 @@
+name: llm
+params:
+    seq_len: int = 100
+    embed_dim: int = 32
+    proj_dim: int = 64
+    rules: bool = False
+    
+    # Training
+    learning_rate: float = 1e-4
