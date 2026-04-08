@@ -28,6 +28,7 @@ nvidia-ml-py
 timm
 diffusers
 peft
+sentencepiece
 tiktoken
 # for change tracking with LLMs
 packaging
