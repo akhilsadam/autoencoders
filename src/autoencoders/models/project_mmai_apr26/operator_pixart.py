@@ -70,7 +70,7 @@ class PixArtDiffusion(Diffusion):
             hidden_states=latents,
             timestep=(t.view(-1) * 1000).long(),
             encoder_hidden_states=text_emb,
-        ).sample()
+        ).sample[:,:4]
 
         # ---- 1-step inversion (critical) ----
         z_pred = (latents - (1 - t_) * noise_pred) / (t_ + 1e-6)
