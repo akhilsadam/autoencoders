@@ -23,6 +23,7 @@ params:
     seq_len: 100
     embed_dim: 32
     proj_dim: 96
+    latent_dim: 16 # compress 96 -> 16 for cheaper siren
     rules: False
     
     # Training

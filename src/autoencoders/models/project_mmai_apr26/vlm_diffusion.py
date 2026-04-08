@@ -71,8 +71,9 @@ class Diffusion(pl.LightningModule):
         self.shuffle = nn.PixelShuffle(k)
         self.unshuffle = nn.PixelUnshuffle(k)
 
-        in_dim = (sdim + tdim + dim + cdim) * k ** 2
-        self.latent_dim = in_dim
+        self.latent_dim = config['latent_dim']
+
+        in_dim = (sdim + tdim + dim + cdim + self.latent_dim) * k ** 2
         out_dim = dim * k ** 2
         width = config['siren_width'] if config['siren_width'] is not None else in_dim
 
@@ -110,13 +111,11 @@ class Diffusion(pl.LightningModule):
             z,
             cz,
             self.xy.expand(z.shape[0], -1, *z.shape[2:]),
-            self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:]))
+            self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:])),
+            latent[:,:,None,None].expand(z.shape[0], -1, *z.shape[2:]),
         ], dim=1)
         
-        z_unshuf = self.unshuffle(zx)
-        if latent is not None:
-            z_unshuf = z_unshuf + latent[:,:,None,None]
-            
+        z_unshuf = self.unshuffle(zx)            
         z = self.shuffle(self.siren(z_unshuf))
         z = self.deriv.adv(z_in, z) + z_in
         
