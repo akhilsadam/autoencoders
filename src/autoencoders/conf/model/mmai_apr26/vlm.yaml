@@ -7,7 +7,7 @@ params:
     
     # AE architecture
     k: 8                    # pixel shuffle factor
-    sdim: 2                 # spatial coord dims
+    sdim: 16                 # spatial coord dims
     tdim: 16                # time embedding dims
     siren_width: null       # defaults to in_dim if None
     siren_layers: 5
@@ -23,7 +23,7 @@ params:
     seq_len: 100
     embed_dim: 32
     proj_dim: 96
-    latent_dim: 16 # compress 96 -> 16 for cheaper siren
+
     rules: False
     
     # Training

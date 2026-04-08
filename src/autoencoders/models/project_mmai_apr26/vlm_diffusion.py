@@ -15,11 +15,11 @@ from torch import nn
 import torch.nn.functional as F
 
 from autoencoders.models.modules.ae import BasicSpatialAutoencoder
-from autoencoders.models.modules.siren import Siren
+from autoencoders.models.modules.siren import FiLMSiren
 from autoencoders.models.modules.math.derivative import Derivative
 from autoencoders.models.modules.diffusion.samplers.flow_matching import samplers
 from autoencoders.models.modules.diffusion.embeddings import TimeEmbedding
-from autoencoders.models.modules.act import Tri
+from autoencoders.models.modules.act import Tri, Swish
 
 from autoencoders.metrics import conditional_image_diffusion as MX
 
@@ -71,15 +71,22 @@ class Diffusion(pl.LightningModule):
         self.shuffle = nn.PixelShuffle(k)
         self.unshuffle = nn.PixelUnshuffle(k)
 
-        self.latent_dim = config['latent_dim']
-
-        in_dim = (sdim + tdim + dim + cdim + self.latent_dim) * k ** 2
+        
+        self.cond_dim = config['proj_dim']
+                
+        self.sdim = sdim        
+        in_dim = (sdim + tdim + dim + cdim) * k ** 2
         out_dim = dim * k ** 2
         width = config['siren_width'] if config['siren_width'] is not None else in_dim
 
-        self.siren  = Siren(in_dim, out_dim, width=width,
+        # self.siren  = Siren(in_dim, out_dim, width=width,
+        #                     layers=config['siren_layers'],
+        #                     w=config['siren_w'], act=Tri, k=1)
+        
+        self.siren  = FiLMSiren(in_dim, out_dim, cond_dim, width=width,
                             layers=config['siren_layers'],
                             w=config['siren_w'], act=Tri, k=1)
+        
         self.ae = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])
         self.ae2 = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])
         self.t_emb = TimeEmbedding(tdim)
@@ -91,10 +98,16 @@ class Diffusion(pl.LightningModule):
         self.sampler = samplers[config['sampler']]()
 
     def _init_buffers(self, shape: tuple, L: float) -> None:
-        shape_sm = tuple(s // self.k for s in shape)
-        x  = torch.frac(torch.linspace(-L, L, shape_sm[-1]))
-        x  = x[:, None].expand(*shape_sm)
-        xy = torch.stack([x, x.mT], dim=0)[None, ...]
+        shape_sm = tuple(s // self.k for s in shape) 
+        
+        xys = []
+        for i in range (self.sdim // 2):
+            scale = 2**i
+            x  = torch.frac(torch.linspace(-L*scale, L*scale, shape_sm[-1]))
+            x  = x[:, None].expand(*shape_sm)
+            xys.append(torch.stack([x, x.mT], dim=0)[None, ...])
+        xy = torch.cat(xys, dim=1)            
+        
         self.register_buffer('xy', xy)
         self.deriv = Derivative(shape=shape_sm,
                                 L=tuple(L for _ in range(len(shape))))
@@ -112,11 +125,11 @@ class Diffusion(pl.LightningModule):
             cz,
             self.xy.expand(z.shape[0], -1, *z.shape[2:]),
             self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:])),
-            latent[:,:,None,None].expand(z.shape[0], -1, *z.shape[2:]),
         ], dim=1)
         
+        
         z_unshuf = self.unshuffle(zx)            
-        z = self.shuffle(self.siren(z_unshuf))
+        z = self.shuffle(self.siren(z_unshuf, latent))
         # z = self.deriv.adv(cz, z) + cz
 
         return self.ae.decoder(z)

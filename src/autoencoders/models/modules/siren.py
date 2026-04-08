@@ -85,3 +85,49 @@ class Siren(nn.Module):
     def forward(self, x):
         return self.fwd(x)
     
+
+class FiLM(nn.Module):
+    def __init__(self, c_cond, c_out):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(c_cond, 2 * c_out),
+            nn.SiLU(),
+            nn.Linear(2 * c_out, 2 * c_out),
+        )
+
+    def forward(self, x, cond):
+        gamma, beta = self.net(cond).chunk(2, dim=1)
+        return x * (1 + gamma[..., None, None]) + beta[..., None, None]
+    
+class FiLMLayer(nn.Module):
+    def __init__(self, c_in, c_out, c_cond, w=30, act=Sine, k=1, is_last=False):
+        super().__init__()
+        self.linear = Linear(c_in, c_out, k, w=w, act=act if not is_last else nn.Identity)
+        self.film = FiLM(c_cond, c_out)
+        self.is_last = is_last
+
+    def forward(self, x, cond):
+        x = self.linear(x)
+        if not self.is_last:
+            x = self.film(x, cond)
+        return x
+
+class FiLMSiren(nn.Module):
+    def __init__(self, c_in, c_out, c_cond, width=256, layers=3, w=30, act=Sine, k=1):
+        super().__init__()
+
+        self.first = FiLMLayer(c_in, width, c_cond, w=w, act=act, k=k)
+
+        self.hidden = nn.ModuleList([
+            FiLMLayer(width, width, c_cond, w=w, act=act, k=k)
+            for _ in range(layers)
+        ])
+
+        self.final = FiLMLayer(width, c_out, c_cond, w=w, act=act, k=k, is_last=True)
+
+    def forward(self, x, cond):
+        x = self.first(x, cond)
+        for layer in self.hidden:
+            x = layer(x, cond)
+        x = self.final(x, cond)
+        return x

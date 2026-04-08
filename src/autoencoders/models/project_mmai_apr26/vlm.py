@@ -31,13 +31,7 @@ class OptVLMDiffusion(pl.LightningModule):
         self.llm = llm.CRPNAutoencoder(config)
         self.opt = vlm_diffusion.Diffusion(config)
         
-        self.proj_latent = nn.Sequential(
-            nn.Linear(self.llm.proj_dim, 256),
-            nn.LeakyReLU(),
-            nn.Linear(256, self.opt.latent_dim),
-            nn.Tanh(), # prevent explosion
-        )
-            
+
             # additive fusion doesn't work
         # nn.init.zeros_(self.proj_latent[-1].weight)
         # nn.init.zeros_(self.proj_latent[-1].bias)
@@ -45,7 +39,7 @@ class OptVLMDiffusion(pl.LightningModule):
         self.learning_rate = config['learning_rate']
 
     def compute_latent(self, rpns):
-        return self.proj_latent(self.llm.encode(rpns))
+        return self.llm.encode(rpns)
     
     def gen(self, *args, **kwargs):
         return self.opt.gen(*args, **kwargs)
