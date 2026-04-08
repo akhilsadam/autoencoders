@@ -167,13 +167,15 @@ class Diffusion(pl.LightningModule):
 
     # ── Lightning ─────────────────────────────────────────────────────────
 
-    def training_step(self, batch: torch.Tensor, _: int) -> torch.Tensor:
+    def training_step(self, batch: torch.Tensor, _: int, logger=None) -> torch.Tensor:
+        logger = logger or self
         loss = self.loss(batch[:, 1], batch[:, 0]) 
-        self.log('train_loss', loss, prog_bar=True)
+        logger.log('train_loss', loss, prog_bar=True)
         return loss
 
-    def validation_step(self, batch: torch.Tensor, _: int) -> None:
-        self.log('val_loss', self.loss(batch[:, 1], batch[:, 0]), prog_bar=True)
+    def validation_step(self, batch: torch.Tensor, _: int, logger=None) -> None:
+        logger = logger or self
+        logger.log('val_loss', self.loss(batch[:, 1], batch[:, 0]), prog_bar=True)
         
     def metrics(self, assistant, dirs):
         val_loader = assistant #

@@ -36,7 +36,7 @@ class OptVLMDiffusion(pl.LightningModule):
 
     def training_step(self, batch, step_id) -> torch.Tensor:
         rpn_batch, fused_batch = batch
-        rpn_loss = self.llm.training_step(rpn_batch, step_id)
+        rpn_loss = self.llm.training_step(rpn_batch, step_id, logger=self)
         
         rpns, images = fused_batch
         print(rpns, images.shape)
@@ -47,7 +47,7 @@ class OptVLMDiffusion(pl.LightningModule):
 
     def validation_step(self, batch, step_id) -> None:
         rpn_batch, fused_batch = batch
-        rpn_loss = self.llm.validation_step(rpn_batch, step_id)
+        rpn_loss = self.llm.validation_step(rpn_batch, step_id, logger=self)
         
         
         

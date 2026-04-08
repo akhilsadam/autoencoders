@@ -43,24 +43,26 @@ class CRPNAutoencoder(pl.LightningModule):
 
     # ── Lightning ─────────────────────────────────────────────────────────
 
-    def training_step(self, batch: torch.Tensor, _: int) -> torch.Tensor:
+    def training_step(self, batch: torch.Tensor, _: int, logger=None) -> torch.Tensor:
+        logger = logger or self
         loss, denoise_distortion_loss, denoise_perception_loss, rule_loss = self.crpn.loss(batch)
-        self.log_dict({
+        logger.log_dict({
             'llm_denoise_distortion_loss': denoise_distortion_loss,
             'llm_denoise_perception_loss': denoise_perception_loss,
             'llm_rule_loss': rule_loss,
         }, batch_size=len(batch))
-        self.log('train_loss', loss, prog_bar=True, batch_size=len(batch))
+        logger.log('train_loss', loss, prog_bar=True, batch_size=len(batch))
         return loss
 
-    def validation_step(self, batch: torch.Tensor, _: int) -> None:
+    def validation_step(self, batch: torch.Tensor, _: int, logger=None) -> None:
+        logger = logger or self
         loss, denoise_distortion_loss, denoise_perception_loss, rule_loss = self.crpn.loss(batch)
-        self.log_dict({
+        logger.log_dict({
             'val_llm_denoise_distortion_loss': denoise_distortion_loss,
             'val_llm_denoise_perception_loss': denoise_perception_loss,
             'val_llm_rule_loss': rule_loss,
         }, batch_size=len(batch))
-        self.log('val_loss', loss, prog_bar=True, batch_size=len(batch))
+        logger.log('val_loss', loss, prog_bar=True, batch_size=len(batch))
         
     def metrics(self, assistant, dirs):
         pass
