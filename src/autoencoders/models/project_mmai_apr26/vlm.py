@@ -72,8 +72,7 @@ class OptVLMDiffusion(pl.LightningModule):
         diffusion_loss = self.opt.loss(y, x, latent)
         self.log('val_diffusion_loss', diffusion_loss, prog_bar=True)
         
-        if batch_id == 1: # every epoch
-            MX.quick_reconstruction(self, rpns, seq, '', dirs, latent=latent)
+        MX.quick_reconstruction(self, rpns, seq, '', dirs, latent=latent)
             
     def metrics(self, assistant, dirs):
         pass

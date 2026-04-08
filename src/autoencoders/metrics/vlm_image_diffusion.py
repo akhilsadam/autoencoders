@@ -72,30 +72,34 @@ def reconstruction(net, loader, dirs, level=0.1):
         
 iter = 0        
 def quick_reconstruction(net, rpns, batch, dirs, info, **kwargs):
-    with torch.no_grad():
-        n = len(loader)
-        loss = 0.0
- 
-        batch = batch.to(next(net.parameters()).device)
+    global iter
+    if iter % 200 == 0:
+        with torch.no_grad():
+            n = len(loader)
+            loss = 0.0
+    
+            batch = batch.to(next(net.parameters()).device)
+                
+            y_hats = []
+            x = batch[:, 0]  # B C H W
+            for i in range(batch.shape[1] - 1):                
+                y_hat = net.gen(x, x, **kwargs)
+                y_hats.append(y_hat.detach())
+                # update
+                x = y_hat
+
+            y_hat = torch.stack(y_hats, dim=1)  # B T C H W
+            y = batch[:, 1:]  # B T C H W
+            # zloss = F.mse_loss(y_hat, y) / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
             
-        y_hats = []
-        x = batch[:, 0]  # B C H W
-        for i in range(batch.shape[1] - 1):                
-            y_hat = net.gen(x, x, **kwargs)
-            y_hats.append(y_hat.detach())
-            # update
-            x = y_hat
+            stack = torch.stack([y, y_hat, y_hat - y], dim=1)  # B Y T C H W
 
-        y_hat = torch.stack(y_hats, dim=1)  # B T C H W
-        y = batch[:, 1:]  # B T C H W
-        # zloss = F.mse_loss(y_hat, y) / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
-        
-        stack = torch.stack([y, y_hat, y_hat - y], dim=1)  # B Y T C H W
-
-        stack.detach().cpu()
-        rplot(results[0:4], dirs[0], f"surrogate_reco_batch_{info}_{iter:04d}.png")
-        with open(os.path.join(dirs[0], f'rpns_{iter:04d}.txt'),'w') as f:
-            f.write(rpns)
+            stack.detach().cpu()
+            rplot(results[0:4], dirs[0], f"surrogate_reco_batch_{info}_{iter:04d}.png")
+            with open(os.path.join(dirs[0], f'rpns_{iter:04d}.txt'),'w') as f:
+                f.write(rpns)
+                
+    iter += 1
     
 # def reconstruction_step(x, y, net):
 #     start = torch.cuda.Event(enable_timing=True)
