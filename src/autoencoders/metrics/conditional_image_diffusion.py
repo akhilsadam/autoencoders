@@ -67,7 +67,6 @@ def quick_reconstruction(net, batch, dirs, info, **kwargs):
     global iter
     if iter % 200 == 0:
         with torch.no_grad():
-            n = len(loader)
             loss = 0.0
     
             batch = batch.to(next(net.parameters()).device)
