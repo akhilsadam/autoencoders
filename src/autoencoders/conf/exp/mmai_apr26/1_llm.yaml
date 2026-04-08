@@ -10,7 +10,7 @@ wandb:
   project: ml-dev # quick folder
 
 run:
-  tags: [diffusion, mmai, 1-llm, baseline]
+  tags: [mmai, 1-llm, baseline]
 
 hydra:
   run:
