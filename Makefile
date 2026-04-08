@@ -112,6 +112,12 @@ train-llm: install
 		exp=mmai_apr26/1_llm \
 		trainer.max_epochs=200
 
+train-llm_w_sym: install
+	source "$(VENV)/bin/activate" && \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+		exp=mmai_apr26/1_llm model=mmai_apr26/llm_w_sym\
+		trainer.max_epochs=200
+
 train-operator-basediffusion: install
 	source "$(VENV)/bin/activate" && \
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
