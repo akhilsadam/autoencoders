@@ -159,6 +159,7 @@ class Diffusion(pl.LightningModule):
             self._init_buffers(shape, L)
             self.to(x.device)
         
+        self.sampler.reset()
         x_n = self.noise(x)
         for i in range(self.steps):
             x_n = self.sampler.step(self, x_n, i, self.t, self.dt, c=c)

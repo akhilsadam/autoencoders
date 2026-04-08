@@ -14,6 +14,8 @@ def dot(a,b):
     return sum([a[i]*b[i] for i in range(len(a))])
     
 class Euler(nn.Module):
+    def reset(self):
+        pass
     @torch.compile
     def step(self, net, x, i, t, dt, c=None):
         v_pred = net.vel(net.denoise(x, t[i], c=c), x, t[i])
@@ -28,6 +30,9 @@ class AB2(nn.Module):
             ['v', 'h'],
             lambda table: dot(table['v'], self.coeff(table['h']))
         )
+        self.cache.reset()
+        
+    def reset(self):
         self.cache.reset()
 
     def coeff(self, h): # to be extended
