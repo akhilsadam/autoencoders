@@ -24,8 +24,8 @@ class PixArtDiffusion(Diffusion):
         
         for p in self.transformer.parameters():
             p.requires_grad = False
-        for p in self.tokenizer.parameters():
-            p.requires_grad = False
+        # for p in self.tokenizer.parameters():
+        #     p.requires_grad = False
 
         # ---- Lightweight LoRA (~1–10M params) ----
         lora_config = LoraConfig(
