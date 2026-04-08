@@ -15,7 +15,7 @@ from omegaconf import OmegaConf
 
 def _get_version_hash(cfg, extra_keys=[]) -> str:
     """Generate hash of config parameters for versioning."""
-    config_dict = asdict(cfg)
+    config_dict = asdict(cfg) if not isinstance(cfg, dict) else cfg
     # Exclude paths and non-physics parameters
     exclude_keys = ['root', 'batch_size', 'num_workers', 'test_workers', 'seed', 'version', 'val_split', *extra_keys]
     physics_dict = {k: v for k, v in config_dict.items() if k not in exclude_keys}
