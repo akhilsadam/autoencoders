@@ -32,8 +32,8 @@ class OptVLMDiffusion(pl.LightningModule):
         self.opt = vlm_diffusion.Diffusion(config)
         
         self.proj_latent = nn.Linear(self.llm.proj_dim, self.opt.latent_dim) # additive fusion
-        nn.init.zeros_(proj_latent.weight)
-        nn.init.zeros_(proj_latent.bias)
+        nn.init.zeros_(self.proj_latent.weight)
+        nn.init.zeros_(self.proj_latent.bias)
         
         self.learning_rate = config['learning_rate']
 
