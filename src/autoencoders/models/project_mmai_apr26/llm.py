@@ -50,7 +50,7 @@ class CRPNAutoencoder(pl.LightningModule):
         self.log_dict({
             'llm_denoise_loss': denoise_loss,
             'llm_rule_loss': rule_loss,
-        }, batch_size=batch.shape[0])
+        }, batch_size=len(batch))
         self.log('train_loss', loss, prog_bar=True)
         return loss
 
@@ -59,7 +59,7 @@ class CRPNAutoencoder(pl.LightningModule):
         self.log_dict({
             'val_llm_denoise_loss': denoise_loss,
             'val_llm_rule_loss': rule_loss,
-        }, batch_size=batch.shape[0])
+        }, batch_size=len(batch))
         self.log('val_loss', loss, prog_bar=True)
         
     def metrics(self, assistant, dirs):
