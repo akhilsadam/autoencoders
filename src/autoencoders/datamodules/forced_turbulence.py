@@ -63,7 +63,7 @@ class ForcedTurbulenceConfig:
     version: int = 1
 
 
-def get_dataset(cfg: ForcedTurbulenceConfig, name = 'forced_turbulence_data.npy') -> torch.Tensor:
+def get_dataset(cfg: ForcedTurbulenceConfig, name = 'forced_turbulence_data.npy', mmap=False) -> torch.Tensor:
     """Build train and validation dataloaders for forced turbulence."""
     # Create versioned cache directory
             
@@ -142,8 +142,13 @@ def get_dataset(cfg: ForcedTurbulenceConfig, name = 'forced_turbulence_data.npy'
         print(f"Loading cached data from {save_path}...")
         file_size_mb = os.path.getsize(save_path) / (1024**2)
         print(f"File size: {file_size_mb:.1f} MB")
-        dataset_tensor = torch.from_numpy(np.load(save_path)).to(torch.float32)
-        print(f"Data loaded: {dataset_tensor.shape}")
+        
+        if mmap:
+            dataset_tensor = np.load(save_path, mmap_mode="r")
+            print(f"Data loaded: {dataset_tensor.shape}")
+        else:
+            dataset_tensor = torch.from_numpy(np.load(save_path)).to(torch.float32)
+            print(f"Data loaded: {dataset_tensor.shape}")
 
         # # Use memory mapping for large files to avoid loading entire file into RAM
         # print("Using memory-mapped array (mmap_mode='r')...")

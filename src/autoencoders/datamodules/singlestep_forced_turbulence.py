@@ -19,7 +19,7 @@ from .timeseries import TimeSeriesDataset
 
 
 def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoader]:
-    dataset_tensor = get_dataset(cfg, 'forced_turbulence.npy')[:, cfg.spinup_frames:, 0:1, :, :]
+    dataset_tensor = torch.from_numpy(get_dataset(cfg, 'forced_turbulence.npy', mmap=True)[:, cfg.spinup_frames:, 0:1, :, :])
             
     # Split into train and validation
     val_split = cfg.val_split
