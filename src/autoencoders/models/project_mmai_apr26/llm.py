@@ -47,7 +47,7 @@ class CRPNAutoencoder(pl.LightningModule):
 
     def training_step(self, batch: torch.Tensor, _: int) -> torch.Tensor:
         loss, denoise_loss, rule_loss = self.crpn.loss(batch)
-        self.log({
+        self.log_dict({
             'llm_denoise_loss': denoise_loss,
             'llm_rule_loss': rule_loss,
         })
@@ -56,7 +56,7 @@ class CRPNAutoencoder(pl.LightningModule):
 
     def validation_step(self, batch: torch.Tensor, _: int) -> None:
         loss, denoise_loss, rule_loss = self.crpn.loss(batch)
-        self.log({
+        self.log_dict({
             'val_llm_denoise_loss': denoise_loss,
             'val_llm_rule_loss': rule_loss,
         })
