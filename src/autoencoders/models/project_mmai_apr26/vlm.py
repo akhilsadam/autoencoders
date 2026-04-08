@@ -45,6 +45,9 @@ class OptVLMDiffusion(pl.LightningModule):
 
     def compute_latent(self, rpns):
         return 0.1 * self.proj_latent(self.llm.encode(rpns))
+    
+    def gen(self, *args, **kwargs):
+        return self.opt.gen(*args, **kwargs)
     # ── Lightning ─────────────────────────────────────────────────────────
 
     def training_step(self, batch, batch_id) -> torch.Tensor:
