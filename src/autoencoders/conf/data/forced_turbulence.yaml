@@ -29,5 +29,6 @@ params:
   
   batch_size: 32
   num_workers: 16
+  test_workers: 4
   val_split: 20
   seed: 42

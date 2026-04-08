@@ -58,6 +58,7 @@ class ForcedTurbulenceConfig:
     
     batch_size: int = 32
     num_workers: int = 4
+    test_workers: int = 4
     val_split: int = 20
     seed: int = 42
     version: int = 1
@@ -189,7 +190,7 @@ def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoad
         val_dataset,
         batch_size=cfg.batch_size,
         shuffle=False,
-        num_workers=cfg.num_workers,
+        num_workers=cfg.test_workers,
         pin_memory=True,
     )
     

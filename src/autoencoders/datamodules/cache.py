@@ -17,7 +17,7 @@ def _get_version_hash(cfg) -> str:
     """Generate hash of config parameters for versioning."""
     config_dict = asdict(cfg)
     # Exclude paths and non-physics parameters
-    exclude_keys = {'root', 'batch_size', 'num_workers', 'seed', 'version', 'val_split'}
+    exclude_keys = {'root', 'batch_size', 'num_workers', 'test_workers', 'seed', 'version', 'val_split'}
     physics_dict = {k: v for k, v in config_dict.items() if k not in exclude_keys}
     config_str = json.dumps(physics_dict, sort_keys=True)
     return hashlib.md5(config_str.encode()).hexdigest()[:8]
