@@ -37,8 +37,8 @@ class RPNETConfig:
 def build_dataloaders(cfg):
         
     print(cfg)
-    train_rpn_loader, val_rpn_loader = build_enc(cfg.text_config['params'])
-    train_paired_loader, val_paired_loader, pred_paired_loader = build_rpnt(cfg.vision_config['params'])
+    train_rpn_loader, val_rpn_loader = build_enc(RPNEncoderConfig(**cfg.text_config['params']))
+    train_paired_loader, val_paired_loader, pred_paired_loader = build_rpnt(RPNTurbulenceConfig(**cfg.vision_config['params']))
 
     train_loader = CombinedLoader(train_rpn_loader, train_paired_loader)
     val_loader = CombinedLoader(val_rpn_loader, val_paired_loader)
