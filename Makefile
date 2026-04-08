@@ -109,7 +109,7 @@ train-operator-diffusion: install
 train-llm: install
 	source "$(VENV)/bin/activate" && \
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
-		exp=mmai_apr26/1-llm \
+		exp=mmai_apr26/1_llm \
 		trainer.max_epochs=200
 
 train-operator-basediffusion: install

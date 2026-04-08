@@ -1,5 +1,5 @@
 # @package _global_
-# exp/mmai_apr26/1-llm.yaml
+# exp/mmai_apr26/1_llm.yaml
 
 defaults:
   - override /model: mmai_apr26/llm
