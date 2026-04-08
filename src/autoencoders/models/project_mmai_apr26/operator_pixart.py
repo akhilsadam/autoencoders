@@ -12,16 +12,19 @@ class PixArtDiffusion(Diffusion):
         # ---- Load correct PixArt model ----
         pipe = PixArtAlphaPipeline.from_pretrained(
             "PixArt-alpha/PixArt-XL-2-512x512",
-            torch_dtype=torch.float32  # safer for training
+            torch_dtype=torch.float32
         )
 
         self.vae = pipe.vae
-        self.transformer = pipe.transformer  # THIS is the core model
+        self.transformer = pipe.transformer
         self.tokenizer = pipe.tokenizer
         self.text_encoder = pipe.text_encoder
 
         # ---- Freeze backbone ----
+        
         for p in self.transformer.parameters():
+            p.requires_grad = False
+        for p in self.tokenizer.parameters():
             p.requires_grad = False
 
         # ---- Lightweight LoRA (~1–10M params) ----
@@ -44,7 +47,7 @@ class PixArtDiffusion(Diffusion):
         z_t = x * t_ + noise * (1 - t_)
         
         # ---- Encode image to latent ----
-        x_complete = torch.cat([z_t, c, c, c], dim=1) #bchw
+        x_complete = torch.cat([z_t, c, c], dim=1) #bchw
         latents = self.vae.encode(x_complete).latent_dist.sample() * 0.18215
 
         # ---- Text conditioning ----
@@ -63,13 +66,13 @@ class PixArtDiffusion(Diffusion):
 
         # ---- PixArt forward (DiT) ----
         noise_pred = self.transformer(
-            hidden_states=x_complete,
+            hidden_states=latents,
             timestep=(t * 1000).long(),
             encoder_hidden_states=text_emb,
         ).sample
 
         # ---- 1-step inversion (critical) ----
-        z_pred = (z_t - (1 - t_) * noise_pred) / (t_ + 1e-6)
+        z_pred = (latents - (1 - t_) * noise_pred) / (t_ + 1e-6)
 
         # ---- Decode ----
         x_pred = self.vae.decode(z_pred / 0.18215).sample
