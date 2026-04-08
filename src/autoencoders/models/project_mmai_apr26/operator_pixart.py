@@ -52,9 +52,9 @@ class PixArtDiffusion(Diffusion):
 
         # ---- Text conditioning ----
         if text_prompt is not None:
-            text_prompt = '2D PDE fluid flow:' + text_prompt
+            text_prompt = ['2D PDE fluid flow:' + t for t in text_prompt]
         else:
-            text_prompt = '2D PDE fluid flow:'
+            text_prompt = ['2D PDE fluid flow:',] * x.shape[0]
             
         tokens = self.tokenizer(
             text_prompt,
