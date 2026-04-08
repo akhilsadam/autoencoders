@@ -86,7 +86,7 @@ def quick_reconstruction(net, batch, dirs, info, **kwargs):
             stack = torch.stack([y, y_hat, y_hat - y], dim=1)  # B Y T C H W
 
             stack = stack.detach().cpu()
-            rplot(results[0:1], dirs[0], f"surrogate_reco_batch_{info}_{iter:04d}.png")
+            rplot(stack[0:4], dirs[0], f"surrogate_reco_batch_{info}_{iter:04d}.png")
     iter += 1
     
 # def reconstruction_step(x, y, net):
