@@ -46,7 +46,8 @@ def reconstruction(net, loader, dirs):
             
             zloss = 0.0
             y_hats = []
-            x = batch[:, 0]  # B C H W
+            x0 = batch[:, 0]  # B C H W
+            x = x0
             for i in range(batch.shape[1] - 1):                
                 y_hat = net.gen(x, x, latent=latent)
                 y_hats.append(y_hat.detach())
@@ -57,7 +58,7 @@ def reconstruction(net, loader, dirs):
             y = batch[:, 1:]  # B T C H W
             zloss = F.mse_loss(y_hat, y) / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
             
-            stack = torch.stack([y, y_hat, y_hat - y, y_hat - x[:,None,...]], dim=1)  # P Y T C H W
+            stack = torch.stack([y, y_hat, y_hat - y, y_hat - x0[:,None,...]], dim=1)  # P Y T C H W
 
             results.append(stack.detach().cpu())
             rpn_list.append(rpns)
@@ -80,7 +81,8 @@ def quick_reconstruction(net, rpns, batch, dirs, info, plot_rate=1, **kwargs):
             batch = batch.to(next(net.parameters()).device)
                 
             y_hats = []
-            x = batch[:, 0]  # B C H W
+            x0 = batch[:, 0]  # B C H W
+            x = x0
             for i in range(batch.shape[1] - 1):                
                 y_hat = net.gen(x, x, **kwargs)
                 y_hats.append(y_hat.detach())
@@ -91,7 +93,7 @@ def quick_reconstruction(net, rpns, batch, dirs, info, plot_rate=1, **kwargs):
             y = batch[:, 1:]  # B T C H W
             # zloss = F.mse_loss(y_hat, y) / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
             
-            stack = torch.stack([y, y_hat, y_hat - y, y_hat - x[:,None,...]], dim=1)  # B Y T C H W
+            stack = torch.stack([y, y_hat, y_hat - y, y_hat - x0[:,None,...]], dim=1)  # B Y T C H W
             stack = stack.detach().cpu()
             rplot(stack[0:4], dirs[0], f"surrogate_reco_batch_{info}_{iter:04d}.png")
             with open(os.path.join(dirs[0], f'rpns_{iter:04d}.txt'),'w') as f:
