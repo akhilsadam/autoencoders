@@ -92,7 +92,7 @@ class FiLM(nn.Module):
         self.net = nn.Sequential(
             nn.Linear(c_cond, 2 * c_out),
             nn.SiLU(),
-            nn.Linear(2 * c_out, 2 * c_out),
+            # nn.Linear(2 * c_out, 2 * c_out),
         )
 
     def forward(self, x, cond):

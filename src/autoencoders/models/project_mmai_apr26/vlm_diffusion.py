@@ -134,8 +134,8 @@ class Diffusion(pl.LightningModule):
 
         return self.ae.decoder(z)
 
-    def noise(self, x: torch.Tensor) -> torch.Tensor:
-        return torch.randn_like(x)
+    def noise(self, x: torch.Tensor, c) -> torch.Tensor:
+        return torch.randn_like(x) + c
 
     def mix(self, x: torch.Tensor, n: torch.Tensor,
             t: torch.Tensor) -> torch.Tensor:
@@ -154,7 +154,7 @@ class Diffusion(pl.LightningModule):
             self.to(x.device)
         
         t = torch.rand(x.shape[0], device=x.device)[:, None, None, None]
-        n = self.noise(x)
+        n = self.noise(x, c)
         x_n = self.mix(x, n, t)
         v_pred = self.vel(self.denoise(x_n, t, c=c, latent=latent), x_n, t) * (1 - t)
         v_true = self.vel(x, x_n, t) * (1 - t)
@@ -164,11 +164,11 @@ class Diffusion(pl.LightningModule):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         t = torch.tensor(0.1, device=x.device)
-        n = self.noise(x)
+        n = self.noise(x, x)
         return self.denoise(self.mix(x, n, t), t, c=n)
 
     def latent(self, x: torch.Tensor) -> torch.Tensor:
-        return self.noise(x)
+        return self.noise(x, x)
 
     def gen(self, x: torch.Tensor, c: torch.Tensor, latent, shape=None, L=None) -> torch.Tensor:
         
@@ -177,7 +177,7 @@ class Diffusion(pl.LightningModule):
             self.to(x.device)
         
         self.sampler.reset()
-        x_n = self.noise(x)
+        x_n = self.noise(x, c)
         for i in range(self.steps):
             x_n = self.sampler.step(self, x_n, i, self.t, self.dt, c=c, latent=latent)
         return x_n
