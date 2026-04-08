@@ -39,8 +39,14 @@ class CRPNAutoencoder(pl.LightningModule):
                                    proj_dim=config['proj_dim'],
                                    rules=config['rules'])
         
+        self.proj_dim = config['proj_dim']
         self.learning_rate = config['learning_rate']
 
+    def encode(self, rpns):
+        tokens, amps = self.crpn.tokenize(rpns)
+        pooled = self.crpn.encode_token_batch(tokens, amps)
+        return pooled
+    
     # ── Lightning ─────────────────────────────────────────────────────────
 
     def training_step(self, batch: torch.Tensor, _: int, logger=None) -> torch.Tensor:

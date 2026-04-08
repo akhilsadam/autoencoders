@@ -13,11 +13,11 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from . import operator_diffusion, llm
+from . import vlm_diffusion, llm
 
 # Convention: model class ends with 'Diffusion', config is 'Config' or endswith 'Config'
 @dataclass
-class Config(operator_diffusion.Config, llm.Config):
+class Config(vlm_diffusion.Config, llm.Config):
     pass
 
 class OptVLMDiffusion(pl.LightningModule):
@@ -28,7 +28,9 @@ class OptVLMDiffusion(pl.LightningModule):
         
 
         self.llm = llm.CRPNAutoencoder(config)
-        self.opt = operator_diffusion.Diffusion(config)
+        self.opt = vlm_diffusion.Diffusion(config)
+        
+        self.proj_latent = nn.Linear(self.llm.proj_dim, self.opt.latent_dim) # additive fusion
         
         self.learning_rate = config['learning_rate']
 
@@ -38,21 +40,28 @@ class OptVLMDiffusion(pl.LightningModule):
         rpn_batch, fused_batch = batch
         rpn_loss = self.llm.training_step(rpn_batch, step_id, logger=self)
         
-        rpns, images = fused_batch
-        print(rpns, images.shape)
+        rpns, seq = batch
+        x = seq[:,0]
+        y = seq[:,1] # one timestep only
+        latent = self.proj_latent(self.llm.encode(rpns))
+        diffusion_loss = self.opt.loss(y, x, latent)
+        self.log('diffusion_loss', diffusion_loss, prog_bar=True)
         
-        
-        loss = rpn_loss
+        loss = rpn_loss + diffusion_loss
         return loss
 
     def validation_step(self, batch, step_id) -> None:
         rpn_batch, fused_batch = batch
         rpn_loss = self.llm.validation_step(rpn_batch, step_id, logger=self)
+                
+        rpns, seq = batch
+        x = seq[:,0]
+        y = seq[:,1] # one timestep only
+        latent = self.proj_latent(self.llm.encode(rpns))
+        diffusion_loss = self.opt.loss(y, x, latent)
+        self.log('val_diffusion_loss', diffusion_loss, prog_bar=True)
         
-        
-        
-        
-        loss = rpn_loss
+        loss = rpn_loss + diffusion_loss
         return loss
         
     def metrics(self, assistant, dirs):
