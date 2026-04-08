@@ -28,7 +28,7 @@ def plot(recon, output_dir, name, nrow=4):
 def rplot(recon, output_dir, name):
     # recon is B Y C H W, make grid of recon, error, input
     recon = rearrange(recon, 'b y t c h w -> b c (y h) (t w)')
-    plot(recon, output_dir, name, nrow=3)
+    plot(recon, output_dir, name, nrow=4)
 
 def reconstruction(net, loader, dirs, level=0.1):
     with torch.no_grad():
