@@ -66,7 +66,7 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
     """Build train and validation dataloaders for forced turbulence."""
     # Create versioned cache directory
     cache_path = get_cache(cfg, extra_keys=['seq_len', 'test_seq_len'])
-    save_path = lambda i : os.path.join(cache_path, f'rpn_turbulence_data_{i}.npy')
+    save_path = lambda i : os.path.join(cache_path, f'rpn_turbulence_{i}.npy')
     
     print(f"Looking for cached data at: {save_path(0)}")
     print(f"Cache exists: {os.path.exists(save_path(0))}")
