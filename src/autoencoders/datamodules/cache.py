@@ -27,6 +27,7 @@ def get_cache(cfg) -> str:
     timestamp = datetime.now().strftime('%Y%m%d')
     
     cache_path = None
+    os.makedirs(cfg.root, exist_ok=True)
     for folder in os.listdir(cfg.root):
         if folder.startswith(f"v{cfg.version}") and folder.endswith(f"_{version_hash}"):
             version_dir = folder
