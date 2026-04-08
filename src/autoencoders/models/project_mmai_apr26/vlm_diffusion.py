@@ -116,7 +116,7 @@ class Diffusion(pl.LightningModule):
         ], dim=1)
         
         z_unshuf = self.unshuffle(zx)            
-        z = self.shuffle(self.siren(z_unshuf)) + cz
+        z = self.shuffle(self.siren(z_unshuf))
         # z = self.deriv.adv(cz, z) + cz
 
         return self.ae.decoder(z)
