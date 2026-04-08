@@ -24,6 +24,10 @@ from .singlestep_forced_turbulence import build_dataloaders as build_singlestep_
 
 from .load_timeseries_small import load_data, TimeSeriesDataset, Normalize
 
+# language / other datasets
+from .rpn_encoder import RPNEncoderConfig, build_dataloaders as build_rpn_enc
+
+
 DataLoaderPair = Tuple[DataLoader, DataLoader]
 
 
@@ -46,6 +50,8 @@ DATASET_REGISTRY: Dict[str, DatasetEntry] = {
     "timeseries_decaying_qg_turbulence": DatasetEntry(config_cls=TimeseriesDecayingQGTurbulenceConfig, builder=build_timeseries_decaying_qg_turbulence),
     "timeseries_delay_2d": DatasetEntry(config_cls=TimeseriesDelay2DConfig, builder=build_timeseries_delay_2d),
     "timeseries_viscous_burgers_1d": DatasetEntry(config_cls=TimeseriesViscousBurgers1DConfig, builder=build_timeseries_viscous_burgers_1d),
+    
+    "rpn_encoder": DatasetEntry(config_cls=RPNEncoderConfig, builder=build_rpn_enc),
 }
 
 
