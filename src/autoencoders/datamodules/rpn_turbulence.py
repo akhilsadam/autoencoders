@@ -190,7 +190,7 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
     
     # check len > 0 
     for r,d in zip(_rpns,_npdata):
-        if d.shape[0] > cfg.seq_len:
+        if d.shape[1] > cfg.seq_len:
             rpns.append(r)
             npdata.append(d)
             
