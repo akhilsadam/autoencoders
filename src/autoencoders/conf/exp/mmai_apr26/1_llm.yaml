@@ -1,0 +1,17 @@
+# @package _global_
+# exp/mmai_apr26/0_vision.yaml
+
+defaults:
+  - override /model: mmai_apr26/llm
+  - override /data: rpn_encoder
+
+project: mmai_apr26
+wandb:
+  project: ml-dev # quick folder
+
+run:
+  tags: [diffusion, mmai, 1-llm, baseline]
+
+hydra:
+  run:
+    dir: runs/${wandb.project}/1-llm/${data.fullname}/${model.name}/${sec_id:}_${git.short_msg}
