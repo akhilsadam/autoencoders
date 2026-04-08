@@ -44,7 +44,7 @@ class OptVLMDiffusion(pl.LightningModule):
         self.learning_rate = config['learning_rate']
 
     def compute_latent(self, rpns):
-        return 0.1 * self.proj_latent(self.llm.encode(rpns))
+        return self.proj_latent(self.llm.encode(rpns))
     
     def gen(self, *args, **kwargs):
         return self.opt.gen(*args, **kwargs)
@@ -61,7 +61,7 @@ class OptVLMDiffusion(pl.LightningModule):
         diffusion_loss = self.opt.loss(y, x, latent)
         self.log('diffusion_loss', diffusion_loss, prog_bar=True)
         
-        loss = rpn_loss + diffusion_loss
+        loss = 0.001 * rpn_loss + diffusion_loss
         return loss
 
     def validation_step(self, batch, batch_id) -> None:

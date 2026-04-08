@@ -85,7 +85,7 @@ class Diffusion(pl.LightningModule):
 
         self.steps = config['steps']
         self._init_buffers(self.shape, self.L)
-        self.criterion = nn.MSELoss()
+        self.criterion = lambda x_hat, x: ((x_hat - x).pow(2).mean() / ((x - x.mean(dim=(-2,-1),keepdim=True)).pow(2).mean() + 1e-8))
         
         self.sampler = samplers[config['sampler']]()
 
@@ -140,11 +140,11 @@ class Diffusion(pl.LightningModule):
             self._init_buffers(self.shape, self.L)
             self.to(x.device)
         
-        t      = torch.rand(x.shape[0], device=x.device)[:, None, None, None]
-        n      = self.noise(x)
-        x_n    = self.mix(x, n, t)
+        t = torch.rand(x.shape[0], device=x.device)[:, None, None, None]
+        n = self.noise(x)
+        x_n = self.mix(x, n, t)
         v_pred = self.vel(self.denoise(x_n, t, c=c, latent=latent), x_n, t) * (1 - t)
-        v_true = self.vel(x,                    x_n, t) * (1 - t)
+        v_true = self.vel(x, x_n, t) * (1 - t)
         return self.criterion(v_pred, v_true)
 
     # ── Generation ────────────────────────────────────────────────────────
