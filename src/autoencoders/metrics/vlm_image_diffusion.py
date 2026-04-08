@@ -57,7 +57,7 @@ def reconstruction(net, loader, dirs):
             y = batch[:, 1:]  # B T C H W
             zloss = F.mse_loss(y_hat, y) / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
             
-            stack = torch.stack([y, y_hat, y_hat - y], dim=1)  # P Y T C H W
+            stack = torch.stack([y, y_hat, y_hat - y, y_hat - x[:,None,...]], dim=1)  # P Y T C H W
 
             results.append(stack.detach().cpu())
             rpn_list.append(rpns)
