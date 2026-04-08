@@ -174,6 +174,7 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
     
     _rpns = open(os.path.join(cache_path, 'rpns.txt')).read().splitlines()
     print(f"Loaded RPNs: {_rpns}")
+    n_datasets = len(_rpns)
     
     print(f"Loading cached data from {save_path(0)}...")
     file_size_mb = os.path.getsize(save_path(0)) / (1024**2)
