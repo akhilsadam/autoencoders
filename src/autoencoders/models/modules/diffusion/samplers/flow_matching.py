@@ -7,7 +7,9 @@ os.environ['TRITON_BACKEND'] = 'cuda'
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch._dynamo as dynamo
 
+@dynamo.disable
 def dot(a,b):
     return sum([a[i]*b[i] for i in range(len(a))])
     
