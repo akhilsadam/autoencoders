@@ -246,7 +246,7 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
     val_loader = DataLoader(
         val_dataset,
         batch_size=cfg.batch_size,
-        shuffle=False,
+        shuffle=True,
         num_workers=cfg.test_workers,
         pin_memory=True,
         persistent_workers=True,

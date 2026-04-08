@@ -7,10 +7,11 @@ class TimeSeriesDataset(Dataset):
         self.seq_length = seq_length
         self.stride = stride
         self.downsample_factor = downsample_factor
-        
-        # effective temporal span of one sample
+
+        # Effective temporal span covered by one strided sequence
         self.eff_len = (seq_length - 1) * stride + 1
-        
+
+        # Number of valid starting indices along time
         self.t_len = self.data.shape[1] - self.eff_len + 1
 
     def __len__(self):
@@ -20,34 +21,27 @@ class TimeSeriesDataset(Dataset):
         b = _idx // self.t_len
         idx = _idx % self.t_len
 
-        widths = self.data.shape[3:]
+        widths = self.data.shape[3:]   # spatial dims
         chan = self.data.shape[2]
 
+        # Random spatial crop
         dwidths = [w // self.downsample_factor for w in widths]
         rand_start = [
             torch.randint(0, w - dw + 1, (1,)).item()
             for w, dw in zip(widths, dwidths)
         ]
-        _slices = [
-            slice(_start, _start + dw)
-            for _start, dw in zip(rand_start, dwidths)
+        spatial_slices = [
+            slice(start, start + dw)
+            for start, dw in zip(rand_start, dwidths)
         ]
 
-        # strided time indexing
-        time_indices = torch.arange(
-            idx,
-            idx + self.eff_len,
-            self.stride
-        )
-
-        seq_slices = [
-            slice(b, b + 1),
-            time_indices,
-            slice(0, chan),
-            *_slices
+        # Pure slicing with stride (no advanced indexing)
+        x = self.data[
+            b,
+            idx : idx + self.eff_len : self.stride,
+            :,
+            *spatial_slices
         ]
-
-        x = self.data[seq_slices][0, ...]  # single sequence
 
         return x
 
