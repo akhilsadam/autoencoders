@@ -14,6 +14,7 @@ from torch import nn
 import torch.nn.functional as F
 
 from . import vlm_diffusion, llm
+from autoencoders.metrics import vlm_image_diffusion as MX
 
 # Convention: model class ends with 'Diffusion', config is 'Config' or endswith 'Config'
 @dataclass
@@ -31,36 +32,43 @@ class OptVLMDiffusion(pl.LightningModule):
         self.opt = vlm_diffusion.Diffusion(config)
         
         self.proj_latent = nn.Linear(self.llm.proj_dim, self.opt.latent_dim) # additive fusion
+        nn.init.zeros_(proj_latent.weight)
+        nn.init.zeros_(proj_latent.bias)
         
         self.learning_rate = config['learning_rate']
 
+    def compute_latent(self, rpns):
+        return 0.1 * self.proj_latent(self.llm.encode(rpns))
     # ── Lightning ─────────────────────────────────────────────────────────
 
-    def training_step(self, batch, step_id) -> torch.Tensor:
+    def training_step(self, batch, batch_id) -> torch.Tensor:
         rpn_batch, fused_batch = batch
-        rpn_loss = self.llm.training_step(rpn_batch, step_id, logger=self)
+        rpn_loss = self.llm.training_step(rpn_batch, batch_id, logger=self)
         
         rpns, seq = fused_batch
         x = seq[:,0]
         y = seq[:,1] # one timestep only
-        latent = self.proj_latent(self.llm.encode(rpns))
+        latent = self.compute_latent(rpns)
         diffusion_loss = self.opt.loss(y, x, latent)
         self.log('diffusion_loss', diffusion_loss, prog_bar=True)
         
         loss = rpn_loss + diffusion_loss
         return loss
 
-    def validation_step(self, batch, step_id) -> None:
+    def validation_step(self, batch, batch_id) -> None:
         rpn_batch, fused_batch = batch
-        self.llm.validation_step(rpn_batch, step_id, logger=self)
+        self.llm.validation_step(rpn_batch, batch_id, logger=self)
                 
         rpns, seq = fused_batch
         x = seq[:,0]
         y = seq[:,1] # one timestep only
-        latent = self.proj_latent(self.llm.encode(rpns))
+        latent = self.compute_latent(rpns)
         diffusion_loss = self.opt.loss(y, x, latent)
         self.log('val_diffusion_loss', diffusion_loss, prog_bar=True)
         
+        if batch_id == 1: # every epoch
+            MX.quick_reconstruction(self, rpns, seq, '', dirs, latent=latent)
+            
     def metrics(self, assistant, dirs):
         pass
         # val_loader = assistant #

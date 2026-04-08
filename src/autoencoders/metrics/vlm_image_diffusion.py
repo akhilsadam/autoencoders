@@ -51,19 +51,19 @@ def reconstruction(net, loader, dirs, level=0.1):
             y = batch[:, 1:]  # B T C H W
             zloss = F.mse_loss(y_hat, y) / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
             
-            stack = torch.stack([y, y_hat, y_hat - y], dim=1)  # B Y T C H W
+            stack = torch.stack([y, y_hat, y_hat - y], dim=1)  # P Y T C H W
 
             results.append(stack.detach().cpu())
             loss += zloss.item() / n
-        results = torch.cat(results, dim=0)
+        results = torch.stack(results, dim=0) # B P Y T C H W # B is batch time, P is pde, Y is type
         
         torch.save(results, os.path.join(dirs[1], "reconstructions.pt"))
-        rplot(results[0:1], dirs[0], "surrogate_reco_batchfirst.png")
-        rplot(results[-1:], dirs[0], "surrogate_reco_batchlast.png")
+        rplot(results[0], dirs[0], "surrogate_reco_batchfirst.png")
+        rplot(results[-1], dirs[0], "surrogate_reco_batchlast.png")
         
         
 iter = 0        
-def quick_reconstruction(net, batch, dirs, info, **kwargs):
+def quick_reconstruction(net, rpns, batch, dirs, info, **kwargs):
     with torch.no_grad():
         n = len(loader)
         loss = 0.0
@@ -85,7 +85,9 @@ def quick_reconstruction(net, batch, dirs, info, **kwargs):
         stack = torch.stack([y, y_hat, y_hat - y], dim=1)  # B Y T C H W
 
         stack.detach().cpu()
-        rplot(results[0:1], dirs[0], f"surrogate_reco_batch_{info}_{iter:04d}.png")
+        rplot(results[0:4], dirs[0], f"surrogate_reco_batch_{info}_{iter:04d}.png")
+        with open(os.path.join(dirs[0], f'rpns_{iter:04d}.txt'),'w') as f:
+            f.write(rpns)
     
 # def reconstruction_step(x, y, net):
 #     start = torch.cuda.Event(enable_timing=True)

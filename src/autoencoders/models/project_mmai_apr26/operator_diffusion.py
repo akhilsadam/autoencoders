@@ -173,9 +173,12 @@ class Diffusion(pl.LightningModule):
         logger.log('train_loss', loss, prog_bar=True)
         return loss
 
-    def validation_step(self, batch: torch.Tensor, _: int, logger=None) -> None:
+    def validation_step(self, batch: torch.Tensor, batch_id: int, logger=None) -> None:
         logger = logger or self
         logger.log('val_loss', self.loss(batch[:, 1], batch[:, 0]), prog_bar=True)
+        
+        if batch_id == 1: # every epoch
+            MX.quick_reconstruction(self, batch, '', dirs)
         
     def metrics(self, assistant, dirs):
         val_loader = assistant #
