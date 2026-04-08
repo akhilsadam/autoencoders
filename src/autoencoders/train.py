@@ -191,6 +191,7 @@ def main(cfg: DictConfig) -> None:
     print(f"Git SHA: {cfg.git.sha}, Dirty: {cfg.git.dirty}")
     
     dirs = _artifact_dirs(cfg)
+    model.dirs = [dirs["reconstructions"], dirs["output"]]
     
     if rank == 0:
         _save_info_files(cfg, dirs["root"])
@@ -221,7 +222,7 @@ def main(cfg: DictConfig) -> None:
         model.to(device)
         model.eval()
         
-        model.metrics(test_assistant, [dirs["reconstructions"], dirs["output"]])  # compute metrics on test set if available
+        model.metrics(test_assistant)  # compute metrics on test set if available
         
         _save_reconstructions(model, val_loader, dirs["reconstructions"])
         _log_wandb_artifacts(cfg, logger, dirs)

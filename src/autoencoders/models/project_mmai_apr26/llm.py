@@ -72,7 +72,7 @@ class CRPNAutoencoder(pl.LightningModule):
         }, batch_size=len(batch))
         logger.log('val_loss', loss, prog_bar=True, batch_size=len(batch))
         
-    def metrics(self, assistant, dirs):
+    def metrics(self, assistant):
         pass
         # val_loader = assistant #
         # MX.reconstruction(self, val_loader, dirs)

@@ -177,12 +177,12 @@ class Diffusion(pl.LightningModule):
         logger = logger or self
         logger.log('val_loss', self.loss(batch[:, 1], batch[:, 0]), prog_bar=True)
         
-        MX.quick_reconstruction(self, batch, '', dirs)
+        MX.quick_reconstruction(self, batch, '', self.dirs)
         
-    def metrics(self, assistant, dirs):
+    def metrics(self, assistant):
         val_loader = assistant #
-        MX.reconstruction(self, val_loader, dirs)
-        # MX.generation(self, val_loader, dirs)
+        MX.reconstruction(self, val_loader, self.dirs)
+        # MX.generation(self, val_loader, self.dirs)
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         return torch.optim.Adam(self.parameters(), lr=self.learning_rate)

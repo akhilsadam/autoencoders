@@ -32,7 +32,7 @@ def rplot(recon, output_dir, name):
     recon = rearrange(recon, 'b y t c h w -> b c (y h) (t w)')
     plot(recon, output_dir, name, nrow=3)
 
-def reconstruction(net, loader, dirs, level=0.1):
+def reconstruction(net, loader, dirs):
     with torch.no_grad():
         n = len(loader)
         results = []
