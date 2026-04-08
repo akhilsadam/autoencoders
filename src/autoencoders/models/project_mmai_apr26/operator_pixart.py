@@ -44,7 +44,7 @@ class PixArtDiffusion(Diffusion):
         z_t = x * t_ + noise * (1 - t_)
         
         # ---- Encode image to latent ----
-        x_complete = torch.cat([z_t, c, c], dim=1) #bchw
+        x_complete = torch.cat([z_t, c, c, c], dim=1) #bchw
         latents = self.vae.encode(x_complete).latent_dist.sample() * 0.18215
 
         # ---- Text conditioning ----
@@ -63,7 +63,7 @@ class PixArtDiffusion(Diffusion):
 
         # ---- PixArt forward (DiT) ----
         noise_pred = self.transformer(
-            hidden_states=z_t,
+            hidden_states=x_complete,
             timestep=(t * 1000).long(),
             encoder_hidden_states=text_emb,
         ).sample
