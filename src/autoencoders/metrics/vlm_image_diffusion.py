@@ -91,7 +91,7 @@ def quick_reconstruction(net, rpns, batch, dirs, info, plot_rate=1, **kwargs):
             y = batch[:, 1:]  # B T C H W
             # zloss = F.mse_loss(y_hat, y) / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
             
-            stack = torch.stack([y, y_hat, y_hat - y], dim=1)  # B Y T C H W
+            stack = torch.stack([y, y_hat, y_hat - y, y_hat - x[:,None,...]], dim=1)  # B Y T C H W
             stack = stack.detach().cpu()
             rplot(stack[0:4], dirs[0], f"surrogate_reco_batch_{info}_{iter:04d}.png")
             with open(os.path.join(dirs[0], f'rpns_{iter:04d}.txt'),'w') as f:
