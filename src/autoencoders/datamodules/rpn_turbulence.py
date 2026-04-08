@@ -55,6 +55,10 @@ class RPNTurbulenceConfig:
     
     n_train: int = 100
     n_test: int = 10
+    
+    seq_len: int = 2
+    test_seq_len: int = 16
+    
     rpns: list = ([], []) # Optional
 
 
