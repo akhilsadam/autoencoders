@@ -81,6 +81,7 @@ class Diffusion(pl.LightningModule):
                             layers=config['siren_layers'],
                             w=config['siren_w'], act=Tri, k=1)
         self.ae = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])
+        self.ae2 = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])
         self.t_emb = TimeEmbedding(tdim)
 
         self.steps = config['steps']
@@ -104,7 +105,7 @@ class Diffusion(pl.LightningModule):
 
     def denoise(self, x: torch.Tensor, t: torch.Tensor, c: torch.Tensor = None, latent=None) -> torch.Tensor:
         z = self.ae.encoder(x)
-        cz = self.ae.encoder(c)
+        cz = self.ae2.encoder(c)
         
         z_in = z
         zx = torch.cat([

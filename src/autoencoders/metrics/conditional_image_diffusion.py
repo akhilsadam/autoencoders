@@ -65,7 +65,7 @@ def reconstruction(net, loader, dirs, level=0.1):
 iter = 0        
 def quick_reconstruction(net, batch, dirs, info, **kwargs):
     global iter
-    if iter % 20 == 0:
+    if iter % 5 == 0:
         with torch.no_grad():
             loss = 0.0
     
