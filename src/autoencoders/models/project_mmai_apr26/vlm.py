@@ -40,7 +40,7 @@ class OptVLMDiffusion(pl.LightningModule):
         rpn_batch, fused_batch = batch
         rpn_loss = self.llm.training_step(rpn_batch, step_id, logger=self)
         
-        rpns, seq = batch
+        rpns, seq = fused_batch
         x = seq[:,0]
         y = seq[:,1] # one timestep only
         latent = self.proj_latent(self.llm.encode(rpns))
@@ -54,7 +54,7 @@ class OptVLMDiffusion(pl.LightningModule):
         rpn_batch, fused_batch = batch
         rpn_loss = self.llm.validation_step(rpn_batch, step_id, logger=self)
                 
-        rpns, seq = batch
+        rpns, seq = fused_batch
         x = seq[:,0]
         y = seq[:,1] # one timestep only
         latent = self.proj_latent(self.llm.encode(rpns))
