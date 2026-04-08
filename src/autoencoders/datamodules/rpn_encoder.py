@@ -83,7 +83,7 @@ def get_dataset(cfg: RPNEncoderConfig, name = 'rpns.txt') -> torch.Tensor:
         print(f"Loading cached data from {save_path}...")
         file_size_mb = os.path.getsize(save_path) / (1024**2)
         print(f"File size: {file_size_mb:.1f} MB")
-        dataset_tensor = np.loadtxt(save_path, dtype=str)
+        dataset_tensor = open(save_path).readlines()
         print(f"Data loaded (rpns): {len(dataset_tensor)}")
         
     return dataset_tensor
