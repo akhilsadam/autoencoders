@@ -72,7 +72,7 @@ class Diffusion(pl.LightningModule):
         self.unshuffle = nn.PixelUnshuffle(k)
 
         
-        self.cond_dim = config['proj_dim']
+        cond_dim = config['proj_dim']
                 
         self.sdim = sdim        
         in_dim = (sdim + tdim + dim + cdim) * k ** 2
