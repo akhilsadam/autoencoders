@@ -177,7 +177,7 @@ class Diffusion(pl.LightningModule):
         logger = logger or self
         logger.log('val_loss', self.loss(batch[:, 1], batch[:, 0]), prog_bar=True)
         
-        MX.quick_reconstruction(self, batch, '', self.dirs)
+        MX.quick_reconstruction(self, batch, self.dirs, '')
         
     def metrics(self, assistant):
         val_loader = assistant #
