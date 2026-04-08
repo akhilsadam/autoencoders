@@ -40,6 +40,8 @@ class CRPNAutoencoder(pl.LightningModule):
                                    embed_dim=config['embed_dim'],
                                    proj_dim=config['proj_dim'],
                                    rules=rules)
+        
+        self.learning_rate = config['learning_rate']
 
     # ── Lightning ─────────────────────────────────────────────────────────
 
