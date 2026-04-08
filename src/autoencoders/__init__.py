@@ -1,4 +1,9 @@
 """Autoencoder registry for training and evaluation."""
+import os
+os.environ['CC'] = 'gcc'
+os.environ['CXX'] = 'g++'
+os.environ['TRITON_BACKEND'] = 'cuda'
+
 from __future__ import annotations
 from typing import Any, Dict, Tuple
 from pytorch_lightning import LightningModule
