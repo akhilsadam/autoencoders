@@ -172,22 +172,36 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
         print("Generating new data...")
         generate_data()
     
-    rpns = open(os.path.join(cache_path, 'rpns.txt')).read().splitlines()
-    print(f"Loaded RPNs: {rpns}")
-    n_datasets = len(rpns)
-    print(f"Number of datasets: {n_datasets}")
+    _rpns = open(os.path.join(cache_path, 'rpns.txt')).read().splitlines()
+    print(f"Loaded RPNs: {_rpns}")
     
     print(f"Loading cached data from {save_path(0)}...")
     file_size_mb = os.path.getsize(save_path(0)) / (1024**2)
     print(f"File size: {file_size_mb:.1f} MB across each of {n_datasets} datasets")
+
+
     
     paths = [save_path(i) for i in range(n_datasets)]
+    _npdata = [torch.from_numpy(np.load(path, mmap_mode='r')[:, cfg.spinup_frames+1:-1, 0:1, :, :]) for path in paths]
+    
+    rpns = []
+    npdata = []
+    
+    # check len > 0 
+    for r,d in zip(_rpns,_npdata):
+        if d.shape[0] > cfg.seq_len:
+            rpns.append(r)
+            npdata.append(d)
+            
+    n_datasets = len(rpns)
+    print(f"Number of non-empty datasets: {n_datasets}")
+    
     ts = [
         TimeSeriesDataset(
-            data = torch.from_numpy(np.load(path, mmap_mode='r')[:, cfg.spinup_frames+1:-1, 0:1, :, :]),
+            data = d,
             seq_length = cfg.seq_len
         )
-        for path in paths
+        for d in npdata
     ]
     
     train_dataset = ConditionalDataset(
@@ -203,10 +217,10 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
     
     lts = [
         TimeSeriesDataset(
-            data = torch.from_numpy(np.load(path, mmap_mode='r')[:, cfg.spinup_frames+1:-1, 0:1, :, :]),
+            data = d,
             seq_length = cfg.test_seq_len
         )
-        for path in paths[:cfg.n_test]
+        for d in npdata[:cfg.n_test]
     ]
     
     pred_dataset = ConditionalDataset(
