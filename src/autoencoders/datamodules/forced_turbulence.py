@@ -185,6 +185,7 @@ def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoad
         shuffle=True,
         num_workers=cfg.num_workers,
         pin_memory=True,
+        persistent_workers=True,
     )
     val_loader = DataLoader(
         val_dataset,
@@ -192,6 +193,7 @@ def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoad
         shuffle=False,
         num_workers=cfg.test_workers,
         pin_memory=True,
+        persistent_workers=True,
     )
     
     return train_loader, val_loader
