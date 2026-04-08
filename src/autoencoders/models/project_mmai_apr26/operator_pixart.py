@@ -67,7 +67,7 @@ class PixArtDiffusion(Diffusion):
         # ---- PixArt forward (DiT) ----
         noise_pred = self.transformer(
             hidden_states=latents,
-            timestep=(t * 1000).long(),
+            timestep=(t.view(-1) * 1000).long(),
             encoder_hidden_states=text_emb,
         ).sample
 
