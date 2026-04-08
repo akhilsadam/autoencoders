@@ -28,6 +28,6 @@ params:
   forcing_F: 0.0
   
   batch_size: 32
-  num_workers: 4
+  num_workers: 16
   val_split: 20
   seed: 42
