@@ -33,13 +33,11 @@ class CRPNAutoencoder(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters(config)
         
-        # rules = None if not rules else 
-        rules = None # TODO add
 
         self.crpn = ContrastiveRPN(seq_len=config['seq_len'],
                                    embed_dim=config['embed_dim'],
                                    proj_dim=config['proj_dim'],
-                                   rules=rules)
+                                   rules=config['rules'])
         
         self.learning_rate = config['learning_rate']
 
