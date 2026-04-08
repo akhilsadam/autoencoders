@@ -22,12 +22,16 @@ def build_dataloaders(cfg: ForcedTurbulenceConfig) -> Tuple[DataLoader, DataLoad
     dataset_tensor = torch.from_numpy(get_dataset(cfg, 'forced_turbulence.npy', mmap=True)[:, cfg.spinup_frames:, 0:1, :, :])
             
     # Split into train and validation
-    val_split = cfg.val_split
-    if val_split >= (dataset_tensor.shape[1]):
+    val_split = 1 #cfg.val_split
+    if val_split >= (dataset_tensor.shape[0]):
         raise ValueError("Validation split must be smaller than dataset size")
 
-    _train_dataset = dataset_tensor[:, :-val_split]
-    _val_dataset = dataset_tensor[:, -val_split:]
+    # _train_dataset = dataset_tensor[:, :-val_split]
+    # _val_dataset = dataset_tensor[:, -val_split:]
+
+    _train_dataset = dataset_tensor[:-val_split]
+    _val_dataset = dataset_tensor[-val_split:]
+    
     
     train_dataset = TimeSeriesDataset(
         data=_train_dataset,

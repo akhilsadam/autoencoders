@@ -86,7 +86,7 @@ class Diffusion(pl.LightningModule):
 
         self.steps = config['steps']
         self._init_buffers(self.shape, self.L)
-        self.criterion = lambda x_hat, x: ((x_hat - x).pow(2).mean() / ((x - x.mean(dim=(-2,-1),keepdim=True)).pow(2).mean() + 1e-8))
+        self.criterion = lambda x_hat, x: ((x_hat - x).abs().mean() / ((x - x.mean(dim=(-2,-1),keepdim=True)).abs().mean() + 1e-8))
         
         self.sampler = samplers[config['sampler']]()
 
@@ -116,8 +116,8 @@ class Diffusion(pl.LightningModule):
         ], dim=1)
         
         z_unshuf = self.unshuffle(zx)            
-        z = self.shuffle(self.siren(z_unshuf))
-        z = self.deriv.adv(cz, z) + cz
+        z = self.shuffle(self.siren(z_unshuf)) + cz
+        # z = self.deriv.adv(cz, z) + cz
 
         return self.ae.decoder(z)
 

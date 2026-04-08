@@ -35,6 +35,7 @@ class OptVLMDiffusion(pl.LightningModule):
             nn.Linear(self.llm.proj_dim, 256),
             nn.LeakyReLU(),
             nn.Linear(256, self.opt.latent_dim),
+            nn.Tanh(), # prevent explosion
         )
             
             # additive fusion doesn't work
@@ -61,7 +62,7 @@ class OptVLMDiffusion(pl.LightningModule):
         diffusion_loss = self.opt.loss(y, x, latent)
         self.log('diffusion_loss', diffusion_loss, prog_bar=True)
         
-        loss = 0.001 * rpn_loss + diffusion_loss
+        loss = 0.1 * rpn_loss + diffusion_loss
         return loss
 
     def validation_step(self, batch, batch_id) -> None:
@@ -78,8 +79,8 @@ class OptVLMDiffusion(pl.LightningModule):
         MX.quick_reconstruction(self, rpns, seq, self.dirs, '', latent=latent)
             
     def metrics(self, assistant):
-        pass
-        # val_loader = assistant #
+        # pass
+        val_loader = assistant #
         MX.reconstruction(self, val_loader, dirs)
         # MX.generation(self, val_loader, dirs)
 
