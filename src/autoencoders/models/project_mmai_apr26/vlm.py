@@ -39,8 +39,8 @@ class OptVLMDiffusion(pl.LightningModule):
         )
             
             # additive fusion doesn't work
-        nn.init.zeros_(self.proj_latent[-1].weight)
-        nn.init.zeros_(self.proj_latent[-1].bias)
+        # nn.init.zeros_(self.proj_latent[-1].weight)
+        # nn.init.zeros_(self.proj_latent[-1].bias)
         
         self.learning_rate = config['learning_rate']
 
