@@ -15,6 +15,8 @@ import torch.nn.functional as F
 
 from qg.solver.opt.operator.rpn import ContrastiveRPN
 
+from autoencoders.metrics import text as MX
+
 # Convention: model class ends with 'Diffusion', config is 'Config' or endswith 'Config'
 @dataclass
 class Config:
@@ -49,6 +51,11 @@ class CRPNAutoencoder(pl.LightningModule):
         pooled = self.crpn.encode_token_batch(tokens, amps)
         return pooled
     
+    def decode(self, pooled):
+        tokens, amps = self.crpn.decode(pooled)
+        rpns = self.crpn.detokenize(tokens, amps)
+        return rpns
+    
     # ── Lightning ─────────────────────────────────────────────────────────
 
     def training_step(self, batch: torch.Tensor, _: int, logger=None) -> torch.Tensor:
@@ -73,10 +80,10 @@ class CRPNAutoencoder(pl.LightningModule):
         logger.log('val_loss', loss, prog_bar=True, batch_size=len(batch))
         
     def metrics(self, assistant):
-        pass
-        # val_loader = assistant #
+        # pass
+        val_loader = assistant #
         # MX.reconstruction(self, val_loader, dirs)
-        # MX.generation(self, val_loader, dirs)
+        MX.generation(self, val_loader, self.dirs)
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
