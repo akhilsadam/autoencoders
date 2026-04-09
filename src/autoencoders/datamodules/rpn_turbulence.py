@@ -184,7 +184,7 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
 
     
     paths = [save_path(i) for i in range(n_datasets)]
-    _npdata = [torch.from_numpy(np.load(path, mmap_mode='r')[:, cfg.spinup_frames*2:-10, 0:1, :, :]) for path in paths]
+    _npdata = [torch.from_numpy(np.load(path, mmap_mode='r')[:, cfg.spinup_frames*3:-10, 0:1, :, :]) for path in paths]
     
     rpns = []
     npdata = []
