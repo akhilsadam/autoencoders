@@ -83,6 +83,11 @@ class Diffusion(pl.LightningModule):
         #                     layers=config['siren_layers'],
         #                     w=config['siren_w'], act=Tri, k=1)
         
+        w = (sdim + tdim + dim + cdim)
+        self.hsiren  = Siren(w, w, width=w,
+                            layers=1,
+                            w=config['siren_w'], act=Tri, k=1)
+             
         self.siren  = FiLMSiren(in_dim, out_dim, cond_dim, width=width,
                             layers=config['siren_layers'],
                             w=config['siren_w'], act=Tri, k=1)
@@ -130,7 +135,7 @@ class Diffusion(pl.LightningModule):
         
         z_unshuf = self.unshuffle(zx)            
         z = self.shuffle(self.siren(z_unshuf, latent))
-        # z = self.deriv.adv(cz, z) + cz
+        z = self.deriv.adv(cz, z) + cz
 
         return self.ae.decoder(z)
 
