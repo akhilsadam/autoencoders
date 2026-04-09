@@ -132,7 +132,7 @@ class Diffusion(pl.LightningModule):
             self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:])),
         ], dim=1)
         
-        
+        zx = self.hsiren(zx)        
         z_unshuf = self.unshuffle(zx)            
         z = self.shuffle(self.siren(z_unshuf, latent))
         z = self.deriv.adv(cz, z) + cz
