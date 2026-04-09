@@ -35,9 +35,10 @@ def rplot(recon, output_dir, name):
 def reconstruction(net, loader, dirs):
     with torch.no_grad():
         n = len(loader)
-        results = []
+        # results = []
         loss = 0.0
         rpn_list = []
+        i = 0
         for fused_batch in loader:
             rpns, batch = fused_batch 
             batch = batch.to(next(net.parameters()).device)
@@ -60,14 +61,16 @@ def reconstruction(net, loader, dirs):
             
             stack = torch.stack([y, y_hat, y_hat - y, y_hat - x0[:,None,...]], dim=1)  # P Y T C H W
 
-            results.append(stack.detach().cpu())
+            # results.append(stack.detach().cpu())
             rpn_list.append(rpns)
             loss += zloss.item() / n
-        results = torch.stack(results, dim=0) # B P Y T C H W # B is batch time, P is pde, Y is type
+        # results = torch.stack(results, dim=0) # B P Y T C H W # B is batch time, P is pde, Y is type
         
-        torch.save(results, os.path.join(dirs[1], "reconstructions.pt"))
-        rplot(results[0], dirs[0], "surrogate_reco_batchfirst.png")
-        rplot(results[-1], dirs[0], "surrogate_reco_batchlast.png")
+            torch.save(stack.detach().cpu(), os.path.join(dirs[1], f"reconstructions_{i:04d}.pt"))
+            i += 1
+            if i == 1:
+                rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_batchfirst.png")
+        rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_batchlast.png")
         with open(os.path.join(dirs[0], f'rpns_saved.json'),'w') as f:
             json.dump(data, f, indent=4)
         
