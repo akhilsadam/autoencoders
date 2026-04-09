@@ -15,7 +15,7 @@ from torch import nn
 import torch.nn.functional as F
 
 from autoencoders.models.modules.ae import BasicSpatialAutoencoder
-from autoencoders.models.modules.siren import FiLMSiren
+from autoencoders.models.modules.siren import Siren, FiLMSiren
 from autoencoders.models.modules.math.derivative import Derivative
 from autoencoders.models.modules.diffusion.samplers.flow_matching import samplers
 from autoencoders.models.modules.diffusion.embeddings import TimeEmbedding
