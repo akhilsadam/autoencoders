@@ -125,6 +125,7 @@ class Diffusion(pl.LightningModule):
         z = self.ae.encoder(x)
         cz = self.ae2.encoder(c)
         
+        z_in = z
         zx = torch.cat([
             z,
             cz,
@@ -135,7 +136,7 @@ class Diffusion(pl.LightningModule):
         zx = self.hsiren(zx)        
         z_unshuf = self.unshuffle(zx)            
         z = self.shuffle(self.siren(z_unshuf, latent))
-        z = self.deriv.adv(cz, z) + cz
+        z = self.deriv.adv(z_in, z) + cz
 
         return self.ae.decoder(z)
 
