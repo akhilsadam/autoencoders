@@ -30,6 +30,7 @@ diffusers
 peft
 sentencepiece
 tiktoken
+natten>=0.21.6
 # for change tracking with LLMs
 packaging
 transformers 

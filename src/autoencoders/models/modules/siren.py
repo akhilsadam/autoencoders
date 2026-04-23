@@ -39,7 +39,7 @@ class Linear(nn.Module):
     def __init__(self, in_features, out_features, kernel_size, w=1, act=nn.Identity, _id = 1, **kwargs):
         super().__init__()
         if kernel_size > 0:
-            self.linear = nn.Conv2d(in_features, out_features, kernel_size, **kwargs, padding='same', padding_mode='zeros')
+            self.linear = nn.Conv2d(in_features, out_features, kernel_size, **kwargs, padding='same', padding_mode=kwargs.get('padding_mode','circular'))
         else:
             self.linear = nn.Linear(in_features, out_features)
             kernel_size = 1
@@ -70,11 +70,11 @@ class Linear(nn.Module):
         return y
     
 class Siren(nn.Module):
-    def __init__(self, c_in, c_out, width=256, layers=3, w=30, act=Sine, k=1):
+    def __init__(self, c_in, c_out, width=256, layers=3, w=30, act=Sine, k=1, **kwargs):
         super().__init__()
 
         _layers = [
-            Linear(width, width, k, w=w, act=act) for _ in range(layers)
+            Linear(width, width, k, w=w, act=act, **kwargs) for _ in range(layers)
         ]
         self.fwd = nn.Sequential(
             Linear(c_in, width, k, w=w, act=act, _id=0),

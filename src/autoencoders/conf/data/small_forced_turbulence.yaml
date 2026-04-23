@@ -7,7 +7,7 @@ params:
   grid_size: 64
   Lx: 3.14159 # pi
   Ly: 3.14159 # pi
-  num_samples: 1
+  num_samples: 2
   time_steps: 100000
   save_rate: 200
   dt: 0.001
