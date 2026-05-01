@@ -155,15 +155,15 @@ class Diffusion(pl.LightningModule):
         v_pred = self.vel(z_hat, z_n, t) * (1 - t)
         v_true = self.vel(z_, z_n, t) * (1 - t)
         
-        g_v_pred = torch.gradient(v_pred, dim=(-2,-1))
-        g_v_true = torch.gradient(v_true, dim=(-2,-1))
+        g_v_pred = torch.stack(torch.gradient(v_pred, dim=(-2,-1)), dim=-1)
+        g_v_true = torch.stack(torch.gradient(v_true, dim=(-2,-1)), dim=-1)
                 
         if self.training:
-            loss_grad = sum([self.criterion(p, t) for p,t in zip(g_v_pred, g_v_true)])
+            loss_grad =  0.1 * self.criterion(g_v_pred, g_v_true) 
         else:
             loss_grad = 0
                
-        return self.criterion(v_pred, v_true) + self.criterion(x_reco, x) + 0.1 * loss_grad
+        return self.criterion(v_pred, v_true) + self.criterion(x_reco, x) + loss_grad
 
     # ── Generation ────────────────────────────────────────────────────────
 
