@@ -81,7 +81,7 @@ class Diffusion(pl.LightningModule):
         self.interp = nn.Sequential(
             nn.Conv2d(in_dim, cnn_width, kernel_size=k-1, padding_mode='circular', padding='same'),
             act(),
-            Siren(cnn_width, token_dim, width=cnn_width, layers=0, w=0.5, act=act, k=1),
+            Siren(cnn_width, token_dim, width=cnn_width, layers=2, w=0.5, act=act, k=3),
             act(),
         )
         self.siren = Siren(k**2 * token_dim, token_dim, width=width, layers=config['siren_layers'], w=config['siren_w'], act=act, k=1)
