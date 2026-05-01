@@ -141,6 +141,7 @@ class Diffusion(pl.LightningModule):
             self.to(x.device)
         
         z = self.ae.encoder(x)
+        zc = self.ae.encoder(c)
         x_reco = self.ae.decoder(z)
         
         z_ = z.detach()
@@ -149,7 +150,7 @@ class Diffusion(pl.LightningModule):
         n      = self.noise(z_)
         z_n    = self.mix(z_, n, t)
         
-        z_hat = self.denoise(z_n, t, c=c)
+        z_hat = self.denoise(z_n, t, c=zc)
         
         v_pred = self.vel(z_hat, z_n, t) * (1 - t)
         v_true = self.vel(z_, z_n, t) * (1 - t)
@@ -175,9 +176,10 @@ class Diffusion(pl.LightningModule):
         
         self.sampler.reset()
         z = self.ae.encoder(x)
+        zc = self.ae.encoder(c)
         z_n = self.noise(z)
         for i in range(self.steps):
-            z_n = self.sampler.step(self, z_n, i, self.t, self.dt, c=c)
+            z_n = self.sampler.step(self, z_n, i, self.t, self.dt, c=zc)
         return self.ae.decoder(z_n)
 
     # ── Lightning ─────────────────────────────────────────────────────────
