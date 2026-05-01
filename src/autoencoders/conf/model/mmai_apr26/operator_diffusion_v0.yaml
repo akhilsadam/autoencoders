@@ -9,8 +9,8 @@ params:
   sdim: 2                 # spatial coord dims
   tdim: 16                # time embedding dims
   siren_width: null       # defaults to in_dim if None
-  siren_layers: 4
-  siren_w: 0.5
+  siren_layers: 5
+  siren_w: 10.0
   encode_layers: 3
   
   # Sampler / schedule

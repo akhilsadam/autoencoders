@@ -24,11 +24,11 @@ class LoRASpeedrunDiT(torch.nn.Module):
         # 1. Load VAE (Essential for Latent Diffusion)
         # VAE_F16D32 outputs [B, 32, 16, 16] from 256x256 images
         self.vae = VAE_F16D32().to(self.device)
-        vae_ckpt = hf_hub_download(repo_id="SwayStar123/SpeedrunDiT", filename="invae.pt")
-        self.vae.load_state_dict(torch.load(vae_ckpt, map_location=self.device))
-        self.vae.eval()  # Keep VAE in eval mode as fixed feature extractor
-        for param in self.vae.parameters():
-            param.requires_grad = False
+        # vae_ckpt = hf_hub_download(repo_id="SwayStar123/SpeedrunDiT", filename="invae.pt")
+        # self.vae.load_state_dict(torch.load(vae_ckpt, map_location=self.device))
+        # self.vae.eval()  # Keep VAE in eval mode as fixed feature extractor
+        # for param in self.vae.parameters():
+        #     param.requires_grad = False
 
         # 2. Load Base SiT Model with proper parameters
         # SiT_B_1 returns SiT(depth=12, hidden_size=768, decoder_hidden_size=768, 
