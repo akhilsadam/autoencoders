@@ -158,7 +158,10 @@ class Diffusion(pl.LightningModule):
         g_v_pred = torch.gradient(v_pred, dim=(-2,-1))
         g_v_true = torch.gradient(v_true, dim=(-2,-1))
                 
-        loss_grad = sum([self.criterion(p, t) for p,t in zip(g_v_pred, g_v_true)])
+        if self.training:
+            loss_grad = sum([self.criterion(p, t) for p,t in zip(g_v_pred, g_v_true)])
+        else:
+            loss_grad = 0
                
         return self.criterion(v_pred, v_true) + self.criterion(x_reco, x) + 0.1 * loss_grad
 
