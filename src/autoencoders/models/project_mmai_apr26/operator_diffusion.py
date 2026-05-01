@@ -86,6 +86,13 @@ class Diffusion(pl.LightningModule):
         )
         self.siren = Siren(k**2 * token_dim, token_dim, width=width, layers=config['siren_layers'], w=config['siren_w'], act=act, k=1)
         
+        self.interp_2 = nn.Sequential(
+            act(),
+            nn.Conv2d(in_dim, cnn_width, kernel_size=k-1, padding_mode='circular', padding='same'),
+            act(),
+            Siren(cnn_width, dim, width=cnn_width, layers=2, w=0.5, act=act, k=3),
+        )
+                
         self.ae = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])
 
         self.t_emb = TimeEmbedding(tdim)
@@ -118,6 +125,12 @@ class Diffusion(pl.LightningModule):
         zx = torch.cat([z, c, xpe, tpe], dim=1) 
 
         z = self.shuf(self.siren(self.unshuf(self.interp(zx)))) + z 
+        
+        xpe = self.xy.expand(z.shape[0], -1, *z.shape[2:])
+        tpe = self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:]))
+        zx = torch.cat([z, c, xpe, tpe], dim=1)
+        
+        z = self.interp_2(zx)
         
         return z
 
@@ -159,7 +172,7 @@ class Diffusion(pl.LightningModule):
         g_v_true = torch.stack(torch.gradient(v_true, dim=(-2,-1)), dim=-1)
                 
         if self.training:
-            loss_grad =  0.1 * self.criterion(g_v_pred, g_v_true) 
+            loss_grad =  0.2 * self.criterion(g_v_pred, g_v_true) 
         else:
             loss_grad = 0
                
