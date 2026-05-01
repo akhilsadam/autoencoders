@@ -106,6 +106,12 @@ train-operator-diffusion: install
 		exp=mmai_apr26/0_vision \
 		trainer.max_epochs=90
 
+train-operator-srdit: install
+	source "$(VENV)/bin/activate" && \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+		exp=mmai_apr26/0_vision model=mmai_apr26/operator_srdit \
+		trainer.max_epochs=90
+
 train-llm: install
 	source "$(VENV)/bin/activate" && \
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
