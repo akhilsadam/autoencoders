@@ -76,6 +76,8 @@ class Diffusion(pl.LightningModule):
         cnn_width = 2 * token_dim
         width = 4 * token_dim
         
+        act = Tri
+        
         self.interp = nn.Sequential(
             nn.Conv2d(in_dim, cnn_width, kernel_size=k-1, padding_mode='circular', padding='same'),
             act(),
