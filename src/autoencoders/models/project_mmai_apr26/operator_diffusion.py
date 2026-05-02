@@ -130,7 +130,7 @@ class Diffusion(pl.LightningModule):
         tpe = self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:]))
         zx = torch.cat([z, c, xpe, tpe], dim=1)
         
-        z = self.interp_2(zx)
+        z = self.interp_2(zx) + c # assume condition is a past frame
         
         return z
 
