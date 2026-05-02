@@ -84,14 +84,7 @@ class Diffusion(pl.LightningModule):
             Siren(cnn_width, token_dim, width=cnn_width, layers=2, w=0.5, act=act, k=3),
             act(),
         )
-        self.siren = Siren(k**2 * token_dim, token_dim, width=width, layers=config['siren_layers'], w=config['siren_w'], act=act, k=1)
-        
-        self.interp_2 = nn.Sequential(
-            act(),
-            nn.Conv2d(in_dim, cnn_width, kernel_size=k-1, padding_mode='circular', padding='same'),
-            act(),
-            Siren(cnn_width, dim, width=cnn_width, layers=2, w=0.5, act=act, k=3),
-        )
+        self.siren = Siren(k**2 * token_dim, token_dim, width=width, layers=config['siren_layers'], w=config['siren_w'], act=act, k=3)
                 
         self.ae = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])
 
@@ -125,13 +118,7 @@ class Diffusion(pl.LightningModule):
         zx = torch.cat([z, c, xpe, tpe], dim=1) 
 
         z = self.shuf(self.siren(self.unshuf(self.interp(zx)))) + z 
-        
-        xpe = self.xy.expand(z.shape[0], -1, *z.shape[2:])
-        tpe = self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:]))
-        zx = torch.cat([z, c, xpe, tpe], dim=1)
-        
-        z = self.interp_2(zx) + c # assume condition is a past frame
-        
+               
         return z
 
     def noise(self, x: torch.Tensor) -> torch.Tensor:
@@ -168,10 +155,10 @@ class Diffusion(pl.LightningModule):
         v_pred = self.vel(z_hat, z_n, t) * (1 - t)
         v_true = self.vel(z_, z_n, t) * (1 - t)
         
-        g_v_pred = torch.stack(torch.gradient(v_pred, dim=(-2,-1)), dim=-1)
-        g_v_true = torch.stack(torch.gradient(v_true, dim=(-2,-1)), dim=-1)
-                
+        
         if self.training:
+            g_v_pred = torch.stack(torch.gradient(v_pred, dim=(-2,-1)), dim=-1)
+            g_v_true = torch.stack(torch.gradient(v_true, dim=(-2,-1)), dim=-1)  
             loss_grad =  0.2 * self.criterion(g_v_pred, g_v_true) 
         else:
             loss_grad = 0
