@@ -2,7 +2,7 @@ name: llm
 params:
     seq_len: 100
     embed_dim: 32
-    proj_dim: 256
+    proj_dim: 96
     rules: False
     
     # Training
