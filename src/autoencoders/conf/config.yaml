@@ -10,7 +10,7 @@ seed: 42
 
 paths:
   data_root: ${oc.env:AUTOENCODERS_DATA_ROOT, ./data}
-  artifacts_root: ${hydra:run.dir}/artifacts
+  artifacts_root: ${hydra:runtime.output_dir}/artifacts
 
 run:
   name: ${hydra:job.name}
