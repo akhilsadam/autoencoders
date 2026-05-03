@@ -9,12 +9,12 @@ params:
   sdim: 2                 # spatial coord dims
   tdim: 16                # time embedding dims
   siren_width: null       # defaults to in_dim if None
-  siren_layers: 5
-  siren_w: 10.0
+  siren_layers: 6
+  siren_w: 2.5
   encode_layers: 3
   
   # Sampler / schedule
-  steps: 25
+  steps: 10
   sampler: 'AB2CN'        # 'Euler', 'AB2', 'AB2CN'
   L: 1.0                # domain half-length for coords / deriv
   

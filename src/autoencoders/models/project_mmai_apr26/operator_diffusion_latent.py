@@ -68,19 +68,26 @@ class Diffusion(pl.LightningModule):
         self.learning_rate = config['learning_rate']
 
         self.k = k
-        self.shuffle = nn.PixelShuffle(k)
-        self.unshuffle = nn.PixelUnshuffle(k)
+        self.shuf = nn.PixelShuffle(k)
+        self.unshuf = nn.PixelUnshuffle(k)
 
-        in_dim = (sdim + tdim + dim + cdim) * k ** 2
-        out_dim = dim * k ** 2
-        width = config['siren_width'] if config['siren_width'] is not None else in_dim
-
-        self.siren  = Siren(in_dim, out_dim, width=width,
-                            layers=config['siren_layers'],
-                            w=config['siren_w'], act=Tri, k=1)
-        self.ae = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])
-        self.ae2 = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])
+        in_dim = (sdim + tdim) + cdim + dim
+        token_dim = dim * k ** 2
+        cnn_width = 2 * token_dim
+        width = 4 * token_dim
         
+        act = Tri
+        
+        self.interp = nn.Sequential(
+            nn.Conv2d(in_dim, cnn_width, kernel_size=k-1, padding_mode='circular', padding='same'),
+            act(),
+            Siren(cnn_width, token_dim, width=cnn_width, layers=2, w=0.5, act=act, k=3),
+            act(),
+        )
+        self.siren = Siren(k**2 * token_dim, token_dim, width=width, layers=config['siren_layers'], w=config['siren_w'], act=act, k=3)
+                
+        self.ae = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])
+
         self.t_emb = TimeEmbedding(tdim)
 
         self.steps = config['steps']
@@ -103,20 +110,16 @@ class Diffusion(pl.LightningModule):
     # ── Core primitives ───────────────────────────────────────────────────
 
     def denoise(self, x: torch.Tensor, t: torch.Tensor, c: torch.Tensor = None) -> torch.Tensor:
-        z = self.ae.encoder(x)
-        cz = self.ae2.encoder(c)
         
-        zx = torch.cat([
-            z,
-            cz,
-            self.xy.expand(z.shape[0], -1, *z.shape[2:]),
-            self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:]))
-        ], dim=1)
+        z = x
         
-        z = self.shuffle(self.siren(self.unshuffle(zx)))
-        z = self.deriv.adv(cz, z) + cz
-        
-        return self.ae.decoder(z)
+        xpe = self.xy.expand(z.shape[0], -1, *z.shape[2:])
+        tpe = self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:]))
+        zx = torch.cat([z, c, xpe, tpe], dim=1) 
+
+        z = self.shuf(self.siren(self.unshuf(self.interp(zx)))) + z 
+               
+        return z
 
     def noise(self, x: torch.Tensor) -> torch.Tensor:
         return torch.randn_like(x)
@@ -137,19 +140,39 @@ class Diffusion(pl.LightningModule):
             self._init_buffers(self.shape, self.L)
             self.to(x.device)
         
+        z = self.ae.encoder(x)
+        zc = self.ae.encoder(c)
+        x_reco = self.ae.decoder(z)
+        
+        z_ = z.detach()
+        
         t      = torch.rand(x.shape[0], device=x.device)[:, None, None, None]
-        n      = self.noise(x)
-        x_n    = self.mix(x, n, t)
-        v_pred = self.vel(self.denoise(x_n, t, c=c), x_n, t) * (1 - t)
-        v_true = self.vel(x,                    x_n, t) * (1 - t)
-        return self.criterion(v_pred, v_true)
+        n      = self.noise(z_)
+        z_n    = self.mix(z_, n, t)
+        
+        z_hat = self.denoise(z_n, t, c=zc)
+        
+        v_pred = self.vel(z_hat, z_n, t) * (1 - t)
+        v_true = self.vel(z_, z_n, t) * (1 - t)
+        
+        
+        if self.training:
+            g_v_pred = torch.stack(torch.gradient(v_pred, dim=(-2,-1)), dim=-1)
+            g_v_true = torch.stack(torch.gradient(v_true, dim=(-2,-1)), dim=-1)  
+            loss_grad =  0.2 * self.criterion(g_v_pred, g_v_true) 
+        else:
+            loss_grad = 0
+               
+        return self.criterion(v_pred, v_true) + self.criterion(x_reco, x) + loss_grad
 
     # ── Generation ────────────────────────────────────────────────────────
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         t = torch.tensor(0.1, device=x.device)
-        n = self.noise(x)
-        return self.denoise(self.mix(x, n, t), t, c=n)
+        z = self.ae.encoder(x)
+        n = self.noise(z)
+        z_n = self.mix(z, n, t)
+        return self.ae.decoder(self.denoise(z_n, t, c=n))
 
     def latent(self, x: torch.Tensor) -> torch.Tensor:
         return self.noise(x)
@@ -161,10 +184,12 @@ class Diffusion(pl.LightningModule):
             self.to(x.device)
         
         self.sampler.reset()
-        x_n = self.noise(x)
+        z = self.ae.encoder(x)
+        zc = self.ae.encoder(c)
+        z_n = self.noise(z)
         for i in range(self.steps):
-            x_n = self.sampler.step(self, x_n, i, self.t, self.dt, c=c)
-        return x_n
+            z_n = self.sampler.step(self, z_n, i, self.t, self.dt, c=zc)
+        return self.ae.decoder(z_n)
 
     # ── Lightning ─────────────────────────────────────────────────────────
 
