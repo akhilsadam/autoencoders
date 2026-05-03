@@ -43,6 +43,9 @@ class CRPNAutoencoder(pl.LightningModule):
         
         self.proj_dim = config['proj_dim']
         self.learning_rate = config['learning_rate']
+        
+        self.tokenize = self.crpn.tokenize
+        self.detokenize = self.crpn.detokenize
 
     def encode(self, rpns):
         tokens, amps = self.crpn.tokenize(rpns)
