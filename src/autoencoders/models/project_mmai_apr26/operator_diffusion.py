@@ -151,7 +151,15 @@ class Diffusion(pl.LightningModule):
         t      = torch.rand(x.shape[0], device=x.device)[:, None, None, None]
         n      = self.noise(x)
         x_n    = self.mix(x, n, t)
-        v_pred = self.vel(self.denoise(x_n, t, c=c), x_n, t) * (1 - t)
+        
+        # c_n = c
+        ### Diffusion Forcing Update
+        noise_level = 0.1
+        tc = torch.rand(c.shape[0], device=c.device)[:, None, None, None]
+        nc = self.noise(c)
+        c_n = self.mix(c, nc, tc * noise_level)
+        
+        v_pred = self.vel(self.denoise(x_n, t, c=c_n), x_n, t) * (1 - t)
         v_true = self.vel(x,                    x_n, t) * (1 - t)
         return self.criterion(v_pred, v_true)
 
