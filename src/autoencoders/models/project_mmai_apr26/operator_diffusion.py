@@ -157,7 +157,7 @@ class Diffusion(pl.LightningModule):
             noise_level = 0.1
             tc = torch.rand(c.shape[0], device=c.device)[:, None, None, None]
             nc = self.noise(c)
-            c_n = self.mix(c, nc, tc * noise_level)
+            c_n = self.mix(c, nc, tc * (1-noise_level))
         else:
             c_n = c
         
