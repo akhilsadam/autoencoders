@@ -10,7 +10,7 @@ import json
 
 def generation(net, loader, dirs):
     for i, batch in enumerate(loader):
-        tk = net.detokenize(net.tokenize(batch))
+        tk = net.detokenize(*net.tokenize(batch))
         rpns = net.decode(net.encode(batch))
         d = {'in':batch, 'out':rpns, 'token_check':tk}
         
