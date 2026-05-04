@@ -4,7 +4,7 @@ params:
     embed_dim: 32
     proj_dim: 96
     rules: False
-    ae_type: att3
+    ae_type: mlp
     
     # Training
     learning_rate: 1e-4
