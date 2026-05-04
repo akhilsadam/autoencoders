@@ -50,8 +50,8 @@ class CRPNAutoencoder(pl.LightningModule):
 
     def encode(self, rpns):
         tokens, amps = self.crpn.tokenize(rpns)
-        tokens = tokens.to(self.crpn.head.device)
-        amps = amps.to(self.crpn.head.device)
+        tokens = tokens.to(self.crpn.device)
+        amps = amps.to(self.crpn.device)
         pooled = self.crpn.encode_token_batch(tokens, amps)
         return pooled
     
