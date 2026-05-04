@@ -1,7 +1,7 @@
 name: llm
 params:
     seq_len: 100
-    embed_dim: 64
+    embed_dim: 16
     proj_dim: 96
     rules: False
     ae_type: mlp
