@@ -39,7 +39,8 @@ class CRPNAutoencoder(pl.LightningModule):
         self.crpn = ContrastiveRPN(seq_len=config['seq_len'],
                                    embed_dim=config['embed_dim'],
                                    proj_dim=config['proj_dim'],
-                                   rules=config['rules'])
+                                   rules=config['rules'],
+                                   ae_type=config['ae_type'])
         
         self.proj_dim = config['proj_dim']
         self.learning_rate = config['learning_rate']
