@@ -4,8 +4,8 @@ params:
   root: ${paths.data_root}/rpn_encoder
   version: 1 
 
-  seq_len: 100
-  n_rpn: 4000
+  seq_len: 50
+  n_rpn: 8000
 
   batch_size: 32
   num_workers: 8
