@@ -2,7 +2,7 @@ name: llm
 params:
     seq_len: 50
     embed_dim: 8
-    proj_dim: 32
+    proj_dim: 96
     rules: False
     ae_type: mlp_deterministic
     
