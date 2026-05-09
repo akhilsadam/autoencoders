@@ -64,8 +64,9 @@ class CRPNAutoencoder(pl.LightningModule):
 
     def training_step(self, batch: torch.Tensor, _: int, logger=None) -> torch.Tensor:
         logger = logger or self
-        loss, denoise_distortion_loss_tk, denoise_distortion_loss_sc, denoise_perception_loss, syntax_loss, rule_loss = self.crpn.loss(batch)
+        loss, masked_supcon_loss, denoise_distortion_loss_tk, denoise_distortion_loss_sc, denoise_perception_loss, syntax_loss, rule_loss = self.crpn.loss(batch)
         logger.log_dict({
+            'llm_masked_supcon_loss': masked_supcon_loss,
             'llm_denoise_distortion_loss_token': denoise_distortion_loss_tk,
             'llm_denoise_distortion_loss_scalar': denoise_distortion_loss_sc,
             'llm_denoise_perception_loss': denoise_perception_loss,
@@ -78,7 +79,7 @@ class CRPNAutoencoder(pl.LightningModule):
 
     def validation_step(self, batch: torch.Tensor, _: int, logger=None) -> None:
         logger = logger or self
-        loss, denoise_distortion_loss_tk, denoise_distortion_loss_sc, denoise_perception_loss, syntax_loss, rule_loss = self.crpn.loss(batch)
+        loss, masked_supcon_loss, denoise_distortion_loss_tk, denoise_distortion_loss_sc, denoise_perception_loss, syntax_loss, rule_loss = self.crpn.loss(batch)
         logger.log_dict({
             'val_llm_denoise_distortion_loss_token': denoise_distortion_loss_tk,
             'val_llm_denoise_distortion_loss_scalar': denoise_distortion_loss_sc,
