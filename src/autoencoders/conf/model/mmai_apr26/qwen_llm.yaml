@@ -16,4 +16,4 @@ params:
     ae_type: mlp_deterministic
     
     # Training
-    learning_rate: 1e-4
+    learning_rate: 5e-5
