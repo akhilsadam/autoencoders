@@ -71,24 +71,23 @@ class Diffusion(pl.LightningModule):
         self.shuffle = nn.PixelShuffle(k)
         self.unshuffle = nn.PixelUnshuffle(k)
 
-        
         cond_dim = config['sem_dim']
                 
         self.sdim = sdim        
-        in_dim = (sdim + tdim + dim + cdim) * k ** 2
-        out_dim = dim * k ** 2
-        width = config['siren_width'] if config['siren_width'] is not None else in_dim
-
-        # self.siren  = Siren(in_dim, out_dim, width=width,
-        #                     layers=config['siren_layers'],
-        #                     w=config['siren_w'], act=Tri, k=1)
+        in_dim = (sdim + tdim) + cdim + dim
+        token_dim = dim * k ** 2
+        cnn_width = 2 * token_dim
+        width = 4 * token_dim
         
-        w = (sdim + tdim + dim + cdim)
-        self.hsiren  = Siren(w, w, width=w,
-                            layers=1,
-                            w=config['siren_w'], act=Tri, k=1)
+        act = Tri
+        self.interp = nn.Sequential(
+            nn.Conv2d(in_dim, cnn_width, kernel_size=k-1, padding_mode='circular', padding='same'),
+            act(),
+            Siren(cnn_width, token_dim, width=cnn_width, layers=2, w=0.5, act=act, k=3),
+            act(),
+        )
              
-        self.siren  = FiLMSiren(in_dim, out_dim, cond_dim, width=width,
+        self.siren = FiLMSiren(k**2 * token_dim, token_dim, cond_dim, width=width,
                             layers=config['siren_layers'],
                             w=config['siren_w'], act=Tri, k=1)
         
@@ -126,19 +125,15 @@ class Diffusion(pl.LightningModule):
         cz = self.ae2.encoder(c)
         
         z_in = z
-        zx = torch.cat([
-            z,
-            cz,
-            self.xy.expand(z.shape[0], -1, *z.shape[2:]),
-            self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:])),
-        ], dim=1)
+        xpe = self.xy.expand(z.shape[0], -1, *z.shape[2:])
+        tpe = self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:]))
+        zx = torch.cat([z, cz, xpe, tpe], dim=1) 
         
-        zx = self.hsiren(zx)        
-        z_unshuf = self.unshuffle(zx)            
+        z_unshuf = self.unshuffle(self.interp(zx))            
         z = self.shuffle(self.siren(z_unshuf, latent))
         z = self.deriv.adv(z_in, z) + cz
 
-        return self.ae.decoder(z)
+        return self.ae2.decoder(z)
 
     def noise(self, x: torch.Tensor, c) -> torch.Tensor:
         return torch.randn_like(x) + c

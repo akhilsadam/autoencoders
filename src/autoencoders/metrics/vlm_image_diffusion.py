@@ -70,7 +70,7 @@ def reconstruction(net, loader, dirs):
         
             # off to save memory
             # torch.save(stack.detach().cpu(), os.path.join(dirs[1], f"reconstructions_{i:04d}.pt"))
-            rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_seq_{i:04d}.png")
+            rplot(stack.detach().cpu(), dirs[0], f"surrogate_reco_seq_{i:04d}.png")
             # if i == 1:
             #     rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_batchfirst.png")
         # rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_batchlast.png")
