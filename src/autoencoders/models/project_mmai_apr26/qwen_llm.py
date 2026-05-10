@@ -34,7 +34,7 @@ class QwenCRPNConfig:
     learning_rate: float = 1e-4
  
  
-class CRPNAutoencoderQwen(pl.LightningModule):
+class QwenCRPNAutoencoder(pl.LightningModule):
     """
     Drop-in Lightning replacement for CRPNAutoencoder (llm.py).
  
