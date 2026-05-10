@@ -129,11 +129,11 @@ class Diffusion(pl.LightningModule):
         tpe = self.t_emb(t.expand(z.shape[0], 1, *z.shape[2:]))
         zx = torch.cat([z, cz, xpe, tpe], dim=1) 
         
-        lpe = latent[:,:,None,None].expand(z.shape[0], -1, *z.shape[2:])
-        zc = torch.cat([self.interp(zx), lpe], dim=1)
+        zu = self.unshuffle(self.interp(zx)) 
+        lpe = latent[:,:,None,None].expand(zu.shape[0], -1, *zu.shape[2:])
+        zc = torch.cat([zu, lpe], dim=1)
         
-        z_unshuf = self.unshuffle(zc)            
-        z = self.shuffle(self.siren(z_unshuf))
+        z = self.shuffle(self.siren(zc))
         z = self.deriv.adv(z_in, z) + cz
 
         return self.ae.decoder(z) 
