@@ -47,9 +47,9 @@ class OptVLMDiffusion(pl.LightningModule):
         
         cond_dim = config['sem_dim']
         self.cond_net = nn.Sequential(
-            nn.Linear(cond_dim, cond_dim * 4)
+            nn.Linear(cond_dim, cond_dim * 4),
             nn.GELU(),
-            nn.Linear(cond_dim*4, cond_dim * 4)
+            nn.Linear(cond_dim*4, cond_dim * 4),
             nn.GELU(),
             nn.Linear(cond_dim*4, cond_dim)
         )
