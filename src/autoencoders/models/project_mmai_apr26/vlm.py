@@ -15,6 +15,7 @@ import torch.nn.functional as F
 
 from . import vlm_diffusion, llm
 from autoencoders.metrics import vlm_image_diffusion as MX
+from autoencoders.metrics import text as TMX
 
 # Convention: model class ends with 'Diffusion', config is 'Config' or endswith 'Config'
 @dataclass
@@ -27,19 +28,30 @@ class OptVLMDiffusion(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters(config)
         
-
-        self.llm = llm.CRPNAutoencoder(config)
+        lpath = config['pretrain_llm']
+        if os.path.exists(lpath):
+            self.llm = llm.CRPNAutoencoder.load_from_checkpoint(lpath)
+            print(f'Loaded from checkpoint: {lpath}')
+        else:
+            self.llm = llm.CRPNAutoencoder(config)
+            
         self.opt = vlm_diffusion.Diffusion(config)
         
+        self.use_llm = config['use_llm']
 
-            # additive fusion doesn't work
+        # additive fusion doesn't work
         # nn.init.zeros_(self.proj_latent[-1].weight)
         # nn.init.zeros_(self.proj_latent[-1].bias)
         
         self.learning_rate = config['learning_rate']
 
     def compute_latent(self, rpns):
-        return self.llm.encode(rpns)
+        encoding = self.llm.encode(rpns)
+        semantic = self.llm.crpn.gen.semantic(encoding) 
+        
+        if not self.use_llm:
+            semantic = semantic * 0.0        
+        return semantic
     
     def gen(self, *args, **kwargs):
         return self.opt.gen(*args, **kwargs)
@@ -71,12 +83,14 @@ class OptVLMDiffusion(pl.LightningModule):
         self.log('val_diffusion_loss', diffusion_loss, prog_bar=True)
         
         MX.quick_reconstruction(self, rpns, seq, self.dirs, '', latent=latent)
+        TMX.metrics(self.llm, batch_id, batch, self.dirs)
             
     def metrics(self, assistant):
         # pass
         val_loader = assistant #
         MX.reconstruction(self, val_loader, self.dirs)
         # MX.generation(self, val_loader, dirs)
+        
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         return torch.optim.Adam(self.parameters(), lr=self.learning_rate)

@@ -38,8 +38,10 @@ def reconstruction(net, loader, dirs):
         # results = []
         loss = 0.0
         rpn_list = []
-        i = 0
-        for fused_batch in loader:
+        for i, fused_batch in enumerate(loader):
+            if i not in [1, n//2, n-1]:
+                continue # only select times
+            
             rpns, batch = fused_batch 
             batch = batch.to(next(net.parameters()).device)
             
@@ -49,7 +51,7 @@ def reconstruction(net, loader, dirs):
             y_hats = []
             x0 = batch[:, 0]  # B C H W
             x = x0
-            for i in range(batch.shape[1] - 1):                
+            for j in range(batch.shape[1] - 1):                
                 y_hat = net.gen(x, x, latent=latent)
                 y_hats.append(y_hat.detach())
                 # update
@@ -66,11 +68,12 @@ def reconstruction(net, loader, dirs):
             loss += zloss.item() / n
         # results = torch.stack(results, dim=0) # B P Y T C H W # B is batch time, P is pde, Y is type
         
-            torch.save(stack.detach().cpu(), os.path.join(dirs[1], f"reconstructions_{i:04d}.pt"))
-            i += 1
-            if i == 1:
-                rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_batchfirst.png")
-        rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_batchlast.png")
+            # off to save memory
+            # torch.save(stack.detach().cpu(), os.path.join(dirs[1], f"reconstructions_{i:04d}.pt"))
+            rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_seq_{i:04d}.png")
+            # if i == 1:
+            #     rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_batchfirst.png")
+        # rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_batchlast.png")
         with open(os.path.join(dirs[0], f'rpns_saved.json'),'w') as f:
             json.dump(data, f, indent=4)
         
@@ -97,6 +100,26 @@ def quick_reconstruction(net, rpns, batch, dirs, info, plot_rate=1, **kwargs):
             # zloss = F.mse_loss(y_hat, y) / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
             
             stack = torch.stack([x0[:,None,...], y, y_hat, y_hat - y, y_hat - x0[:,None,...]], dim=1)  # B Y T C H W
+            
+            err = F.mse_loss(y_hat, y)
+            zloss = err / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
+            ploss = err / F.mse_loss(y_hat, x0[:,None,...])
+            
+            errs = ((y_hat - y)**2).mean(dim=(-4,-3,-2,-1)) # batch
+            signals = ((y_hat - x0[:,None,...])**2).mean(dim=(-4,-3,-2,-1))
+            
+            p_losses = (errs / signals).numpy().tolist()
+            
+            d = {
+                'RelMSE':zloss.item(),
+                'PMSE': ploss.item(),
+                'PMSE by PDE:' p_losses,
+            }
+            
+            with open(os.path.join(dirs[0], f'vlm_metrics_{iter:04d}.txt'),'w') as f:
+                json.dump(d, f, indent=4)
+            
+            
             stack = stack.detach().cpu()
             rplot(stack[0:4], dirs[0], f"surrogate_reco_batch_{info}_{iter:04d}.png")
             with open(os.path.join(dirs[0], f'rpns_{iter:04d}.txt'),'w') as f:
@@ -104,6 +127,59 @@ def quick_reconstruction(net, rpns, batch, dirs, info, plot_rate=1, **kwargs):
                 
     iter += 1
     
+    
+def final_reco(net, loader, dirs):
+    n = len(loader)
+    for i, fused_batch in enumerate(loader):
+        if i not in [1, n//2, n-1]:
+            continue
+        rpns, batch = fused_batch
+        single_reconstruction(net, i, rpns, batch, dirs)
+    
+def single_reconstruction(net, i, rpns, batch, dirs, **kwargs):
+    with torch.no_grad():
+        loss = 0.0
+        batch = batch.to(next(net.parameters()).device)
+            
+        y_hats = []
+        x0 = batch[:, 0]  # B C H W
+        x = x0
+        for i in range(batch.shape[1] - 1):                
+            y_hat = net.gen(x, x, **kwargs)
+            y_hats.append(y_hat.detach())
+            # update
+            x = y_hat
+
+        y_hat = torch.stack(y_hats, dim=1)  # B T C H W
+        y = batch[:, 1:]  # B T C H W
+        # zloss = F.mse_loss(y_hat, y) / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
+        
+        stack = torch.stack([x0[:,None,...], y, y_hat, y_hat - y, y_hat - x0[:,None,...]], dim=1)  # B Y T C H W
+        
+        err = F.mse_loss(y_hat, y)
+        zloss = err / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
+        ploss = err / F.mse_loss(y_hat, x0[:,None,...])
+        
+        errs = ((y_hat - y)**2).mean(dim=(-4,-3,-2,-1)) # batch
+        signals = ((y_hat - x0[:,None,...])**2).mean(dim=(-4,-3,-2,-1))
+        
+        p_losses = (errs / signals).numpy().tolist()
+        
+        d = {
+            'RelMSE':zloss.item(),
+            'PMSE': ploss.item(),
+            'PMSE by PDE:' p_losses,
+        }
+        
+        with open(os.path.join(dirs[0], f'vlm_metrics_{iter:04d}.txt'),'w') as f:
+            json.dump(d, f, indent=4)
+
+        stack = stack.detach().cpu()
+        rplot(stack[0:4], dirs[0], f"final_surrogate_reco_batch_{i:04d}.png")
+        torch.save(stack, os.path.join(dirs[1], f"final_reco_{i:04d}.pt"))    
+        with open(os.path.join(dirs[0], f'final_rpns_{iter:04d}.txt'),'w') as f:
+            f.write('\n'.join(rpns))
+            
 # def reconstruction_step(x, y, net):
 #     start = torch.cuda.Event(enable_timing=True)
 #     end = torch.cuda.Event(enable_timing=True)

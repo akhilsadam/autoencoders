@@ -7,7 +7,7 @@ params:
     
     # AE architecture
     k: 8                    # pixel shuffle factor
-    sdim: 16                 # spatial coord dims
+    sdim: 2                 # spatial coord dims
     tdim: 16                # time embedding dims
     siren_width: null       # defaults to in_dim if None
     siren_layers: 5
@@ -18,13 +18,20 @@ params:
     steps: 25
     sampler: 'AB2CN'        # 'Euler', 'AB2', 'AB2CN'
     L: 1.0                # domain half-length for coords / deriv
-  
 
-    seq_len: 100
-    embed_dim: 32
+    seq_len: 50
+    embed_dim: 8
     proj_dim: 96
-
-    rules: False
     
+    sem_dim: 64
+    struct_dim: 64
+
+    rules: True
+    ae_type: mlp_deterministic
+
+    pretrain_llm: /home/a1744874/ml/autoencoders/runs/mmai_apr26/1-llm/rpn_encoder/llm/PF12S_/artifacts/checkpoints/last.ckpt
+    use_llm: True
+
+
     # Training
     learning_rate: 1e-4
