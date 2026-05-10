@@ -75,7 +75,7 @@ def reconstruction(net, loader, dirs):
             #     rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_batchfirst.png")
         # rplot(stack.detach().cpu(), dirs[0], "surrogate_reco_batchlast.png")
         with open(os.path.join(dirs[0], f'rpns_saved.json'),'w') as f:
-            json.dump(data, f, indent=4)
+            json.dump(rpn_list, f, indent=4)
         
 iter = 0        
 def quick_reconstruction(net, rpns, batch, dirs, info, plot_rate=1, **kwargs):

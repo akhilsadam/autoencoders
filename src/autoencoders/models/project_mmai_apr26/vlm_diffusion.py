@@ -131,9 +131,9 @@ class Diffusion(pl.LightningModule):
         
         z_unshuf = self.unshuffle(self.interp(zx))            
         z = self.shuffle(self.siren(z_unshuf, latent))
-        z = self.deriv.adv(z_in, z) + cz
+        z = self.deriv.adv(z_in, z)
 
-        return self.ae2.decoder(z)
+        return self.ae.decoder(z) + c
 
     def noise(self, x: torch.Tensor, c) -> torch.Tensor:
         return torch.randn_like(x) + c

@@ -15,7 +15,7 @@ params:
     encode_layers: 3
     
     # Sampler / schedule
-    steps: 25
+    steps: 10
     sampler: 'AB2CN'        # 'Euler', 'AB2', 'AB2CN'
     L: 1.0                # domain half-length for coords / deriv
 
