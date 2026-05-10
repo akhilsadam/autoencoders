@@ -3,7 +3,11 @@ params:
     seq_len: 50
     embed_dim: 8
     proj_dim: 96
-    rules: False
+    
+    sem_dim: 64
+    struct_dim: 64
+
+    rules: True
     ae_type: mlp_deterministic
     
     # Training
