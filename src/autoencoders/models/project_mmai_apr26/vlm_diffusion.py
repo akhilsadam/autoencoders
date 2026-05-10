@@ -83,7 +83,7 @@ class Diffusion(pl.LightningModule):
         self.interp = nn.Sequential(
             nn.Conv2d(in_dim, cnn_width, kernel_size=k-1, padding_mode='circular', padding='same'),
             act(),
-            Siren(cnn_width, token_dim, width=cnn_width, layers=2, w=0.5, act=act, k=3),
+            Siren(cnn_width, token_dim, width=cnn_width, layers=3, w=0.5, act=act, k=5),
             act(),
         )
              
@@ -131,9 +131,9 @@ class Diffusion(pl.LightningModule):
         
         z_unshuf = self.unshuffle(self.interp(zx))            
         z = self.shuffle(self.siren(z_unshuf, latent))
-        z = self.deriv.adv(z_in, z)
+        z = self.deriv.adv(z_in, z) + cz
 
-        return self.ae.decoder(z) + c
+        return self.ae.decoder(z) 
 
     def noise(self, x: torch.Tensor, c) -> torch.Tensor:
         return torch.randn_like(x) + c

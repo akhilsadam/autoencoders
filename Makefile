@@ -134,19 +134,19 @@ train-vlm-base: install
 	source "$(VENV)/bin/activate" && \
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
 		exp=mmai_apr26/2_vlm model=mmai_apr26/vlm_baseline\
-		trainer.max_epochs=10
+		trainer.max_epochs=40
 
 train-vlm: install
 	source "$(VENV)/bin/activate" && \
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
 		exp=mmai_apr26/2_vlm \
-		trainer.max_epochs=10
+		trainer.max_epochs=40
 
 train-vlm-wo: install
 	source "$(VENV)/bin/activate" && \
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
 		exp=mmai_apr26/2_vlm model=mmai_apr26/vlm_wo_sym \
-		trainer.max_epochs=10
+		trainer.max_epochs=40
 
 train-operator-basediffusion: install
 	source "$(VENV)/bin/activate" && \
