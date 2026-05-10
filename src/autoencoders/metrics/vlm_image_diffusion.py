@@ -113,7 +113,7 @@ def quick_reconstruction(net, rpns, batch, dirs, info, plot_rate=1, **kwargs):
             d = {
                 'RelMSE':zloss.item(),
                 'PMSE': ploss.item(),
-                'PMSE by PDE:' p_losses,
+                'PMSE by PDE': p_losses,
             }
             
             with open(os.path.join(dirs[0], f'vlm_metrics_{iter:04d}.txt'),'w') as f:
@@ -168,7 +168,7 @@ def single_reconstruction(net, i, rpns, batch, dirs, **kwargs):
         d = {
             'RelMSE':zloss.item(),
             'PMSE': ploss.item(),
-            'PMSE by PDE:' p_losses,
+            'PMSE by PDE': p_losses,
         }
         
         with open(os.path.join(dirs[0], f'vlm_metrics_{iter:04d}.txt'),'w') as f:
