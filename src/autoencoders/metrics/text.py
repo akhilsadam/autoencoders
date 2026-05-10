@@ -12,7 +12,9 @@ import math
 def generation(net, loader, dirs):
     for i, batch in enumerate(loader):
         tks = net.detokenize(*net.tokenize(batch))
-        rpns = net.decode(net.encode(batch))
+        encoded = net.encode(batch)
+        rpns = net.decode(encoded)
+        samples = net.decode(net.sample(encoded))
         
         acc = 0.0
         num_mse = 0.0
@@ -45,7 +47,7 @@ def generation(net, loader, dirs):
         if nums > 0:
             num_rmse = math.sqrt(num_mse / nums) # rmse
 
-        d = {'in':batch, 'out':rpns, 'token_check':tks, 'token_accuracy':acc, 'numerical_rmse':num_rmse}
+        d = {'in':batch, 'out':rpns, 'sampled': samples, 'token_check':tks, 'token_accuracy':acc, 'numerical_rmse':num_rmse}
         
         with open(os.path.join(dirs[0], f'rpn_gen_{i:04d}.json'), 'w') as f:
             json.dump(d, f, indent=4)
