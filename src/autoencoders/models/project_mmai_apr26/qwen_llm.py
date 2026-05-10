@@ -1,6 +1,23 @@
-QWEN_MODEL_ID = "Qwen/Qwen2.5-1.5B-Instruct"
-  
+from __future__ import annotations
+
+import os
+os.environ['CC'] = 'gcc'
+os.environ['CXX'] = 'g++'
+os.environ['TRITON_BACKEND'] = 'cuda'
+
+from dataclasses import dataclass
+from typing import Any, Dict
+
 import pytorch_lightning as pl
+import torch
+from torch import nn
+import torch.nn.functional as F
+
+from qg.solver.opt.operator.rpn import QwenContrastiveRPN
+
+from autoencoders.metrics import text as MX
+
+QWEN_MODEL_ID = "Qwen/Qwen2.5-1.5B-Instruct"
  
 @dataclass
 class QwenCRPNConfig:
@@ -118,7 +135,6 @@ class CRPNAutoencoderQwen(pl.LightningModule):
         # MX.reconstruction(self, val_loader, dirs)
         MX.generation(self, val_loader, self.dirs)
 
- 
     def configure_optimizers(self):
         # Only train LoRA adapters, projection heads, and RPN_GEN
         trainable = [p for p in self.parameters() if p.requires_grad]
