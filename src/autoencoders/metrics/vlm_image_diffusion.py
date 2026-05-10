@@ -108,7 +108,7 @@ def quick_reconstruction(net, rpns, batch, dirs, info, plot_rate=1, **kwargs):
             errs = ((y_hat - y)**2).mean(dim=(-4,-3,-2,-1)) # batch
             signals = ((y_hat - x0[:,None,...])**2).mean(dim=(-4,-3,-2,-1))
             
-            p_losses = (errs / signals).numpy().tolist()
+            p_losses = (errs / signals).detach().cpu().numpy().tolist()
             
             d = {
                 'RelMSE':zloss.item(),
@@ -163,7 +163,7 @@ def single_reconstruction(net, i, rpns, batch, dirs, **kwargs):
         errs = ((y_hat - y)**2).mean(dim=(-4,-3,-2,-1)) # batch
         signals = ((y_hat - x0[:,None,...])**2).mean(dim=(-4,-3,-2,-1))
         
-        p_losses = (errs / signals).numpy().tolist()
+        p_losses = (errs / signals).detach().cpu().numpy().tolist()
         
         d = {
             'RelMSE':zloss.item(),
