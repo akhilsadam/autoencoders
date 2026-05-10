@@ -1,0 +1,19 @@
+name: qwen_llm
+params:
+    max_rpn_len: 50
+    proj_dim: 96
+    
+    sem_dim: 64
+    struct_dim: 64
+
+    qwen_model_id: Qwen/Qwen2.5-1.5B-Instruct
+
+    lora_r: 16
+    lora_alpha: 32
+    lora_dropout: 0.05
+
+    use_rules: True
+    ae_type: mlp_deterministic
+    
+    # Training
+    learning_rate: 1e-4
