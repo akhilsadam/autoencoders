@@ -83,7 +83,7 @@ class OptVLMDiffusion(pl.LightningModule):
         self.log('val_diffusion_loss', diffusion_loss, prog_bar=True)
         
         MX.quick_reconstruction(self, rpns, seq, self.dirs, '', latent=latent)
-        TMX.metrics(self.llm, batch_id, batch, self.dirs)
+        TMX.metrics(self.llm, batch_id, rpns, self.dirs)
             
     def metrics(self, assistant):
         # pass
