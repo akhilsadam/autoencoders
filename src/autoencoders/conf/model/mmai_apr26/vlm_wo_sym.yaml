@@ -26,10 +26,10 @@ params:
     sem_dim: 64
     struct_dim: 64
 
-    rules: True
+    rules: False
     ae_type: mlp_deterministic
 
-    pretrain_llm: /home/a1744874/ml/autoencoders/runs/mmai_apr26/1-llm/rpn_encoder/llm/PFSR6_/artifacts/checkpoints/last.ckpt
+    pretrain_llm: /home/a1744874/ml/autoencoders/runs/mmai_apr26/1-llm/rpn_encoder/llm/PFTI1_/artifacts/checkpoints/last.ckpt
     use_llm: True
 
 
