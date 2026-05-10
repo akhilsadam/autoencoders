@@ -44,10 +44,20 @@ class OptVLMDiffusion(pl.LightningModule):
         # nn.init.zeros_(self.proj_latent[-1].bias)
         
         self.learning_rate = config['learning_rate']
+        
+        cond_dim = config['sem_dim']
+        self.cond_net = nn.Sequential(
+            nn.Linear(cond_dim, cond_dim * 4)
+            nn.GELU(),
+            nn.Linear(cond_dim*4, cond_dim * 4)
+            nn.GELU(),
+            nn.Linear(cond_dim*4, cond_dim)
+        )
 
     def compute_latent(self, rpns):
         encoding = self.llm.encode(rpns)
-        semantic = self.llm.crpn.gen.semantic(encoding) 
+        semantic = self.llm.crpn.gen.semantic(encoding)
+        semantic = self.cond_net(semantic) + semantic
         
         if not self.use_llm:
             semantic = semantic * 0.0        
@@ -66,7 +76,7 @@ class OptVLMDiffusion(pl.LightningModule):
         y = seq[:,1] # one timestep only
         latent = self.compute_latent(rpns)
         diffusion_loss = self.opt.loss(y, x, latent)
-        self.log('diffusion_loss', diffusion_loss, prog_bar=True)
+        self.log('v_diffusion_loss', diffusion_loss, prog_bar=True)
         
         loss = 0.1 * rpn_loss + diffusion_loss
         return loss
@@ -80,7 +90,7 @@ class OptVLMDiffusion(pl.LightningModule):
         y = seq[:,1] # one timestep only
         latent = self.compute_latent(rpns)
         diffusion_loss = self.opt.loss(y, x, latent)
-        self.log('val_diffusion_loss', diffusion_loss, prog_bar=True)
+        self.log('val_v_diffusion_loss', diffusion_loss, prog_bar=True)
         
         MX.quick_reconstruction(self, rpns, seq, self.dirs, '', latent=latent)
         TMX.metrics(self.llm, batch_id, rpns, self.dirs)
