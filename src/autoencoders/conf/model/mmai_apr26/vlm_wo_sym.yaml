@@ -32,6 +32,7 @@ params:
     pretrain_llm: /home/a1744874/ml/autoencoders/runs/mmai_apr26/1-llm/rpn_encoder/llm/PFTI1_/artifacts/checkpoints/last.ckpt
     use_llm: True
 
+    pretrain_vm: /home/a1744874/ml/autoencoders/runs/mmai_apr26/2-vlm/rpn_textvision/vlm/PGOR0_/artifacts/checkpoints/last.ckpt
 
     # Training
     learning_rate: 1e-4
