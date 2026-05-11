@@ -140,7 +140,7 @@ train-vlm: install
 	source "$(VENV)/bin/activate" && \
 	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
 		exp=mmai_apr26/2_vlm \
-		trainer.max_epochs=40
+		trainer.max_epochs=200
 
 train-vlm-wo: install
 	source "$(VENV)/bin/activate" && \
