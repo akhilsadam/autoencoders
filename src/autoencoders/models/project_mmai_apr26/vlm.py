@@ -55,8 +55,8 @@ class OptVLMDiffusion(pl.LightningModule):
             nn.Linear(cond_dim*4, cond_dim)
         )
 
-        checkpoint_path = config['pretrain_vm']
-        if checkpoint_path is not None:
+        checkpoint_path = config.get('pretrain_vm','')
+        if os.path.exists(checkpoint_path):
             checkpoint = torch.load(checkpoint_path, map_location="cuda")
             state_dict = checkpoint["state_dict"]
             
