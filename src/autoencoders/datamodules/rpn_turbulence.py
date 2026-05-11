@@ -187,35 +187,35 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
     paths = [save_path(i) for i in range(n_datasets)]
     _npdata = [torch.from_numpy(np.load(path, mmap_mode='r')[:, cfg.spinup_frames*2:-10, 0:1, :, :]) for path in paths]
     
-    rpns = []
-    npdata = []
-    
-    # check len > 0 
-    for r,d in zip(_rpns,_npdata):
-        if d.shape[1] > cfg.seq_len:
-            rpns.append(r)
-            npdata.append(d)
-            
-    n_datasets = len(rpns)
-    print(f"Number of non-empty datasets: {n_datasets}")
-    
-    ts = [
-        TimeSeriesDataset(
-            data = d,
-            seq_length = cfg.seq_len,
-            stride=4
-        )
-        for d in npdata
-    ]
-    
-    train_dataset = ConditionalDataset(
-        ts[cfg.n_test:],
-        rpns[cfg.n_test:]
-    )
-    
+    if cfg.ood:      
     # TODO CHANGE THIS
-   
-    if cfg.ood:
+
+        rpns = []
+        npdata = []
+        
+        # check len > 0 
+        for r,d in zip(_rpns,_npdata):
+            if d.shape[1] > cfg.seq_len:
+                rpns.append(r)
+                npdata.append(d)
+                
+        n_datasets = len(rpns)
+        print(f"Number of non-empty datasets: {n_datasets}")
+        
+        ts = [
+            TimeSeriesDataset(
+                data = d,
+                seq_length = cfg.seq_len,
+                stride=4
+            )
+            for d in npdata
+        ]
+        
+        train_dataset = ConditionalDataset(
+            ts[cfg.n_test:],
+            rpns[cfg.n_test:]
+        )
+ 
     
         val_dataset = ConditionalDataset(
             ts[:cfg.n_test],
@@ -237,10 +237,54 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
         )
     
     else:
+             
+        rpns = []
+        npdata = []
+        testrpns = []
+        testdata = []
+        
+        # check len > 0 
+        for r,d in zip(_rpns[:-cfg.n_test],_npdata[:-cfg.n_test]):
+            if d.shape[1] > cfg.seq_len:
+                rpns.append(r)
+                npdata.append(d)
+        
+        for r,d in zip(_rpns[-cfg.n_test:],_npdata[-cfg.n_test:]):
+            if d.shape[1] > cfg.seq_len:
+                rpns.append(r)
+                testrpns.append(r)
+                npdata.append(d[:-2,...]) # first batches
+                testdata.append(d[-2:,...]) # last two batches
+                
+        n_datasets = len(rpns)
+        print(f"Number of non-empty datasets: {n_datasets}")
+        
+        ts = [
+            TimeSeriesDataset(
+                data = d,
+                seq_length = cfg.seq_len,
+                stride=4
+            )
+            for d in npdata
+        ]
+        
+        tts = [
+            TimeSeriesDataset(
+                data = d,
+                seq_length = cfg.seq_len,
+                stride=4
+            )
+            for d in testdata
+        ]
+        
+        train_dataset = ConditionalDataset(
+            ts,
+            rpns
+        )
         
         val_dataset = ConditionalDataset(
-            ts[cfg.n_test:cfg.n_test*2],
-            rpns[cfg.n_test:cfg.n_test*2]
+            tts,
+            testrpns
         )
         
         lts = [
@@ -249,12 +293,12 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
                 seq_length = cfg.test_seq_len,
                 stride=4
             )
-            for d in npdata[cfg.n_test:cfg.n_test*2]
+            for d in testdata
         ]
         
         pred_dataset = ConditionalDataset(
             lts,
-            rpns[cfg.n_test:cfg.n_test*2]
+            testrpns
         )
         
 
