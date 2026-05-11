@@ -89,7 +89,7 @@ class Diffusion(pl.LightningModule):
              
         self.siren = Siren((k**2 * token_dim) + cond_dim, token_dim, width=width,
                             layers=config['siren_layers'],
-                            w=config['siren_w'], act=Tri, k=3)
+                            w=config['siren_w'], act=Tri, k=1)
         
         self.ae = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])
         # self.ae2 = BasicSpatialAutoencoder(dim, 0, config['encode_layers'])

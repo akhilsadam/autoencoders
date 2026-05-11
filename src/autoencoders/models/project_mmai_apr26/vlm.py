@@ -29,7 +29,8 @@ class OptVLMDiffusion(pl.LightningModule):
         self.save_hyperparameters(config)
         
         lpath = config['pretrain_llm']
-        if os.path.exists(lpath):
+        self.freeze_llm = os.path.exists(lpath)
+        if self.freeze_llm:
             self.llm = llm.CRPNAutoencoder.load_from_checkpoint(lpath)
             print(f'Loaded from checkpoint: {lpath}')
         else:
