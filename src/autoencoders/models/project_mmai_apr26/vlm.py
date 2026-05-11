@@ -55,6 +55,14 @@ class OptVLMDiffusion(pl.LightningModule):
             nn.Linear(cond_dim*4, cond_dim)
         )
 
+        checkpoint_path = config['pretrain_vm']
+        if checkpoint_path is not None:
+            checkpoint = torch.load(checkpoint_path, map_location="cuda")
+            state_dict = checkpoint["state_dict"]
+            
+            # Load the weights into the current instance
+            self.load_state_dict(state_dict, strict=False)
+
     def compute_latent(self, rpns):
         encoding = self.llm.encode(rpns)
         semantic = self.llm.crpn.gen.semantic(encoding)
