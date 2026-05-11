@@ -59,6 +59,7 @@ class RPNTurbulenceConfig:
     
     seq_len: int = 2
     test_seq_len: int = 16
+    ood: bool = True
     
     rpns: list = ([], []) # Optional
 
