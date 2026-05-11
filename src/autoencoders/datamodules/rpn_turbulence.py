@@ -66,7 +66,7 @@ class RPNTurbulenceConfig:
 def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]:
     """Build train and validation dataloaders for forced turbulence."""
     # Create versioned cache directory
-    cache_path = get_cache(cfg, extra_keys=['seq_len', 'test_seq_len'])
+    cache_path = get_cache(cfg, extra_keys=['seq_len', 'test_seq_len', 'ood'])
     save_path = lambda i : os.path.join(cache_path, f'rpn_turbulence_{i}.npy')
     
     print(f"Looking for cached data at: {save_path(0)}")
@@ -212,26 +212,50 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
         rpns[cfg.n_test:]
     )
     
+    # TODO CHANGE THIS
+   
+    if cfg.ood:
     
-    val_dataset = ConditionalDataset(
-        ts[:cfg.n_test],
-        rpns[:cfg.n_test]
-    )
-    
-    lts = [
-        TimeSeriesDataset(
-            data = d,
-            seq_length = cfg.test_seq_len,
-            stride=4
+        val_dataset = ConditionalDataset(
+            ts[:cfg.n_test],
+            rpns[:cfg.n_test]
         )
-        for d in npdata[:cfg.n_test]
-    ]
+        
+        lts = [
+            TimeSeriesDataset(
+                data = d,
+                seq_length = cfg.test_seq_len,
+                stride=4
+            )
+            for d in npdata[:cfg.n_test]
+        ]
+        
+        pred_dataset = ConditionalDataset(
+            lts,
+            rpns[:cfg.n_test]
+        )
     
-    pred_dataset = ConditionalDataset(
-        lts,
-        rpns[:cfg.n_test]
-    )
-    
+    else:
+        
+        val_dataset = ConditionalDataset(
+            ts[cfg.n_test:cfg.n_test*2],
+            rpns[cfg.n_test:cfg.n_test*2]
+        )
+        
+        lts = [
+            TimeSeriesDataset(
+                data = d,
+                seq_length = cfg.test_seq_len,
+                stride=4
+            )
+            for d in npdata[cfg.n_test:cfg.n_test*2]
+        ]
+        
+        pred_dataset = ConditionalDataset(
+            lts,
+            rpns[cfg.n_test:cfg.n_test*2]
+        )
+        
 
     # Create dataloaders
     train_loader = DataLoader(

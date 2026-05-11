@@ -38,6 +38,7 @@ params:
 
   seq_len: 2
   test_seq_len: 16
+  ood: False
 
   rpns: [
     [ # TESTING # OOD # signs are flipped on purpose to give different directions
