@@ -106,7 +106,7 @@ class CRPNAutoencoder(pl.LightningModule):
         
     def metrics(self, assistant):
         # pass
-        val_loader = assistant[0] #
+        val_loader = assistant #
         # MX.reconstruction(self, val_loader, dirs)
         MX.generation(self, val_loader, self.dirs)
 
