@@ -170,6 +170,7 @@ def final_reco(net, loader, dirs):
 def single_reconstruction(d, net, i, rpns, batch, dirs, info, **kwargs):
     with torch.no_grad():
         loss = 0.0
+        print(type(batch), type(batch[0]))
         batch = batch.to(next(net.parameters()).device)
         
         y_hats = []
@@ -204,9 +205,7 @@ def single_reconstruction(d, net, i, rpns, batch, dirs, info, **kwargs):
 
         stack = stack.detach().cpu()
         rplot(stack[0:4], dirs[0], f"final_surrogate_reco_batch_{i:04d}_{info}.png")
-        # torch.save(stack, os.path.join(dirs[1], f"final_reco_{i:04d}.pt"))    
-        # with open(os.path.join(dirs[0], f'final_rpns_{iter:04d}.txt'),'w') as f:
-        #     f.write('\n'.join(rpns))
+
             
 # def reconstruction_step(x, y, net):
 #     start = torch.cuda.Event(enable_timing=True)
