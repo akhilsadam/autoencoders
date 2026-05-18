@@ -172,7 +172,7 @@ def main(cfg: DictConfig) -> None:
     train_loader, val_loader = loaders[:2]
     test_assistant = val_loader, (loaders[2] if len(loaders) > 2 else val_loader)
         
-    print(f"Dataloaders ready: {len(train_loader)} train batches, {len(val_loader)} val batches")
+    print(f"Dataloaders ready: {len(train_loader)} train batches, {len(val_loader)} val batches, {len(test_assistant[1])} pred batches")
     
     # print(cfg)
     
