@@ -134,11 +134,10 @@ def final_reco(net, loader, dirs):
     dj = {}
     print(f"Running final reconstruction on {n} sets...")
     _range = list(range(0, n, max(1, n//10)))
-    for i, fused_batchw in enumerate(loader):
+    for i, fused_batch in enumerate(loader):
         if i not in _range:
             continue
         
-        rpn_batch, fused_batch = fused_batchw
         rpns, batch = fused_batch
         latent = net.compute_latent(rpns)
         latent_jumbled = latent[torch.randperm(latent.shape[0], device=latent.device)]
