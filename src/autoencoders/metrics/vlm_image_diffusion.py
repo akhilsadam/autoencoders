@@ -172,14 +172,14 @@ def single_reconstruction(d, net, i, rpns, batch, dirs, info, **kwargs):
         y_hats = []
         x0 = batch[:, 0]  # B C H W
         x = x0
-        for i in range(batch.shape[1] - 1):                
-            y_hat = net.gen(x, x, **kwargs)
-            y_hats.append(y_hat.detach())
-            # update
-            x = y_hat
+        # for i in range(batch.shape[1] - 1):                
+        y_hat = net.gen(x, x, **kwargs)
+        y_hats.append(y_hat.detach())
+        # update
+        x = y_hat[:,None,...]
 
-        y_hat = torch.stack(y_hats, dim=1)  # B T C H W
-        y = batch[:, 1:]  # B T C H W
+        # y_hat = torch.stack(y_hats, dim=1)  # B T C H W
+        y = batch[:, 1:2]  # B T C H W
         # zloss = F.mse_loss(y_hat, y) / F.mse_loss(y, y.mean(dim=(-2,-1), keepdim=True))
         
         stack = torch.stack([x0[:,None,...], y, y_hat, y_hat - y, y_hat - x0[:,None,...]], dim=1)  # B Y T C H W
