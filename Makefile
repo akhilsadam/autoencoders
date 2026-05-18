@@ -154,6 +154,11 @@ test-vlm: install
 		exp=mmai_apr26/2_vlm \
 		trainer.max_epochs=0
 
+test-vlm-wo: install
+	source "$(VENV)/bin/activate" && \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+		exp=mmai_apr26/2_vlm model=mmai_apr26/vlm_wo_sym \
+		trainer.max_epochs=0
 
 train-operator-basediffusion: install
 	source "$(VENV)/bin/activate" && \
