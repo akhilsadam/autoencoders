@@ -323,14 +323,14 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
         persistent_workers=True,
         collate_fn=conditional_collate
     )
-    pred_loader = DataLoader(
-        pred_dataset,
-        batch_size=cfg.batch_size,
-        shuffle=False,
-        num_workers=cfg.test_workers,
-        pin_memory=True,
-        persistent_workers=True,
-        collate_fn=conditional_collate
-    )
+    # pred_loader = DataLoader(
+    #     pred_dataset,
+    #     batch_size=cfg.batch_size,
+    #     shuffle=False,
+    #     num_workers=cfg.test_workers,
+    #     pin_memory=True,
+    #     persistent_workers=True,
+    #     collate_fn=conditional_collate
+    # )
 
-    return train_loader, val_loader, pred_loader
+    return train_loader, val_loader, val_loader #pred_loader
