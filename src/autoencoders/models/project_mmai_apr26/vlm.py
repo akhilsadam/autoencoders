@@ -109,9 +109,9 @@ class OptVLMDiffusion(pl.LightningModule):
             
     def metrics(self, assistant):
         # pass
-        val_loader = assistant #
+        val_loader, pred_loader = assistant #
         MX.final_reco(self, val_loader, self.dirs)
-        MX.reconstruction(self, val_loader, self.dirs)
+        MX.reconstruction(self, pred_loader, self.dirs)
         # MX.generation(self, val_loader, dirs)
         
 

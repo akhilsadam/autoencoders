@@ -131,7 +131,7 @@ class QwenCRPNAutoencoder(pl.LightningModule):
  
     def metrics(self, assistant):
         # pass
-        val_loader = assistant #
+        val_loader = assistant[0] #
         # MX.reconstruction(self, val_loader, dirs)
         MX.generation(self, val_loader, self.dirs)
 
