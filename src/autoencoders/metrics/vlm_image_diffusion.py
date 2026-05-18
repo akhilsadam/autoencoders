@@ -132,6 +132,7 @@ def final_reco(net, loader, dirs):
     n = len(loader)
     d = {}
     dj = {}
+    print(f"Running final reconstruction on {n} sets...")
     _range = list(range(0, n, max(1, n//10)))
     for i, fused_batchw in enumerate(loader):
         if i not in _range:
