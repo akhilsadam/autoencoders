@@ -116,7 +116,7 @@ def quick_reconstruction(net, rpns, batch, dirs, info, plot_rate=1, **kwargs):
                 'PMSE by PDE': p_losses,
             }
             
-            with open(os.path.join(dirs[0], f'vlm_metrics_{iter:04d}.txt'),'w') as f:
+            with open(os.path.join(dirs[0], f'vlm_metrics_{info}_{iter:04d}.txt'),'w') as f:
                 json.dump(d, f, indent=4)
             
             

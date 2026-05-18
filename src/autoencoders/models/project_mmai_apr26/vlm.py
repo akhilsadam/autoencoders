@@ -101,7 +101,10 @@ class OptVLMDiffusion(pl.LightningModule):
         diffusion_loss = self.opt.loss(y, x, latent)
         self.log('val_v_diffusion_loss', diffusion_loss, prog_bar=True)
         
+        latent_jumbled = latent[torch.randperm(latent.shape[0], device=latent.device)]
+        
         MX.quick_reconstruction(self, rpns, seq, self.dirs, '', latent=latent)
+        MX.quick_reconstruction(self, rpns, seq, self.dirs, 'jumbled', latent=latent_jumbled)
         TMX.metrics(self.llm, batch_id, rpns, self.dirs)
             
     def metrics(self, assistant):

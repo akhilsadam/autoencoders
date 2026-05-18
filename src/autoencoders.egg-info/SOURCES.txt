@@ -28,6 +28,10 @@ src/autoencoders/metrics/image_diffusion.py
 src/autoencoders/metrics/text.py
 src/autoencoders/metrics/vlm_image_diffusion.py
 src/autoencoders/models/__init__.py
+src/autoencoders/models/external/speedrun_dit.py
+src/autoencoders/models/external/SpeedrunDiT/invae.py
+src/autoencoders/models/external/SpeedrunDiT/pos_embed.py
+src/autoencoders/models/external/SpeedrunDiT/sit.py
 src/autoencoders/models/modules/act.py
 src/autoencoders/models/modules/ae.py
 src/autoencoders/models/modules/patch_att.py
@@ -60,9 +64,13 @@ src/autoencoders/models/project_develop/spatial_diffusion.py
 src/autoencoders/models/project_mmai_apr26/diffusion.py
 src/autoencoders/models/project_mmai_apr26/llm.py
 src/autoencoders/models/project_mmai_apr26/operator_diffusion.py
+src/autoencoders/models/project_mmai_apr26/operator_diffusion_latent.py
 src/autoencoders/models/project_mmai_apr26/operator_pixart.py
+src/autoencoders/models/project_mmai_apr26/operator_srdit.py
+src/autoencoders/models/project_mmai_apr26/qwen_llm.py
 src/autoencoders/models/project_mmai_apr26/vlm.py
 src/autoencoders/models/project_mmai_apr26/vlm_diffusion.py
+src/autoencoders/models/project_mmai_apr26/vlm_diffusion_srdit.py
 src/autoencoders/util/gitinfo.py
 src/autoencoders/util/llm.py
 src/autoencoders/util/sec_id.py
