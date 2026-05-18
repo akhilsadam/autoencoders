@@ -133,7 +133,7 @@ def final_reco(net, loader, dirs):
     d = {}
     dj = {}
     print(f"Running final reconstruction on {n} sets...")
-    _range = list(range(0, n, max(1, n//10)))
+    _range = list(range(0, n, max(1, n//20)))
     print(f"Selected indices for reconstruction: {_range}")
     for i, fused_batch in enumerate(loader):
         if i not in _range:
@@ -170,7 +170,7 @@ def final_reco(net, loader, dirs):
 def single_reconstruction(d, net, i, rpns, batch, dirs, info, **kwargs):
     with torch.no_grad():
         loss = 0.0
-        print(type(batch), type(batch[0]))
+        # print(type(batch), type(batch[0]))
         batch = batch.to(next(net.parameters()).device)
         
         y_hats = []
