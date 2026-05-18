@@ -287,19 +287,21 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
             testrpns
         )
         
-        lts = [
-            TimeSeriesDataset(
-                data = d,
-                seq_length = cfg.test_seq_len,
-                stride=4
-            )
-            for d in testdata
-        ]
+        # lts = [
+        #     TimeSeriesDataset(
+        #         data = d,
+        #         seq_length = cfg.test_seq_len,
+        #         stride=4
+        #     )
+        #     for d in testdata
+        # ]
         
-        pred_dataset = ConditionalDataset(
-            lts,
-            testrpns
-        )
+        # pred_dataset = ConditionalDataset(
+        #     lts,
+        #     testrpns
+        # )
+        
+        pred_dataset = val_dataset # TODO change later for autoreg
         
 
     # Create dataloaders
