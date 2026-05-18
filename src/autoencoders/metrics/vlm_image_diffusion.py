@@ -176,7 +176,7 @@ def single_reconstruction(d, net, i, rpns, batch, dirs, info, **kwargs):
         y_hats = []
         x0 = batch[:, 0]  # B C H W
         x = x0
-        for i in range(batch.shape[1] - 1):                
+        for _ in range(batch.shape[1] - 1):                
             y_hat = net.gen(x, x, **kwargs)
             y_hats.append(y_hat.detach())
             # update
