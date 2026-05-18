@@ -130,13 +130,25 @@ def quick_reconstruction(net, rpns, batch, dirs, info, plot_rate=1, **kwargs):
     
 def final_reco(net, loader, dirs):
     n = len(loader)
+    d = {}
+    _range = list(range(0, n, max(1, n//10)))
     for i, fused_batch in enumerate(loader):
-        if i not in [1, n//2, n-1]:
+        if i not in _range:
             continue
         rpns, batch = fused_batch
-        single_reconstruction(net, i, rpns, batch, dirs)
+        single_reconstruction(d, net, i, rpns, batch, dirs)
     
-def single_reconstruction(net, i, rpns, batch, dirs, **kwargs):
+    relmse = [np.mean([d[i]['RelMSE'] for i in d])]
+    pmse = [np.mean([d[i]['PMSE'] for i in d])]
+    d['summary'] = {
+        'RelMSE': relmse,
+        'PMSE': pmse,
+    }
+    
+    with open(os.path.join(dirs[0], f'vlm_metrics_final.txt'),'w') as f:
+        json.dump(d, f, indent=4)
+    
+def single_reconstruction(d, net, i, rpns, batch, dirs, **kwargs):
     with torch.no_grad():
         loss = 0.0
         batch = batch.to(next(net.parameters()).device)
@@ -165,20 +177,18 @@ def single_reconstruction(net, i, rpns, batch, dirs, **kwargs):
         
         p_losses = (errs / signals).detach().cpu().numpy().tolist()
         
-        d = {
+        d[i] = {
             'RelMSE':zloss.item(),
             'PMSE': ploss.item(),
             'PMSE by PDE': p_losses,
+            'rpns': rpns,
         }
-        
-        with open(os.path.join(dirs[0], f'vlm_metrics_{iter:04d}.txt'),'w') as f:
-            json.dump(d, f, indent=4)
 
         stack = stack.detach().cpu()
         rplot(stack[0:4], dirs[0], f"final_surrogate_reco_batch_{i:04d}.png")
-        torch.save(stack, os.path.join(dirs[1], f"final_reco_{i:04d}.pt"))    
-        with open(os.path.join(dirs[0], f'final_rpns_{iter:04d}.txt'),'w') as f:
-            f.write('\n'.join(rpns))
+        # torch.save(stack, os.path.join(dirs[1], f"final_reco_{i:04d}.pt"))    
+        # with open(os.path.join(dirs[0], f'final_rpns_{iter:04d}.txt'),'w') as f:
+        #     f.write('\n'.join(rpns))
             
 # def reconstruction_step(x, y, net):
 #     start = torch.cuda.Event(enable_timing=True)
