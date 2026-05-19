@@ -135,7 +135,6 @@ class OptVLMDiffusion(pl.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
     
     def inverse_solver(self, seq):
-        self.eval()
         rpn = "q psi jacobian neg"
         encoding_init = self.encode_LLM([rpn,]).expand(seq.shape[0], -1).detach().to(seq.device)
         
