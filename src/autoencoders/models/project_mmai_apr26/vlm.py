@@ -146,9 +146,15 @@ class OptVLMDiffusion(pl.LightningModule):
         encoding = encoding_init.repeat(seq.shape[0], 1).requires_grad_(True)
         optimizer = torch.optim.Adam([encoding], lr=1e-3)        
         print('DEVICE:', encoding.device)
-        
 
-        forward = lambda y,x, encoding: self.opt.loss(y, x, 
+        
+        x = seq[:,:-1,...].reshape(-1, *seq.shape[2:]) # B T C H W
+        y = seq[:,1:,...].reshape(-1, *seq.shape[2:]) # B T C H W
+        
+        print(x.shape, encoding.shape)
+
+
+        forward = lambda encoding: self.opt.loss(y, x, 
             self.compute_from_LLM(encoding)[:,None,:].repeat(1,T,1).reshape(-1, self.llm.proj_dim)
             )
         percep = lambda x: self.llm.crpn.head.forward(self.llm.crpn.head.reverse(x))
@@ -156,19 +162,15 @@ class OptVLMDiffusion(pl.LightningModule):
         # optim loop
         losses = {'d_loss': [], 'p_loss': []}
         for j in range(500):
-
-            x = seq[:,:-1, None,...].reshape(-1, *seq.shape[2:]) # B T C H W
-            y = seq[:,1:, None,...].reshape(-1, *seq.shape[2:]) # B T C H W
-
+            
             optimizer.zero_grad()
-
             n_encoding = encoding + 0.05 * torch.randn_like(encoding) * torch.std(encoding)  # jitter for stability
 
             e_percep = percep(n_encoding)
             percep_loss = F.mse_loss(e_percep, encoding) / (torch.mean(e_percep**2) + 1e-8)
 
 
-            diffusion_loss = (forward(y, x, n_encoding) + forward(y, x, e_percep))/2
+            diffusion_loss = (forward(n_encoding) + forward(e_percep))/2
             # self.log('optimization_loss', diffusion_loss, prog_bar=True)
             losses['d_loss'].append(diffusion_loss.item())
             losses['p_loss'].append(percep_loss.item())
@@ -187,5 +189,5 @@ class OptVLMDiffusion(pl.LightningModule):
 
         torch.cuda.empty_cache()
             
-        return encoding, self.export_from_LLM(encoding), losses, lambda l: forward(seq[:,1], seq[:,0], l)
+        return encoding, self.export_from_LLM(encoding), losses, forward
         
