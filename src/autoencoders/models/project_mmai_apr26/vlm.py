@@ -138,8 +138,8 @@ class OptVLMDiffusion(pl.LightningModule):
         rpn = "q psi jacobian neg"
         encoding_init = self.encode_LLM([rpn,]).expand(seq.shape[0], -1).detach().to('cuda')
         
-        x = seq[:,0]
-        y = seq[:,1] # one timestep only
+        x = seq[:,0].to('cuda')
+        y = seq[:,1].to('cuda') # one timestep only
         
         encoding = encoding_init
         optimizer = torch.optim.Adam([encoding], lr=1e-3)
