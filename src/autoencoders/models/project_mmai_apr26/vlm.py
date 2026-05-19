@@ -138,7 +138,7 @@ class OptVLMDiffusion(pl.LightningModule):
         rpn = "q psi jacobian neg"
         encoding_init = self.encode_LLM([rpn,]).detach().to('cuda')
         
-        n = seq.shape[1]
+        T = seq.shape[1] -1
         seq = seq.to('cuda')
         
         # encoding_init = torch.randn_like(encoding_init) * torch.std(encoding_init) * 0.1 + encoding_init
@@ -148,17 +148,17 @@ class OptVLMDiffusion(pl.LightningModule):
         print('DEVICE:', encoding.device)
         
 
-        forward = lambda y,x, encoding: self.opt.loss(y, x, self.compute_from_LLM(encoding))
+        forward = lambda y,x, encoding: self.opt.loss(y, x, 
+            self.compute_from_LLM(encoding)[:,None,:].repeat(1,T,1).reshape(-1, self.llm.proj_dim)
+            )
         percep = lambda x: self.llm.crpn.head.forward(self.llm.crpn.head.reverse(x))
 
         # optim loop
         losses = {'d_loss': [], 'p_loss': []}
         for j in range(500):
 
-            ji = j % (n-1)
-
-            x = seq[:,ji]
-            y = seq[:,ji+1] # one timestep only
+            x = seq[:,:-1, None,...].reshape(-1, *seq.shape[2:]) # B T C H W
+            y = seq[:,1:, None,...].reshape(-1, *seq.shape[2:]) # B T C H W
 
             optimizer.zero_grad()
 
