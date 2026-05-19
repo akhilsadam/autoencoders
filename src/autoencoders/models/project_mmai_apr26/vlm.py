@@ -137,12 +137,12 @@ class OptVLMDiffusion(pl.LightningModule):
     def inverse_solver(self, seq):
         self.eval()
         rpn = "q psi jacobian neg"
-        encoding_init = self.encode_LLM([rpn,]).expand(seq.shape[0], -1)
+        encoding_init = self.encode_LLM([rpn,]).expand(seq.shape[0], -1).to(seq.device).detach()
         
         x = seq[:,0]
         y = seq[:,1] # one timestep only
         
-        encoding = encoding_init.clone().detach().requires_grad_(True)
+        encoding = encoding_init
         optimizer = torch.optim.Adam([encoding], lr=1e-3)
         
         # optim loop
