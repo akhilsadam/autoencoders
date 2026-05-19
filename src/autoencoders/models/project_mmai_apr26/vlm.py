@@ -72,6 +72,21 @@ class OptVLMDiffusion(pl.LightningModule):
             semantic = semantic * 0.0        
         return semantic
     
+    def encode_LLM(self, rpns):
+        encoding = self.llm.encode(rpns)
+        return encoding
+
+    def compute_from_LLM(self, encoding):
+        semantic = self.llm.crpn.gen.semantic(encoding)
+        semantic = self.cond_net(semantic) + semantic
+        if not self.use_llm:
+            semantic = semantic * 0.0        
+        return semantic
+    
+    def export_from_LLM(self, encoding):
+        encoding = self.llm.sample(encoding) # get structural part too
+        return self.llm.decode(encoding)
+    
     def gen(self, *args, **kwargs):
         return self.opt.gen(*args, **kwargs)
     # ── Lightning ─────────────────────────────────────────────────────────
@@ -110,6 +125,7 @@ class OptVLMDiffusion(pl.LightningModule):
     def metrics(self, assistant):
         # pass
         val_loader = assistant #
+        TMX.inverse_metrics_all(self, val_loader, self.dirs)
         MX.final_reco(self, val_loader, self.dirs)
         # MX.reconstruction(self, pred_loader, self.dirs)
         # MX.generation(self, val_loader, dirs)
@@ -117,3 +133,26 @@ class OptVLMDiffusion(pl.LightningModule):
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+    
+    def inverse_solver(self, seq):
+        self.eval()
+        rpn = "q psi jacobian neg"
+        encoding_init = self.encode_LLM([rpn,]).expand(seq.shape[0], -1)
+        
+        x = seq[:,0]
+        y = seq[:,1] # one timestep only
+        
+        encoding = encoding_init.clone().detach().requires_grad_(True)
+        optimizer = torch.optim.Adam([encoding], lr=1e-3)
+        
+        # optim loop
+        for _ in range(1000):
+            optimizer.zero_grad()
+            latent = self.compute_from_LLM(encoding)
+            diffusion_loss = self.opt.loss(y, x, latent)
+            self.log('optimization_loss', diffusion_loss, prog_bar=True)
+            diffusion_loss.backward()
+            optimizer.step()
+            
+        return self.export_from_LLM(encoding)
+        
