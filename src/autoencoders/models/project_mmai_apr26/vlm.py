@@ -54,6 +54,7 @@ class OptVLMDiffusion(pl.LightningModule):
             nn.GELU(),
             nn.Linear(cond_dim*4, cond_dim)
         )
+        self.cond_dim = cond_dim
 
         checkpoint_path = config.get('pretrain_vm','')
         if os.path.exists(checkpoint_path):
@@ -155,7 +156,7 @@ class OptVLMDiffusion(pl.LightningModule):
 
 
         forward = lambda encoding: self.opt.loss(y, x, 
-            self.compute_from_LLM(encoding)[:,None,:].repeat(1,T,1).reshape(-1, self.llm.proj_dim)
+            self.compute_from_LLM(encoding)[:,None,:].repeat(1,T,1).reshape(-1, self.cond_dim)
             )
         percep = lambda x: self.llm.crpn.head.forward(self.llm.crpn.head.reverse(x))
 
