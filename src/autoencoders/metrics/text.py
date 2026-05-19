@@ -67,9 +67,8 @@ def generation(net, loader, dirs):
 def inverse_metrics(net, i, batch, d):
     rpns, seq = batch
     recon_rpns = net.inverse_solver(seq)
-    tks = net.detokenize(*net.tokenize(batch))
     
-    acc, num_rmse = token_accuracy(tks, recon_rpns)
+    acc, num_rmse = token_accuracy(rpns, recon_rpns)
     
     d[i] = {'in':rpns, 'out':recon_rpns, 'token_accuracy':acc, 'numerical_rmse':num_rmse}
     
@@ -77,7 +76,7 @@ def inverse_metrics(net, i, batch, d):
 def inverse_metrics_all(net, loader, dirs):
     d = {}
     n = len(loader)
-    _range = list(range(0, n, max(1, n//10)))
+    _range = list(range(0, n, max(1, n//4)))
     print(f"Selected indices for inversion: {_range}")
     for i, batch in enumerate(loader):
         if i not in _range:
