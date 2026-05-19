@@ -145,6 +145,8 @@ class OptVLMDiffusion(pl.LightningModule):
         encoding = encoding_init
         optimizer = torch.optim.Adam([encoding], lr=1e-3)
         
+        print('DEVICE:', encoding.device)
+        
         # optim loop
         for _ in range(1000):
             optimizer.zero_grad()
