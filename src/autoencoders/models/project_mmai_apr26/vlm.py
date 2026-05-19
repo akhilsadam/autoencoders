@@ -151,7 +151,7 @@ class OptVLMDiffusion(pl.LightningModule):
             optimizer.zero_grad()
             latent = self.compute_from_LLM(encoding)
             diffusion_loss = self.opt.loss(y, x, latent)
-            self.log('optimization_loss', diffusion_loss, prog_bar=True)
+            # self.log('optimization_loss', diffusion_loss, prog_bar=True)
             diffusion_loss.backward()
             optimizer.step()
             
