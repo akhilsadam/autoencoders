@@ -287,21 +287,21 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
             testrpns
         )
         
-        # lts = [
-        #     TimeSeriesDataset(
-        #         data = d,
-        #         seq_length = cfg.test_seq_len,
-        #         stride=4
-        #     )
-        #     for d in testdata
-        # ]
+        lts = [
+            TimeSeriesDataset(
+                data = d,
+                seq_length = cfg.test_seq_len,
+                stride=4
+            )
+            for d in testdata
+        ]
         
-        # pred_dataset = ConditionalDataset(
-        #     lts,
-        #     testrpns
-        # )
+        pred_dataset = ConditionalDataset(
+            lts,
+            testrpns
+        )
         
-        pred_dataset = val_dataset # TODO change later for autoreg
+        # pred_dataset = val_dataset # TODO change later for autoreg
         
 
     # Create dataloaders
@@ -323,14 +323,14 @@ def build_dataloaders(cfg: RPNTurbulenceConfig) -> Tuple[DataLoader, DataLoader]
         persistent_workers=True,
         collate_fn=conditional_collate
     )
-    # pred_loader = DataLoader(
-    #     pred_dataset,
-    #     batch_size=cfg.batch_size,
-    #     shuffle=False,
-    #     num_workers=cfg.test_workers,
-    #     pin_memory=True,
-    #     persistent_workers=True,
-    #     collate_fn=conditional_collate
-    # )
+    pred_loader = DataLoader(
+        pred_dataset,
+        batch_size=cfg.batch_size,
+        shuffle=True,
+        num_workers=4,#cfg.test_workers,
+        pin_memory=True,
+        persistent_workers=True,
+        collate_fn=conditional_collate
+    )
 
-    return train_loader, val_loader, val_loader #pred_loader
+    return train_loader, val_loader, (val_loader, pred_loader)

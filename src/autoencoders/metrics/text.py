@@ -9,7 +9,7 @@ import numpy as np
 import json
 import math
 
-
+from matplotlib import pyplot as plt
 
 def token_accuracy(tks, rpns):
     acc = 0.0
@@ -64,13 +64,35 @@ def generation(net, loader, dirs):
         metrics(net, i, batch, dirs)
         break
     
-def inverse_metrics(net, i, batch, d):
+def inverse_metrics(net, i, batch, d, dirs):
     rpns, seq = batch
-    recon_rpns = net.inverse_solver(seq)
+    encoding_hat, recon_rpns, losses, forward = net.inverse_solver(seq)
+    encodings = net.encode_LLM(rpns)
+
+    sem_hat = net.llm.crpn.gen.semantic(encoding_hat)
+    sem_true = net.llm.crpn.gen.semantic(encodings)
+    
+    dloss_hat = forward(encoding_hat).item()
+    dloss_true = forward(encodings).item()
+
+    relMSE = F.mse_loss(encoding_hat, encodings).item() / (torch.mean(encodings**2).item() + 1e-8)
+    relMSE_sem = F.mse_loss(sem_hat, sem_true).item() / (torch.mean(sem_true**2).item() + 1e-8)
+    print(f"Sample {i}: Relative MSE in latent space (enc, sem): {relMSE:.6f}, {relMSE_sem:.6f}, with loss ratio (hat/true): {dloss_hat / dloss_true:.6f}") 
+
+
+    plt.plot(losses['d_loss'], label='Diffusion Loss')
+    plt.plot(losses['p_loss'], label='Perceptual Loss')
+    plt.title(f'Optimization Loss Curve for Sample {i}')
+    plt.xlabel('Iteration')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.savefig(os.path.join(dirs[0], f'opt_loss_curve_{i:04d}.png'))
+    plt.close()
     
     acc, num_rmse = token_accuracy(rpns, recon_rpns)
     
-    d[i] = {'in':rpns, 'out':recon_rpns, 'token_accuracy':acc, 'numerical_rmse':num_rmse}
+    d[i] = {'in':rpns, 'out':recon_rpns, 'token_accuracy':acc, 'numerical_rmse':num_rmse,
+             'relative_vect_embd_mse': relMSE, 'relative_sem_embd_mse': relMSE_sem, 'loss_ratio': dloss_hat / dloss_true}
     
 
 def inverse_metrics_all(net, loader, dirs):
@@ -81,7 +103,7 @@ def inverse_metrics_all(net, loader, dirs):
     for i, batch in enumerate(loader):
         if i not in _range:
             continue
-        inverse_metrics(net, i, batch, d)
+        inverse_metrics(net, i, batch, d, dirs)
             
     with open(os.path.join(dirs[0], f'inverse_gen.json'), 'w') as f:
         json.dump(d, f, indent=4)

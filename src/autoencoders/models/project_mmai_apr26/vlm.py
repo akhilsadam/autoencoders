@@ -124,8 +124,8 @@ class OptVLMDiffusion(pl.LightningModule):
             
     def metrics(self, assistant):
         # pass
-        val_loader = assistant #
-        TMX.inverse_metrics_all(self, val_loader, self.dirs)
+        val_loader, pred_loader = assistant #
+        TMX.inverse_metrics_all(self, pred_loader, self.dirs)
         MX.final_reco(self, val_loader, self.dirs)
         # MX.reconstruction(self, pred_loader, self.dirs)
         # MX.generation(self, val_loader, dirs)
@@ -136,24 +136,56 @@ class OptVLMDiffusion(pl.LightningModule):
     
     def inverse_solver(self, seq):
         rpn = "q psi jacobian neg"
-        encoding_init = self.encode_LLM([rpn,]).expand(seq.shape[0], -1).detach().to('cuda')
+        encoding_init = self.encode_LLM([rpn,]).detach().to('cuda')
         
-        x = seq[:,0].to('cuda')
-        y = seq[:,1].to('cuda') # one timestep only
+        n = seq.shape[1]
+        seq = seq.to('cuda')
         
-        encoding = encoding_init
-        optimizer = torch.optim.Adam([encoding], lr=1e-3)
-        
+        # encoding_init = torch.randn_like(encoding_init) * torch.std(encoding_init) * 0.1 + encoding_init
+
+        encoding = encoding_init.repeat(seq.shape[0], 1).requires_grad_(True)
+        optimizer = torch.optim.Adam([encoding], lr=1e-3)        
         print('DEVICE:', encoding.device)
         
+
+        forward = lambda y,x, encoding: self.opt.loss(y, x, self.compute_from_LLM(encoding))
+        percep = lambda x: self.llm.crpn.head.forward(self.llm.crpn.head.reverse(x))
+
         # optim loop
-        for _ in range(1000):
+        losses = {'d_loss': [], 'p_loss': []}
+        for j in range(500):
+
+            ji = j % (n-1)
+
+            x = seq[:,ji]
+            y = seq[:,ji+1] # one timestep only
+
             optimizer.zero_grad()
-            latent = self.compute_from_LLM(encoding)
-            diffusion_loss = self.opt.loss(y, x, latent)
+
+            n_encoding = encoding + 0.05 * torch.randn_like(encoding) * torch.std(encoding)  # jitter for stability
+
+            e_percep = percep(n_encoding)
+            percep_loss = F.mse_loss(e_percep, encoding) / (torch.mean(e_percep**2) + 1e-8)
+
+
+            diffusion_loss = (forward(y, x, n_encoding) + forward(y, x, e_percep))/2
             # self.log('optimization_loss', diffusion_loss, prog_bar=True)
-            diffusion_loss.backward()
+            losses['d_loss'].append(diffusion_loss.item())
+            losses['p_loss'].append(percep_loss.item())
+
+            init_target = self.llm.crpn.head.reverse(encoding_init.repeat(seq.shape[0], 1))
+            decoding = self.llm.crpn.head.reverse(encoding)
+            cosine_sim = F.cosine_similarity(decoding[:,:4], init_target[:,:4], dim=-1) # match initial part
+            sem_loss = torch.mean(1.0 - cosine_sim)
+
+            lz = diffusion_loss + percep_loss + sem_loss
+
+            lz.backward()
             optimizer.step()
+
+        encoding = percep(encoding)
+
+        torch.cuda.empty_cache()
             
-        return self.export_from_LLM(encoding)
+        return encoding, self.export_from_LLM(encoding), losses, lambda l: forward(seq[:,1], seq[:,0], l)
         

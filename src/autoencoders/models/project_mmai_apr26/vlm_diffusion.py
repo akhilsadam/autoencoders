@@ -164,6 +164,21 @@ class Diffusion(pl.LightningModule):
         v_true = self.vel(x, x_n, t) * (1 - t)
         return self.criterion(v_pred, v_true)
 
+    def loss_ss(self, x: torch.Tensor, c: torch.Tensor, latent:torch.Tensor) -> torch.Tensor:
+        
+        if x.shape != self.shape:
+            self.shape = x.shape[-2:]
+            self.L = x.shape[-1] * self.L / self.shape[-1]
+            self._init_buffers(self.shape, self.L)
+            self.to(x.device)
+        
+        t = torch.rand(x.shape[0], device=x.device)[:, None, None, None] * 0.0
+        n = self.noise(x, c)
+        x_n = self.mix(x, n, t)
+        v_pred = self.vel(self.denoise(n, t, c=c, latent=latent), n, t) * (1 - t)
+        v_true = self.vel(x, x_n, t) * (1 - t)
+        return self.criterion(v_pred, v_true)
+
     # ── Generation ────────────────────────────────────────────────────────
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
