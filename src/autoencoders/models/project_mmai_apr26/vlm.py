@@ -22,6 +22,20 @@ from autoencoders.metrics import text as TMX
 class Config(vlm_diffusion.Config, llm.Config):
     pass
 
+
+def safe_load_state_dict(model, ckpt):
+    model_dict = model.state_dict()
+
+    filtered = {}
+    for k, v in ckpt.items():
+        if k in model_dict and v.shape == model_dict[k].shape:
+            filtered[k] = v
+        else:
+            print(f"Skipping {k}: ckpt={getattr(v, 'shape', None)} model={model_dict.get(k).shape if k in model_dict else 'missing'}")
+
+    model_dict.update(filtered)
+    model.load_state_dict(model_dict, strict=True)
+
 class OptVLMDiffusion(pl.LightningModule):
 
     def __init__(self, config: Config) -> None:
@@ -62,7 +76,9 @@ class OptVLMDiffusion(pl.LightningModule):
             state_dict = checkpoint["state_dict"]
             
             # Load the weights into the current instance
-            self.load_state_dict(state_dict, strict=False)
+            # self.load_state_dict(state_dict, strict=False)
+            safe_load_state_dict(self, state_dict)
+            print(f'Loaded VM weights from checkpoint: {checkpoint_path}')
 
     def compute_latent(self, rpns):
         encoding = self.llm.encode(rpns)
