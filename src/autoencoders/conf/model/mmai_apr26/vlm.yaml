@@ -33,8 +33,8 @@ params:
     use_llm: True
 
     # pretrain_vm: /home/a1744874/ml/autoencoders/runs/mmai_apr26/2-vlm/rpn_textvision/vlm/PGHOV_/artifacts/checkpoints/last.ckpt
-    # pretrain_vm: /home/a1744874/ml/autoencoders/runs/mmai_apr26/2-vlm/rpn_textvision/vlm/PGOR0_/artifacts/checkpoints/last.ckpt
-    pretrain_vm: /home/a1744874/ml/autoencoders/runs/mmai_apr26/2-vlm/rpn_textvision/vlm/PUXCH_/artifacts/checkpoints/last.ckpt
+    pretrain_vm: /home/a1744874/ml/autoencoders/runs/mmai_apr26/2-vlm/rpn_textvision/vlm/PGOR0_/artifacts/checkpoints/last.ckpt
+    # pretrain_vm: /home/a1744874/ml/autoencoders/runs/mmai_apr26/2-vlm/rpn_textvision/vlm/PUXCH_/artifacts/checkpoints/last.ckpt
 
 
     # Training
