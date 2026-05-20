@@ -126,7 +126,7 @@ class OptVLMDiffusion(pl.LightningModule):
     def metrics(self, assistant):
         # pass
         val_loader, pred_loader = assistant #
-        TMX.inverse_metrics_all(self, pred_loader, self.dirs)
+        # TMX.inverse_metrics_all(self, pred_loader, self.dirs)
         MX.final_reco(self, val_loader, self.dirs)
         # MX.reconstruction(self, pred_loader, self.dirs)
         # MX.generation(self, val_loader, dirs)
@@ -152,7 +152,7 @@ class OptVLMDiffusion(pl.LightningModule):
         x = seq[:,:-1,...].reshape(-1, *seq.shape[2:]) # B T C H W
         y = seq[:,1:,...].reshape(-1, *seq.shape[2:]) # B T C H W
         
-        print(x.shape, encoding.shape)
+        # print(x.shape, encoding.shape)
 
 
         forward = lambda encoding: self.opt.loss(y, x, 

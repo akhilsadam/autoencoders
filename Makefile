@@ -172,6 +172,19 @@ train-operator-basediffusion: install
 		exp=mmai_apr26/0_vision model=mmai_apr26/operator_pixart\
 		trainer.max_epochs=2
 
+
+train-vlm-sm-base: install
+	source "$(VENV)/bin/activate" && \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+		exp=mmai_apr26/2_vlm model=mmai_apr26/vlm_baseline_sm\
+		trainer.max_epochs=50
+
+train-vlm-sm: install
+	source "$(VENV)/bin/activate" && \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+		exp=mmai_apr26/2_vlm model=mmai_apr26/vlm_sm\
+		trainer.max_epochs=50
+
 # ========================================
 # Cleanup
 # ========================================
