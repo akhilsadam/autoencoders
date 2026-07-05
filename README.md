@@ -37,3 +37,10 @@ And their FFMPEG doesn't have libx264 so we build our own:
     ```bash
     source src/install/ffmpeg-libx264-compat.sh
     ```
+
+## releases
+
+- MMAI May 2026 [course project]: commit 1eb19108dcf8f5b2c92a748663d07a48d0a4bda2
+    - `mura` (0.2.7), commit db6dd02d6b5f3c1969ad45039c1d2637f1df2559
+    - `qg` (0.2.1), commit ac1e48616271647a4ae8bebbf20c09e37b6c8bd0
+    since obsoleted due to updated PDE database package; affects `project_mmai_apr26`.
