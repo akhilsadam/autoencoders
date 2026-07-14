@@ -1,7 +1,7 @@
 [project]
-name = "ae-core"
+name = "autoencoders"
 version = "0.1.0"
-description = "Autoencoder models and training infrastructure"
+description = "Autoencoder models"
 requires-python = ">=3.10"
 dependencies = [
     "torch>=2.0.0",
