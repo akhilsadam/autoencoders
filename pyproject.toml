@@ -1,0 +1,20 @@
+[project]
+name = "ae-core"
+version = "0.1.0"
+description = "Autoencoder models and training infrastructure"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.0.0",
+    "pytorch-lightning>=2.0.0",
+    "hydra-core>=1.3.0",
+    "omegaconf>=2.3.0",
+    "mura @ file://../mura",
+    "metrics-core @ file://../metrics-core",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
