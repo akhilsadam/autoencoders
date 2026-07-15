@@ -7,10 +7,11 @@ dependencies = [
     "torch>=2.0.0",
     "pytorch-lightning>=2.0.0",
     "hydra-core>=1.3.0",
-    "omegaconf>=2.3.0",
-    "mura @ file://../mura",
-    "metrics-core @ file://../metrics-core",
+    "omegaconf>=2.3.0"
 ]
+
+[project.entry-points."model_registry"]
+models = "ae.MODEL_REGISTRY"
 
 [build-system]
 requires = ["setuptools", "wheel"]

@@ -1,7 +1,7 @@
 """Spatial autoencoder Lightning module and configuration."""
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Any, Dict
 
 import pytorch_lightning as pl
@@ -29,15 +29,15 @@ class SpatialAutoencoder(pl.LightningModule):
     
     def __init__(self, config: Config) -> None:
         super().__init__()
-
-        self.save_hyperparameters(asdict(config))
-
-        in_channels = config.in_channels
-        lift_steps = config.lift_steps
-        encode_layers = config.encode_layers
-        patch_size = config.patch_size
-        factor = config.factor
-        self.learning_rate = config.learning_rate
+        
+        self.save_hyperparameters(config)
+        
+        in_channels = config['in_channels']
+        lift_steps = config['lift_steps']
+        encode_layers = config['encode_layers']
+        patch_size = config['patch_size']
+        factor = config['factor']
+        self.learning_rate = config['learning_rate']
         
         self.model = BasicSpatialAutoencoder(
             in_dim=in_channels,

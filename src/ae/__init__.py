@@ -1,6 +1,5 @@
 """Autoencoder core models and training infrastructure."""
 from mura.registry import Registry
-from .train import train_ae
 
 __version__ = '0.1.0'
 
@@ -13,9 +12,9 @@ def _register_ae_models():
     from .models.mnist import MNISTAutoencoder, Config as MNISTConfig
     from .models.spatial import SpatialAutoencoder, Config as SpatialConfig
 
-    MODEL_REGISTRY.register("develop.mnist", MNISTConfig, MNISTAutoencoder)
-    MODEL_REGISTRY.register("develop.spatial", SpatialConfig, SpatialAutoencoder)
+    MODEL_REGISTRY.register("project_develop.mnist", MNISTConfig, MNISTAutoencoder)
+    MODEL_REGISTRY.register("project_develop.spatial", SpatialConfig, SpatialAutoencoder)
 
 _register_ae_models()
 
-__all__ = ['MODEL_REGISTRY', 'train_ae']
+__all__ = ['MODEL_REGISTRY']

@@ -1,7 +1,7 @@
 """Convolutional autoencoder Lightning module and configuration."""
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Any, Dict, Tuple
 
 import pytorch_lightning as pl
@@ -22,12 +22,11 @@ class MNISTAutoencoder(pl.LightningModule):
     def __init__(self, config: Config) -> None:
         super().__init__()
 
-        self.save_hyperparameters(asdict(config))
+        self.save_hyperparameters(config)
 
-        latent_dim = config.latent_dim
-        self.learning_rate = config.learning_rate
-        img_size = getattr(config, 'img_size', 28)
-        p4 = img_size // 4
+        latent_dim = config['latent_dim']
+        self.learning_rate = config['learning_rate']
+        p4 = config['img_size'] // 4
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=2, padding=1),
