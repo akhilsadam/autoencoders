@@ -36,7 +36,7 @@ for pkg_name in _package_names:
                     "default_config": config_cls() if config_cls else None,
                 }
                 print(f"  Loaded: {key}")
-    except (ModuleNotFoundError, ImportError, AttributeError):
+    except (ModuleNotFoundError, ImportError, AttributeError, FileNotFoundError):
         pass
 
 # Second: discover models from orchestrator

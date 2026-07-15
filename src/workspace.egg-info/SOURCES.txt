@@ -26,10 +26,6 @@ src/workspace/datamodules/timeseries.py
 src/workspace/datamodules/timeseries_decaying_qg_turbulence.py
 src/workspace/datamodules/timeseries_delay_2d.py
 src/workspace/datamodules/timeseries_viscous_burgers_1d.py
-src/workspace/metrics/conditional_image_diffusion.py
-src/workspace/metrics/image_diffusion.py
-src/workspace/metrics/text.py
-src/workspace/metrics/vlm_image_diffusion.py
 src/workspace/models/__init__.py
 src/workspace/util/gitinfo.py
 src/workspace/util/llm.py

@@ -26,13 +26,15 @@ while read -r name url; do
         cd "${PACKAGES_DIR}/${name}" && uv pip install -e . --python "${PYTHON_PATH}" --extra local
     else
         echo "✓ ${name} already exists, pulling latest..."
-        cd "${PACKAGES_DIR}/${name}" && git pull
         if [ "$FORCE_REINSTALL" = "true" ]; then
+            cd "${PACKAGES_DIR}/${name}" && git pull
             echo "📦 Reinstalling ${name}..."
             uv pip install -e . --python "${PYTHON_PATH}"
+        else
+            (cd "${PACKAGES_DIR}/${name}" && git pull) &
         fi
     fi
 done < "${SCRIPT_DIR}/package_requirements.txt"
-
+wait
 echo "✅ Packages ready"
 

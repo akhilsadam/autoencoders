@@ -3,8 +3,18 @@ defaults:
   - model: null
   - data: null
   - exp: mnist
-  
+
 project: null
+project_diffusion_info:
+  name: unconditional_diffusion
+  description: Unconditional diffusion model for turbulence generation
+  version: 1.0
+  author: null
+  ae_factor: 8
+  latent_dim: 1
+  time_dim: 16
+  diffusion_steps: 5
+  scheduler: AB5
 
 seed: 42
 
