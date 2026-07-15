@@ -23,7 +23,7 @@ while read -r name url; do
         echo "📦 Cloning ${name}..."
         git clone "${url}" "${PACKAGES_DIR}/${name}"
         echo "📦 Installing ${name}..."
-        cd "${PACKAGES_DIR}/${name}" && uv pip install -e . --python "${PYTHON_PATH}"
+        cd "${PACKAGES_DIR}/${name}" && uv pip install -e . --python "${PYTHON_PATH}" --extra local
     else
         echo "✓ ${name} already exists, pulling latest..."
         cd "${PACKAGES_DIR}/${name}" && git pull

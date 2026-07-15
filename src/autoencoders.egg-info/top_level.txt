@@ -1,4 +1,0 @@
-autoencoders
-deploy
-install
-user

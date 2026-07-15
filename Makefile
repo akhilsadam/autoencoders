@@ -17,12 +17,12 @@ INSTALL = src/install
 # Help
 # ========================================
 help:
-	@echo "Autoencoders Makefile"
+	@echo "workspace Makefile"
 	@echo ""
 	@echo "Installation:"
 	@echo "  make install          - Full install "
 	@echo "  make install-packages   - Install (external) packages only"
-	@echo "  make install-standalone - Install autoencoders without mura/qg"
+	@echo "  make install-standalone - Install workspace without mura/qg"
 	@echo ""
 	@echo "Training:"
 	@echo "  make train            - Train with default config"
@@ -34,7 +34,7 @@ help:
 # ========================================
 # Installation
 # ========================================
-install: install-deps install-packages install-autoencoders
+install: install-deps install-packages install-workspace
 	@echo "✅ Installation complete!"
 	@echo "Don't forget to run: wandb login && huggingface-cli login"
 
@@ -47,8 +47,13 @@ install-packages: install-deps
 	@chmod +x $(INSTALL)/install_packages.sh
 	@$(INSTALL)/install_packages.sh $(PYTHON)
 
-install-autoencoders:
-	@echo "📦 Installing autoencoders..."
+reinstall-packages: install-deps
+	@echo "📦 Installing external packages..."
+	@chmod +x $(INSTALL)/install_packages.sh
+	@$(INSTALL)/install_packages.sh $(PYTHON) true
+
+install-workspace:
+	@echo "📦 Installing workspace..."
 	$(UV) pip install -r $(INSTALL)/requirements.txt --python $(PYTHON)
 	$(MAKE) py3-conf
 	$(UV) pip install -e . --python $(PYTHON)
@@ -61,17 +66,17 @@ py3-conf:
 # ========================================
 train: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train
 
 train-mnist: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		trainer.accelerator=cpu \
 		trainer.max_epochs=0
 
 train-smallqg: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		data=small_forced_turbulence \
 		model=mnist64 \
 		trainer.accelerator=cpu \
@@ -79,14 +84,14 @@ train-smallqg: install
 
 train-qgae: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		data=forced_turbulence \
 		model=spatial \
 		trainer.max_epochs=200
 
 train-rpnae: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		data=rpn_turbulence \
 		model=spatial \
 		trainer.max_epochs=200
@@ -96,92 +101,92 @@ train-rpnae: install
 
 train-diffusion: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/diffusion \
 		trainer.max_epochs=90
 
 train-operator-diffusion: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/0_vision \
 		trainer.max_epochs=90
 
 train-operator-srdit: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/0_vision model=mmai_apr26/operator_srdit \
 		trainer.max_epochs=120
 
 train-llm: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/1_llm \
 		trainer.max_epochs=250
 
 train-llm-wo: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/1_llm model=mmai_apr26/llm_wo_sym\
 		trainer.max_epochs=250
 
 train-qwen_llm: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/1_llm model=mmai_apr26/qwen_llm \
 		trainer.max_epochs=120
 
 train-vlm-base: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/2_vlm model=mmai_apr26/vlm_baseline\
 		trainer.max_epochs=160
 
 train-vlm: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/2_vlm \
 		trainer.max_epochs=160
 
 train-vlm-wo: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/2_vlm model=mmai_apr26/vlm_wo_sym \
 		trainer.max_epochs=160
 
 test-vlm-base: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/2_vlm model=mmai_apr26/vlm_baseline\
 		trainer.max_epochs=0
 
 test-vlm: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/2_vlm \
 		trainer.max_epochs=0
 
 test-vlm-wo: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/2_vlm model=mmai_apr26/vlm_wo_sym \
 		trainer.max_epochs=0
 
 train-operator-basediffusion: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/0_vision model=mmai_apr26/operator_pixart\
 		trainer.max_epochs=2
 
 
 train-vlm-sm-base: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/2_vlm model=mmai_apr26/vlm_baseline_sm\
 		trainer.max_epochs=50
 
 train-vlm-sm: install
 	source "$(VENV)/bin/activate" && \
-	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.autoencoders.train \
+	HYDRA_FULL_ERROR=1 $(PYTHON) -m src.workspace.train \
 		exp=mmai_apr26/2_vlm model=mmai_apr26/vlm_sm\
 		trainer.max_epochs=50
 

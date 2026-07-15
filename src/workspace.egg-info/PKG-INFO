@@ -1,3 +1,11 @@
+Metadata-Version: 2.4
+Name: workspace
+Version: 0.3.0
+Summary: ML workspace with experiments and training infrastructure
+Author-email: Akhil Sadam <sadam.akhil@gmail.com>
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+
 # workspace
 (formerly autoencoders)
 

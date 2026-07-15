@@ -3,3 +3,10 @@
 
 mura git@github.com:akhilsadam/mura.git
 qg git@github.com:akhilsadam/qg.git
+autoencoders git@github.com:akhilsadam/autoencoders.git
+diffusion git@github.com:akhilsadam/diffusion.git
+# diffusion-information-studies git@github.com:akhilsadam/diffusion-information-studies.git
+pde-cond-diffusion git@github.com:akhilsadam/pde-cond-diffusion.git
+vectorspace git@github.com:akhilsadam/vectorspace.git
+metrics-core git@github.com:akhilsadam/metrics-core.git
+

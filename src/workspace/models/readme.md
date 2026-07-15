@@ -1,0 +1,1 @@
+All final trainable networks are in a `project` folder of some sort, or in their corresponding package; other folders or packages are for architectural components.

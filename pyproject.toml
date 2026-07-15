@@ -1,7 +1,7 @@
 [project]
-name = "autoencoders"
-version = "0.2.0"
-description = "Autoencoders with QG dataset generation and Mura utilities"
+name = "workspace"
+version = "0.3.0"
+description = "ML workspace with experiments and training infrastructure"
 authors = [
     {name = "Akhil Sadam", email = "sadam.akhil@gmail.com"}
 ]
@@ -31,6 +31,9 @@ allow-direct-references = true
 python_files = ["*.py"]
 python_classes = ["_TEST_*"]
 python_functions = ["_test_*"]
+
+# [tool.uv.workspace]
+# members = ["packages/*"]
 
 [tool.uv.extra-build-dependencies]
 causal-conv1d = ["packaging"]
