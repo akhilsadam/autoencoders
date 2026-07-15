@@ -13,7 +13,7 @@ FORCE_REINSTALL="${2:-false}"
 if [[ ! "$PYTHON_PATH" = /* ]]; then
     PYTHON_PATH="${AUTOENCODERS_ROOT}/${PYTHON_PATH}"
 fi
-
+# --extra local
 mkdir -p "${PACKAGES_DIR}"
 
 while read -r name url; do
@@ -23,7 +23,7 @@ while read -r name url; do
         echo "📦 Cloning ${name}..."
         git clone "${url}" "${PACKAGES_DIR}/${name}"
         echo "📦 Installing ${name}..."
-        cd "${PACKAGES_DIR}/${name}" && uv pip install -e . --python "${PYTHON_PATH}" --extra local
+        cd "${PACKAGES_DIR}/${name}" && uv pip install -e . --python "${PYTHON_PATH}"
     else
         echo "✓ ${name} already exists, pulling latest..."
         if [ "$FORCE_REINSTALL" = "true" ]; then
